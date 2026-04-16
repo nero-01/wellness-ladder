@@ -9,9 +9,9 @@ const patchSchema = z.object({
   totalCompleted: z.number().int().min(0).optional(),
 })
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const { id } = await requireUser()
+    const { id } = await requireUser(request)
     const row = await prisma.user.findUnique({
       where: { id },
       include: {
@@ -43,7 +43,7 @@ export async function GET() {
 
 export async function PATCH(request: Request) {
   try {
-    const { id } = await requireUser()
+    const { id } = await requireUser(request)
     const json = await request.json()
     const parsed = patchSchema.safeParse(json)
     if (!parsed.success) {

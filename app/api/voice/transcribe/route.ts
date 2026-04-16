@@ -10,7 +10,7 @@ export const maxDuration = 60
  */
 export async function POST(request: Request) {
   try {
-    await requireUser()
+    await requireUser(request)
 
     const contentType = request.headers.get("content-type") ?? ""
     if (!contentType.includes("multipart/form-data")) {

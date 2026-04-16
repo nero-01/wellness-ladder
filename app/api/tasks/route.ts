@@ -10,7 +10,7 @@ const patchSchema = z.object({
 
 export async function GET(request: Request) {
   try {
-    const { id } = await requireUser()
+    const { id } = await requireUser(request)
     const { searchParams } = new URL(request.url)
     const forDate = searchParams.get("forDate")
     const where =
@@ -39,7 +39,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { id } = await requireUser()
+    const { id } = await requireUser(request)
     const schema = z.object({
       dailyTaskId: z.number().int().min(1),
       forDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -87,7 +87,7 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
-    const { id } = await requireUser()
+    const { id } = await requireUser(request)
     const json = await request.json()
     const parsed = patchSchema.safeParse(json)
     if (!parsed.success) {

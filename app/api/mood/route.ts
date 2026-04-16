@@ -11,7 +11,7 @@ const postSchema = z.object({
 
 export async function GET(request: Request) {
   try {
-    const { id } = await requireUser()
+    const { id } = await requireUser(request)
     const { searchParams } = new URL(request.url)
     const limit = Math.min(Number(searchParams.get("limit") ?? 30), 100)
 
@@ -34,7 +34,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { id } = await requireUser()
+    const { id } = await requireUser(request)
     const json = await request.json()
     const parsed = postSchema.safeParse(json)
     if (!parsed.success) {

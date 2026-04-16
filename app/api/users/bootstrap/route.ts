@@ -6,9 +6,9 @@ import { prisma } from "@/lib/prisma"
  * Ensures a `users` row exists for the authenticated Supabase user.
  * Call after sign-in / sign-up (idempotent).
  */
-export async function POST() {
+export async function POST(request: Request) {
   try {
-    const { user, id } = await requireUser()
+    const { user, id } = await requireUser(request)
     const email = user.email ?? null
 
     await prisma.user.upsert({

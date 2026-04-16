@@ -1,3 +1,4 @@
+import { createClient as createSupabaseJsClient } from "@supabase/supabase-js"
 import { createClient } from "@/lib/supabase/server"
 import type { User } from "@supabase/supabase-js"
 
@@ -7,10 +8,36 @@ export type AuthedUser = {
 }
 
 /**
- * Resolves the current user from the Supabase session (cookie/JWT).
- * Use in Route Handlers and Server Actions that must not trust client-sent user ids.
+ * Resolves the current user from the Supabase session (cookies) or
+ * `Authorization: Bearer <access_token>` (React Native / non-browser clients).
+ * Pass the incoming `Request` from Route Handlers so mobile can authenticate.
  */
-export async function requireUser(): Promise<AuthedUser> {
+export async function requireUser(request?: Request): Promise<AuthedUser> {
+  const authHeader = request?.headers.get("authorization")
+  if (authHeader?.startsWith("Bearer ")) {
+    const jwt = authHeader.slice(7)
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    if (!url || !key) {
+      const err = new Error("Server misconfigured") as Error & { status: number }
+      err.status = 503
+      throw err
+    }
+    const supabase = createSupabaseJsClient(url, key)
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser(jwt)
+
+    if (error || !user) {
+      const err = new Error("Unauthorized") as Error & { status: number }
+      err.status = 401
+      throw err
+    }
+
+    return { user, id: user.id }
+  }
+
   const supabase = await createClient()
   const {
     data: { user },
@@ -26,9 +53,9 @@ export async function requireUser(): Promise<AuthedUser> {
   return { user, id: user.id }
 }
 
-export async function getOptionalUser(): Promise<AuthedUser | null> {
+export async function getOptionalUser(request?: Request): Promise<AuthedUser | null> {
   try {
-    return await requireUser()
+    return await requireUser(request)
   } catch {
     return null
   }
