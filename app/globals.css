@@ -1,0 +1,136 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer base {
+  :root {
+    --font-sans: var(--font-inter);
+    --font-mono: var(--font-geist-mono);
+    
+    /* Calming lavender-to-mint palette */
+    --background: 270 30% 98%;
+    --foreground: 260 25% 15%;
+    
+    --card: 0 0% 100%;
+    --card-foreground: 260 25% 15%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 260 25% 15%;
+    
+    /* Primary purple/lavender for CTAs */
+    --primary: 262 83% 58%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Soft lavender secondary */
+    --secondary: 270 40% 95%;
+    --secondary-foreground: 260 25% 25%;
+    
+    /* Muted mint/lavender */
+    --muted: 165 30% 94%;
+    --muted-foreground: 260 15% 45%;
+    
+    /* Mint accent */
+    --accent: 165 50% 90%;
+    --accent-foreground: 165 40% 25%;
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    
+    --border: 270 20% 90%;
+    --input: 270 20% 90%;
+    --ring: 262 83% 58%;
+    
+    /* Chart colors */
+    --chart-1: 262 83% 58%;
+    --chart-2: 165 50% 50%;
+    --chart-3: 270 40% 70%;
+    --chart-4: 165 40% 70%;
+    --chart-5: 262 60% 70%;
+    
+    --radius: 1rem;
+    
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 262 83% 58%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 270 40% 95%;
+    --sidebar-accent-foreground: 260 25% 25%;
+    --sidebar-border: 270 20% 90%;
+    --sidebar-ring: 262 83% 58%;
+  }
+  
+  .dark {
+    --background: 260 20% 8%;
+    --foreground: 270 20% 95%;
+    
+    --card: 260 20% 12%;
+    --card-foreground: 270 20% 95%;
+    
+    --popover: 260 20% 12%;
+    --popover-foreground: 270 20% 95%;
+    
+    --primary: 262 75% 65%;
+    --primary-foreground: 260 20% 8%;
+    
+    --secondary: 260 20% 18%;
+    --secondary-foreground: 270 20% 90%;
+    
+    --muted: 260 15% 20%;
+    --muted-foreground: 270 15% 60%;
+    
+    --accent: 165 30% 20%;
+    --accent-foreground: 165 40% 80%;
+    
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 98%;
+    
+    --border: 260 15% 20%;
+    --input: 260 15% 20%;
+    --ring: 262 75% 65%;
+    
+    --chart-1: 262 75% 65%;
+    --chart-2: 165 50% 55%;
+    --chart-3: 270 40% 60%;
+    --chart-4: 165 40% 60%;
+    --chart-5: 262 60% 60%;
+    
+    --sidebar-background: 260 20% 10%;
+    --sidebar-foreground: 270 20% 90%;
+    --sidebar-primary: 262 75% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 260 15% 18%;
+    --sidebar-accent-foreground: 270 20% 90%;
+    --sidebar-border: 260 15% 20%;
+    --sidebar-ring: 262 75% 65%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+/* Custom gradient utilities */
+@layer utilities {
+  .gradient-primary {
+    background: linear-gradient(135deg, hsl(262, 83%, 58%) 0%, hsl(262, 70%, 50%) 100%);
+  }
+  
+  .gradient-bg {
+    background: linear-gradient(180deg, hsl(270, 30%, 98%) 0%, hsl(165, 30%, 96%) 100%);
+  }
+  
+  .dark .gradient-bg {
+    background: linear-gradient(180deg, hsl(260, 20%, 8%) 0%, hsl(260, 20%, 10%) 100%);
+  }
+}

@@ -1,0 +1,56 @@
+// Prisma schema for Supabase Postgres (Docker dev / merge with production).
+// Auth: Supabase Auth (email). App tables live in public.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Profile row keyed by auth.users.id (created via bootstrap API or DB trigger).
+model User {
+  id                String    @id @db.Uuid
+  email             String?
+  streak            Int       @default(0)
+  lastCompletedDate DateTime? @db.Date
+  totalCompleted    Int       @default(0)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  moodLogs MoodLog[]
+  tasks    UserTask[]
+
+  @@map("users")
+}
+
+model MoodLog {
+  id       String   @id @default(cuid())
+  userId   String   @db.Uuid
+  mood     Int
+  note     String?
+  loggedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, loggedAt])
+  @@map("mood_logs")
+}
+
+/// Daily wellness task completion (catalog id matches lib/wellness-data WELLNESS_TASKS).
+model UserTask {
+  id          String    @id @default(cuid())
+  userId      String    @db.Uuid
+  dailyTaskId Int
+  completed   Boolean   @default(false)
+  forDate     DateTime  @db.Date
+  completedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, dailyTaskId, forDate])
+  @@index([userId, forDate])
+  @@map("user_tasks")
+}

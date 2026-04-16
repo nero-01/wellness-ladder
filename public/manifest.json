@@ -1,0 +1,26 @@
+{
+  "name": "Bite-Size Wellness Ladder",
+  "short_name": "Wellness",
+  "description": "One tiny self-care step daily. Build habits effortlessly.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f0fa",
+  "theme_color": "#8B5CF6",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/icon-192.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "categories": ["health", "lifestyle", "wellness"]
+}

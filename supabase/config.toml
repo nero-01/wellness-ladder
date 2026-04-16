@@ -1,0 +1,8 @@
+# Supabase CLI project config. Set project_id after linking: `supabase link`
+project_id = "your-project-ref"
+
+[api]
+enabled = true
+
+[functions.personalize]
+verify_jwt = true
