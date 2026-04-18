@@ -22,12 +22,19 @@ export interface User {
 /** Supabase OAuth providers used on the sign-up page (maps to `signInWithOAuth`). */
 export type OAuthProviderId = "google" | "apple" | "facebook" | "twitter"
 
+/** After email/password sign-up: `true` when Supabase requires email confirmation (no session yet). */
+export type SignUpResult = { needsEmailConfirmation: boolean }
+
 interface AuthContextType {
   user: User | null
   isLoaded: boolean
   isSignedIn: boolean
   signIn: (email: string, password: string) => Promise<void>
-  signUp: (email: string, password: string, name: string) => Promise<void>
+  signUp: (
+    email: string,
+    password: string,
+    name: string,
+  ) => Promise<SignUpResult>
   signOut: () => Promise<void>
   signInWithOAuth: (provider: OAuthProviderId) => Promise<void>
 }
@@ -79,6 +86,16 @@ function mapSupabaseUser(session: Session | null): User | null {
 
 async function bootstrapProfile() {
   await fetch("/api/users/bootstrap", { method: "POST", credentials: "same-origin" })
+}
+
+/** Redirect used in confirmation / magic-link emails — must match Supabase Auth → Redirect URLs. */
+function getAuthEmailRedirectTo(): string {
+  const fromEnv = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "").trim()
+  const origin =
+    fromEnv ||
+    (typeof window !== "undefined" ? window.location.origin : "")
+  if (!origin) return ""
+  return `${origin}/auth/callback?next=${encodeURIComponent("/")}`
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -163,19 +180,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setUser(newUser)
       localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(newUser))
-      return
+      return { needsEmailConfirmation: false }
     }
 
     const supabase = getBrowserSupabase()
     if (!supabase) throw new Error("Supabase client unavailable")
 
-    const { error } = await supabase.auth.signUp({
-      email,
+    const emailRedirectTo = getAuthEmailRedirectTo()
+    const { data, error } = await supabase.auth.signUp({
+      email: email.trim(),
       password,
-      options: { data: { name } },
+      options: {
+        data: { name },
+        ...(emailRedirectTo ? { emailRedirectTo } : {}),
+      },
     })
     if (error) throw error
-    await bootstrapProfile()
+
+    if (data.session) {
+      await bootstrapProfile()
+      return { needsEmailConfirmation: false }
+    }
+
+    return { needsEmailConfirmation: true }
   }, [])
 
   const signOut = useCallback(async () => {

@@ -1,5 +1,6 @@
 import type { Session } from "@supabase/supabase-js"
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import * as Linking from "expo-linking"
 import React, {
   createContext,
   useCallback,
@@ -20,12 +21,19 @@ export interface User {
   isPremium: boolean
 }
 
+/** Mirrors web `lib/auth.tsx` — true when Supabase is waiting for email confirmation. */
+export type SignUpResult = { needsEmailConfirmation: boolean }
+
 interface AuthContextType {
   user: User | null
   isLoaded: boolean
   isSignedIn: boolean
   signIn: (email: string, password: string) => Promise<void>
-  signUp: (email: string, password: string, name: string) => Promise<void>
+  signUp: (
+    email: string,
+    password: string,
+    name: string,
+  ) => Promise<SignUpResult>
   signOut: () => Promise<void>
 }
 
@@ -56,6 +64,21 @@ function assertMockSignIn(email: string, password: string) {
   if (email.trim() !== fixed.email || password !== fixed.password) {
     throw new Error("Invalid email or password")
   }
+}
+
+/**
+ * Must match Supabase Auth → Redirect URLs (use HTTPS production URL via EXPO_PUBLIC_AUTH_REDIRECT_URL).
+ */
+function getAuthEmailRedirectTo(): string {
+  const explicit = process.env.EXPO_PUBLIC_AUTH_REDIRECT_URL?.trim()
+  if (explicit) {
+    return explicit.includes("?")
+      ? explicit
+      : `${explicit}?next=${encodeURIComponent("/")}`
+  }
+  return Linking.createURL("auth/callback", {
+    queryParams: { next: "/" },
+  })
 }
 
 function mapUser(session: Session | null): User | null {
@@ -162,16 +185,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setUser(newUser)
       await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(newUser))
-      return
+      return { needsEmailConfirmation: false }
     }
 
-    const { error } = await supabase.auth.signUp({
+    const emailRedirectTo = getAuthEmailRedirectTo()
+    const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
-      options: { data: { name: name.trim() } },
+      options: {
+        data: { name: name.trim() },
+        ...(emailRedirectTo ? { emailRedirectTo } : {}),
+      },
     })
     if (error) throw error
-    await bootstrapUserProfile().catch(() => {})
+
+    if (data.session) {
+      await bootstrapUserProfile().catch(() => {})
+      return { needsEmailConfirmation: false }
+    }
+
+    return { needsEmailConfirmation: true }
   }, [])
 
   const signOut = useCallback(async () => {

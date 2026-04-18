@@ -119,11 +119,18 @@ export function SignUpView() {
   async function onValid(values: SignUpFormValues) {
     setLoading(true)
     try {
-      await signUp(
+      const { needsEmailConfirmation } = await signUp(
         values.email,
         values.password,
         values.name || values.email.split("@")[0] || "User",
       )
+      if (needsEmailConfirmation) {
+        toast.success(
+          "Check your email — we sent a confirmation link to finish onboarding.",
+          { duration: 6000 },
+        )
+        return
+      }
       toast.success("Welcome! You're on the ladder.")
       router.push("/")
       router.refresh()

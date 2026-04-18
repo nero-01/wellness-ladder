@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { requireUser } from "@/lib/api-auth"
-import { prisma } from "@/lib/prisma"
+import { ensureUserProfile } from "@/lib/ensure-user-profile"
 
 /**
  * Ensures a `users` row exists for the authenticated Supabase user.
@@ -11,16 +11,7 @@ export async function POST(request: Request) {
     const { user, id } = await requireUser(request)
     const email = user.email ?? null
 
-    await prisma.user.upsert({
-      where: { id },
-      create: {
-        id,
-        email,
-      },
-      update: {
-        email: email ?? undefined,
-      },
-    })
+    await ensureUserProfile(id, email)
 
     return NextResponse.json({ ok: true })
   } catch (e) {

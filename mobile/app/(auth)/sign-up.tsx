@@ -23,13 +23,25 @@ export default function SignUpScreen() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
+  const [info, setInfo] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   async function onSubmit() {
     setError(null)
+    setInfo(null)
     setLoading(true)
     try {
-      await signUp(email.trim(), password, name.trim() || email.split("@")[0] || "User")
+      const { needsEmailConfirmation } = await signUp(
+        email.trim(),
+        password,
+        name.trim() || email.split("@")[0] || "User",
+      )
+      if (needsEmailConfirmation) {
+        setInfo(
+          "Check your email — open the confirmation link to finish onboarding.",
+        )
+        return
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Sign up failed")
     } finally {
@@ -71,6 +83,7 @@ export default function SignUpScreen() {
           value={password}
           onChangeText={setPassword}
         />
+        {info ? <Text style={styles.info}>{info}</Text> : null}
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <Pressable
           style={[styles.button, loading && styles.buttonDisabled]}
@@ -96,6 +109,7 @@ const styles = StyleSheet.create({
   inner: { flex: 1, padding: 24, justifyContent: "center", gap: 12 },
   title: { fontSize: 24, fontWeight: "700", marginBottom: 8 },
   error: { color: "#c00" },
+  info: { color: "#2563eb", fontSize: 14 },
   button: {
     backgroundColor: "#6b4d8a",
     padding: 16,
