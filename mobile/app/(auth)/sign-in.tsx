@@ -9,10 +9,15 @@ import {
 } from "react-native"
 import { Link } from "expo-router"
 import { Text, View } from "@/components/Themed"
+import { useColorScheme } from "@/components/useColorScheme"
 import { AUTH_PLACEHOLDER, authInputStyles } from "@/constants/authFormStyles"
+import { WellnessColors, WellnessColorsLight } from "@/constants/wellnessTheme"
 import { useAuth } from "@/contexts/AuthContext"
 
 export default function SignInScreen() {
+  const colorScheme = useColorScheme()
+  const screenBg =
+    colorScheme === "light" ? WellnessColorsLight.bg : WellnessColors.bg
   const { signIn } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -35,7 +40,7 @@ export default function SignInScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
-      style={styles.container}
+      style={[styles.container, { backgroundColor: screenBg }]}
     >
       <View style={styles.inner}>
         <Text style={styles.title}>Sign in</Text>

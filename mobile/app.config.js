@@ -27,6 +27,12 @@ if (!process.env.EXPO_PUBLIC_MOCK_DEV_EMAIL && process.env.NEXT_PUBLIC_MOCK_DEV_
 if (!process.env.EXPO_PUBLIC_MOCK_DEV_PASSWORD && process.env.NEXT_PUBLIC_MOCK_DEV_PASSWORD) {
   process.env.EXPO_PUBLIC_MOCK_DEV_PASSWORD = process.env.NEXT_PUBLIC_MOCK_DEV_PASSWORD
 }
+if (!process.env.EXPO_PUBLIC_USE_ELEVENLABS_TTS && process.env.NEXT_PUBLIC_USE_ELEVENLABS_TTS) {
+  process.env.EXPO_PUBLIC_USE_ELEVENLABS_TTS = process.env.NEXT_PUBLIC_USE_ELEVENLABS_TTS
+}
+if (!process.env.EXPO_PUBLIC_WELLNESS_PRO && process.env.NEXT_PUBLIC_WELLNESS_PRO) {
+  process.env.EXPO_PUBLIC_WELLNESS_PRO = process.env.NEXT_PUBLIC_WELLNESS_PRO
+}
 
 module.exports = {
   expo: {

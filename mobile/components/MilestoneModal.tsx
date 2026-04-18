@@ -1,0 +1,128 @@
+import { Image } from "expo-image"
+import {
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native"
+import LottieView from "lottie-react-native"
+import type { WellnessPalette } from "@/constants/wellnessTheme"
+import { useWellnessColors } from "@/hooks/useWellnessColors"
+import { wellnessTapMedium } from "@/lib/wellnessFeedback"
+import { emojiFamilySvgUrl } from "@/lib/mood-picker-data"
+import { MILESTONE_NOTO } from "@/lib/streak-rules"
+import type { MilestoneId } from "@/lib/wellness-data"
+
+const confetti = require("@/assets/lottie/confetti.json")
+
+type Props = {
+  visible: boolean
+  milestone: MilestoneId | null
+  onClose: () => void
+}
+
+export function MilestoneModal({ visible, milestone, onClose }: Props) {
+  const W = useWellnessColors()
+  const styles = createStyles(W)
+
+  if (!milestone) return null
+
+  const meta = MILESTONE_NOTO[milestone]
+  const uri = emojiFamilySvgUrl(meta.code, "noto")
+
+  return (
+    <Modal
+      visible={visible && !!milestone}
+      transparent
+      animationType="fade"
+      onRequestClose={() => {
+        wellnessTapMedium()
+        onClose()
+      }}
+    >
+      <View style={styles.backdrop}>
+        <View style={styles.sheet}>
+          <LottieView
+            source={confetti}
+            autoPlay
+            loop={false}
+            style={styles.lottie}
+          />
+          <Text style={styles.kicker}>Milestone</Text>
+          <Text style={styles.title}>{meta.label}</Text>
+          <Image
+            source={{ uri }}
+            style={styles.badgeImg}
+            contentFit="contain"
+            accessibilityLabel={meta.label}
+          />
+          <Text style={styles.sub}>
+            {milestone === "bronze-2" && "Two days strong — keep the spark alive."}
+            {milestone === "silver-3" && "Three days — your rhythm is building."}
+            {milestone === "gold-7" && "A full week — legendary consistency."}
+          </Text>
+          <Pressable
+            style={({ pressed }) => [styles.btn, pressed && { opacity: 0.92 }]}
+            onPress={() => {
+              wellnessTapMedium()
+              onClose()
+            }}
+          >
+            <Text style={styles.btnText}>Add to collection</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
+  )
+}
+
+function createStyles(W: WellnessPalette) {
+  return StyleSheet.create({
+    backdrop: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.55)",
+      justifyContent: "center",
+      padding: 24,
+    },
+    sheet: {
+      borderRadius: 20,
+      padding: 22,
+      backgroundColor: W.bgElevated,
+      borderWidth: 1,
+      borderColor: W.cardBorder,
+      alignItems: "center",
+    },
+    lottie: { width: 200, height: 160, marginBottom: 8 },
+    kicker: {
+      fontSize: 11,
+      fontWeight: "800",
+      letterSpacing: 1,
+      color: W.primary,
+      textTransform: "uppercase",
+      marginBottom: 6,
+    },
+    title: {
+      fontSize: 22,
+      fontWeight: "800",
+      color: W.text,
+      marginBottom: 12,
+      textAlign: "center",
+    },
+    badgeImg: { width: 88, height: 88, marginBottom: 12 },
+    sub: {
+      fontSize: 15,
+      color: W.textMuted,
+      textAlign: "center",
+      lineHeight: 22,
+      marginBottom: 18,
+    },
+    btn: {
+      backgroundColor: W.primary,
+      paddingVertical: 14,
+      paddingHorizontal: 28,
+      borderRadius: 14,
+    },
+    btnText: { color: "#fff", fontWeight: "800", fontSize: 16 },
+  })
+}

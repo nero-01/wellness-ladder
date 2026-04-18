@@ -1,14 +1,13 @@
+import { Image } from "expo-image"
 import { Pressable, Text, View } from "react-native"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { wellnessSelection } from "@/lib/wellnessFeedback"
+import {
+  MOOD_PICKER_ITEMS,
+  moodSvgUrlFromFamily,
+} from "@/lib/mood-picker-data"
 
-const MOODS = [
-  { emoji: "😢", label: "Sad", value: 1 },
-  { emoji: "😔", label: "Down", value: 2 },
-  { emoji: "😐", label: "Okay", value: 3 },
-  { emoji: "🙂", label: "Good", value: 4 },
-  { emoji: "😊", label: "Great", value: 5 },
-]
+const MOOD_IMAGE_SIZE = 34
 
 type Props = {
   selectedMood: number | null
@@ -17,7 +16,7 @@ type Props = {
 
 export function MoodPickerRow({ selectedMood, onMoodSelect }: Props) {
   const W = useWellnessColors()
-  const selected = MOODS.find((m) => m.value === selectedMood)
+  const selected = MOOD_PICKER_ITEMS.find((m) => m.value === selectedMood)
 
   return (
     <View style={{ marginTop: 8 }}>
@@ -39,8 +38,9 @@ export function MoodPickerRow({ selectedMood, onMoodSelect }: Props) {
           gap: 10,
         }}
       >
-        {MOODS.map((m) => {
+        {MOOD_PICKER_ITEMS.map((m) => {
           const on = selectedMood === m.value
+          const uri = moodSvgUrlFromFamily(m.family)
           return (
             <Pressable
               key={m.value}
@@ -61,7 +61,16 @@ export function MoodPickerRow({ selectedMood, onMoodSelect }: Props) {
               }}
               accessibilityLabel={m.label}
             >
-              <Text style={{ fontSize: 24 }}>{m.emoji}</Text>
+              <Image
+                source={{ uri }}
+                style={{
+                  width: MOOD_IMAGE_SIZE,
+                  height: MOOD_IMAGE_SIZE,
+                }}
+                contentFit="contain"
+                cachePolicy="memory-disk"
+                transition={80}
+              />
             </Pressable>
           )
         })}

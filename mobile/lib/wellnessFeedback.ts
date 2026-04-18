@@ -64,7 +64,7 @@ export function wellnessCelebration(): void {
   void playSoftChime(0.34)
   setTimeout(() => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-  }, 120)
+  }, 38)
 }
 
 export async function playSoftChime(volume = 0.32): Promise<void> {

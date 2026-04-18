@@ -5,6 +5,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
+import { TaskNotoIcon } from "@/components/TaskNotoIcon"
 import { WELLNESS_TASKS } from "@/lib/wellness-data"
 
 function createStyles(W: WellnessPalette) {
@@ -39,7 +40,7 @@ function createStyles(W: WellnessPalette) {
       alignItems: "center",
       gap: 14,
     },
-    rowIcon: { fontSize: 36 },
+    rowIcon: { width: 44, height: 44 },
     rowBody: { flex: 1 },
     rowTitle: { fontSize: 16, fontWeight: "700", color: W.text },
     rowMeta: { fontSize: 13, color: W.textMuted, marginTop: 4 },
@@ -58,7 +59,10 @@ export default function DevTaskPreviewScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["bottom"]}>
-        <ScrollView contentContainerStyle={styles.scroll}>
+        <ScrollView
+          style={{ flex: 1, backgroundColor: W.bg }}
+          contentContainerStyle={styles.scroll}
+        >
           <View style={styles.banner}>
             <Text style={styles.bannerTitle}>Development preview</Text>
             <Text style={styles.bannerBody}>
@@ -75,7 +79,12 @@ export default function DevTaskPreviewScreen() {
                 router.push(`/dev-task-session?taskId=${String(task.id)}`)
               }
             >
-              <Text style={styles.rowIcon}>{task.icon}</Text>
+              <TaskNotoIcon
+                iconCode={task.iconCode}
+                size={40}
+                accessibilityLabel={task.title}
+                style={styles.rowIcon}
+              />
               <View style={styles.rowBody}>
                 <Text style={styles.rowTitle}>{task.title}</Text>
                 <Text style={styles.rowMeta}>

@@ -25,11 +25,15 @@ export default function DevTaskSessionScreen() {
 
   return (
     <TaskSession
-        task={task}
-        displayStreak={1}
-        completeTask={() => {}}
-        previewMode
-      />
+      task={task}
+      displayStreak={1}
+      streakCountForBadge={0}
+      maxStreak={0}
+      pendingRecovery={false}
+      onDismissRecovery={() => {}}
+      completeTask={() => {}}
+      previewMode
+    />
   )
 }
 

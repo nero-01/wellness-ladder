@@ -1,43 +1,11 @@
-import { Audio } from "expo-av"
-import * as Speech from "expo-speech"
 import { useEffect, useRef } from "react"
-import { Platform } from "react-native"
 import type { WalkPhase } from "@/hooks/useTaskSessionTimer"
+import { speakGuidanceLine, stopGuidancePlayback } from "@/lib/guidanceTts"
 import { getBreathingPhaseLabel, type Task } from "@/lib/wellness-data"
 
-const CALM_SPEECH_OPTIONS = {
-  rate: Platform.select({ ios: 0.9, android: 0.95, default: 0.9 }) as number,
-  pitch: 1,
-  language: "en-US",
-}
-
-function speakLine(text: string) {
-  const line = text.replace(/\.\.\./g, "").replace(/\s+/g, " ").trim()
-  if (!line) return
-  try {
-    Speech.stop()
-    Speech.speak(line, CALM_SPEECH_OPTIONS)
-  } catch {
-    /* TTS unavailable on some platforms */
-  }
-}
-
-async function ensurePlaybackAudioMode() {
-  try {
-    await Audio.setAudioModeAsync({
-      allowsRecordingIOS: false,
-      playsInSilentModeIOS: true,
-      staysActiveInBackground: false,
-      shouldDuckAndroid: true,
-      playThroughEarpieceAndroid: false,
-    })
-  } catch {
-    /* ignore */
-  }
-}
-
 /**
- * Calming spoken guidance while the task timer runs (expo-speech TTS).
+ * Calming spoken guidance during tasks: **ElevenLabs** (via Next.js proxy) when
+ * `EXPO_PUBLIC_USE_ELEVENLABS_TTS=true` and `EXPO_PUBLIC_API_URL` are set; otherwise **expo-speech**.
  * Toggle with the speaker control; stops when the timer stops or guidance is off.
  */
 export function useTaskVoiceGuidance({
@@ -74,13 +42,13 @@ export function useTaskVoiceGuidance({
 
   useEffect(() => {
     if (!enabled || !isActive) {
-      Speech.stop()
+      stopGuidancePlayback()
     }
   }, [enabled, isActive])
 
   useEffect(
     () => () => {
-      Speech.stop()
+      stopGuidancePlayback()
     },
     [],
   )
@@ -96,9 +64,7 @@ export function useTaskVoiceGuidance({
     if (phase !== "walking") return
     if (manualIntroRef.current) return
     manualIntroRef.current = true
-    void ensurePlaybackAudioMode().then(() =>
-      speakLine(`${task.title}. ${task.instruction}`),
-    )
+    void speakGuidanceLine(`${task.title}. ${task.instruction}`)
   }, [enabled, task, manualPhase])
 
   // Manual walk: gentle nudges every 45s while walking
@@ -114,9 +80,7 @@ export function useTaskVoiceGuidance({
     const bucket = Math.floor(elapsed / 45)
     if (bucket === 0 || bucket === lastManualBucketRef.current) return
     lastManualBucketRef.current = bucket
-    void ensurePlaybackAudioMode().then(() =>
-      speakLine("Keep your pace slow and gentle."),
-    )
+    void speakGuidanceLine("Keep your pace slow and gentle.")
   }, [enabled, task, manualPhase, manualElapsed])
 
   // Spoken intro once per run (countdown, non–breathing, non-manual)
@@ -126,9 +90,7 @@ export function useTaskVoiceGuidance({
     if (task.timerMode === "manual") return
     if (introDoneRef.current) return
     introDoneRef.current = true
-    void ensurePlaybackAudioMode().then(() =>
-      speakLine(`${task.title}. ${task.instruction}`),
-    )
+    void speakGuidanceLine(`${task.title}. ${task.instruction}`)
   }, [enabled, isActive, task.id, task.title, task.instruction, task.timerMode])
 
   // Breathing task: cue each phase change
@@ -138,7 +100,7 @@ export function useTaskVoiceGuidance({
     if (!phase) return
     if (phase === lastPhaseRef.current) return
     lastPhaseRef.current = phase
-    void ensurePlaybackAudioMode().then(() => speakLine(phase))
+    void speakGuidanceLine(phase)
   }, [enabled, isActive, task.id, duration, timeLeft])
 
   // Longer countdown tasks: gentle halfway nudge
@@ -150,8 +112,6 @@ export function useTaskVoiceGuidance({
     if (elapsed < duration / 2) return
     if (halfDoneRef.current) return
     halfDoneRef.current = true
-    void ensurePlaybackAudioMode().then(() =>
-      speakLine("You're doing well. Stay with it."),
-    )
+    void speakGuidanceLine("You're doing well. Stay with it.")
   }, [enabled, isActive, task.id, task.timerMode, duration, timeLeft])
 }

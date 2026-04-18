@@ -5,6 +5,7 @@ import {
   DefaultTheme as NavigationDefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native"
+import { Platform, View } from "react-native"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 import { useFonts } from "expo-font"
 import { Stack, usePathname, useRouter } from "expo-router"
@@ -94,12 +95,21 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={navTheme}>
-      <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
-      <Stack
-        screenOptions={{
-          contentStyle: { flex: 1, backgroundColor: rootBg },
-        }}
-      >
+      <View style={{ flex: 1, backgroundColor: rootBg }}>
+        <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+        <Stack
+          screenOptions={{
+            contentStyle: { flex: 1, backgroundColor: rootBg },
+            /**
+             * Fade beats default slide for speed; `animationDuration` shortens iOS transitions
+             * (see native-stack docs). Android still uses fade; duration may be system-tuned.
+             */
+            animation: "fade",
+            animationDuration: Platform.OS === "ios" ? 175 : 220,
+            gestureEnabled: true,
+            ...(Platform.OS === "ios" ? { fullScreenGestureEnabled: true } : {}),
+          }}
+        >
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -114,7 +124,8 @@ function RootLayoutNav() {
           }}
         />
         <Stack.Screen name="dev-task-session" options={{ headerShown: false }} />
-      </Stack>
+        </Stack>
+      </View>
     </ThemeProvider>
   )
 }

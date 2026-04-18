@@ -92,6 +92,19 @@ Open [http://localhost:3000](http://localhost:3000). Web auth mock lives in **`l
 
 ---
 
+## Voice guidance (ElevenLabs + fallback)
+
+Mobile task guidance can use **ElevenLabs** for speech (same voice as [this share link](https://elevenlabs.io/app/voice-lab/share/e70117aeedd1f2d59cffcc96e42961819238d6ce7ec83e34fad935c7db9e95ec/pjcYQlDFKMbcOUp6F5GD)). The **API key never ships in the app**: Expo calls your deployed Next.js route `POST /api/voice/elevenlabs`, which forwards text to ElevenLabs and returns MP3.
+
+1. **Server (Vercel / `.env.local`):** Set `ELEVENLABS_API_KEY` (from [ElevenLabs](https://elevenlabs.io) → Profile). Optional: `ELEVENLABS_VOICE_ID` (default `pjcYQlDFKMbcOUp6F5GD`), `ELEVENLABS_MODEL_ID` (default `eleven_multilingual_v2`). Restart `npm run dev` after changes.
+2. **Mobile:** In **`mobile/.env`** or **root `.env.local`**, set `EXPO_PUBLIC_API_URL` (or `NEXT_PUBLIC_API_URL`, mapped by `mobile/app.config.js`) to your Next.js URL and **`EXPO_PUBLIC_USE_ELEVENLABS_TTS=true`**. Restart Metro with **`npx expo start -c`**.
+3. **Auth:** The proxy requires a valid **Supabase JWT** (`eyJ…` anon key + signed-in user). If you use **mock auth** or a **publishable** Supabase key (`sb_…`), the app sends **no Bearer token** → **401** → silent fallback to `expo-speech`. For **local dev only**, add **`ELEVENLABS_TTS_ALLOW_NO_AUTH_IN_DEV=true`** next to your ElevenLabs key in **`.env.local`** (never in production).
+4. **Device vs localhost:** A **physical phone** cannot reach `http://localhost:3000`. Use your computer’s LAN IP, e.g. `http://192.168.1.10:3000`, in `EXPO_PUBLIC_API_URL`.
+5. **Debug:** Open `GET /api/voice/elevenlabs` in the browser (while `npm run dev` runs) — returns `{ hasApiKey, devAuthBypass, voiceId, modelId }` without secrets.
+6. If anything above fails, guidance falls back to **on-device `expo-speech`** (check Metro logs for `[guidance TTS]` warnings).
+
+---
+
 ## Mobile navigation & auth flow
 
 1. **`app/index.tsx`** — Waits for `AuthProvider` (`isLoaded`), then **redirects** to `/(auth)/sign-in` or **`/(tabs)`**. Shows a spinner while the session is restored (Supabase AsyncStorage or mock AsyncStorage).

@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons"
+import * as Haptics from "expo-haptics"
 import { useRouter } from "expo-router"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
@@ -13,7 +14,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context"
 import { CircularProgress } from "@/components/CircularProgress"
 import { MoodPickerRow } from "@/components/MoodPickerRow"
+import { ResumeLadderBanner } from "@/components/ResumeLadderBanner"
+import { StreakFlameBadge } from "@/components/StreakFlameBadge"
 import { TaskCatalogPreview } from "@/components/TaskCatalogPreview"
+import { TaskNotoIcon } from "@/components/TaskNotoIcon"
 import { TaskTimerBar } from "@/components/TaskTimerBar"
 import { VoiceRecorder } from "@/components/VoiceRecorder"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
@@ -44,20 +48,9 @@ function createTaskSessionStyles(W: WellnessPalette) {
     streakRow: {
       flexDirection: "row",
       justifyContent: "space-between",
-      alignItems: "center",
+      alignItems: "flex-start",
       marginBottom: 20,
     },
-    streakBadge: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 8,
-      paddingHorizontal: 16,
-      paddingVertical: 10,
-      borderRadius: 16,
-      backgroundColor: W.iconBg,
-    },
-    streakText: { fontWeight: "700", fontSize: 17, color: W.text },
-    streakFlame: { fontSize: 20 },
     card: {
       backgroundColor: W.bgElevated,
       borderRadius: 20,
@@ -86,9 +79,8 @@ function createTaskSessionStyles(W: WellnessPalette) {
       justifyContent: "center",
     },
     micActive: { backgroundColor: W.iconBg },
-    emoji: {
-      fontSize: 48,
-      textAlign: "center",
+    taskIconWrap: {
+      alignSelf: "center",
       marginBottom: 8,
     },
     taskTitle: {
@@ -210,6 +202,11 @@ function createTaskSessionStyles(W: WellnessPalette) {
 type Props = {
   task: Task
   displayStreak: number
+  /** Consecutive days completed (before today’s finish). */
+  streakCountForBadge: number
+  maxStreak: number
+  pendingRecovery: boolean
+  onDismissRecovery: () => void
   completeTask: (taskId: number, mood?: number) => void
   /** Dev-only: run without saving streak; navigation returns to task list */
   previewMode?: boolean
@@ -218,6 +215,10 @@ type Props = {
 export function TaskSession({
   task,
   displayStreak,
+  streakCountForBadge,
+  maxStreak,
+  pendingRecovery,
+  onDismissRecovery,
   completeTask,
   previewMode = false,
 }: Props) {
@@ -225,16 +226,12 @@ export function TaskSession({
   const W = useWellnessColors()
   const styles = useMemo(() => createTaskSessionStyles(W), [W])
 
-  function StreakBadge({ days }: { days: number }) {
-    return (
-      <View style={styles.streakBadge}>
-        <Text style={styles.streakText}>Day {days}</Text>
-        <Text style={styles.streakFlame} accessibilityLabel="streak">
-          🔥
-        </Text>
-      </View>
-    )
-  }
+  const [flameDisplay, setFlameDisplay] = useState(streakCountForBadge)
+  const [bumpKey, setBumpKey] = useState(0)
+
+  useEffect(() => {
+    setFlameDisplay(streakCountForBadge)
+  }, [streakCountForBadge])
 
   const [selectedMood, setSelectedMood] = useState<number | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -312,12 +309,12 @@ export function TaskSession({
       Animated.sequence([
         Animated.timing(pulse, {
           toValue: 0.65,
-          duration: 700,
+          duration: 280,
           useNativeDriver: true,
         }),
         Animated.timing(pulse, {
           toValue: 1,
-          duration: 700,
+          duration: 280,
           useNativeDriver: true,
         }),
       ]),
@@ -371,7 +368,12 @@ export function TaskSession({
       )
       return
     }
-    completeTask(task.id, selectedMood ?? undefined)
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    setFlameDisplay((n) => n + 1)
+    setBumpKey((k) => k + 1)
+    setTimeout(() => {
+      completeTask(task.id, selectedMood ?? undefined)
+    }, 420)
   }, [
     completeTask,
     goBackOrHome,
@@ -398,6 +400,7 @@ export function TaskSession({
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <ScrollView
+        style={{ flex: 1, backgroundColor: W.bg }}
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
@@ -436,10 +439,22 @@ export function TaskSession({
           </View>
         ) : null}
 
+        {!previewMode && pendingRecovery ? (
+          <ResumeLadderBanner
+            maxStreak={maxStreak}
+            onResume={onDismissRecovery}
+          />
+        ) : null}
+
         {!previewMode ? <TaskCatalogPreview todayTaskId={task.id} /> : null}
 
         <View style={styles.streakRow}>
-          <StreakBadge days={displayStreak} />
+          <View style={{ flex: 1, marginRight: 8 }}>
+            <Text style={{ fontSize: 12, color: W.textMuted, marginBottom: 6 }}>
+              Day {displayStreak} on the ladder
+            </Text>
+            <StreakFlameBadge streakCount={flameDisplay} bumpKey={bumpKey} />
+          </View>
           <CircularProgress
             progress={ringProgress}
             label="1/1"
@@ -469,7 +484,12 @@ export function TaskSession({
             </Pressable>
           </View>
 
-          <Text style={styles.emoji}>{task.icon}</Text>
+          <TaskNotoIcon
+            iconCode={task.iconCode}
+            size={52}
+            accessibilityLabel={`Task icon: ${task.title}`}
+            style={styles.taskIconWrap}
+          />
           <Text style={styles.taskTitle}>{task.title}</Text>
           <Text style={styles.taskInstruction}>{task.instruction}</Text>
 

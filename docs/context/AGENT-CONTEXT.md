@@ -2,7 +2,7 @@
 
 ## Product
 
-Wellness app: daily micro-tasks, mood tracking, streaks, optional voice (Whisper), and AI personalization hooks.
+Wellness app: daily micro-tasks, mood tracking, streaks, optional voice (Whisper), and AI personalization hooks. **Task TTS:** ElevenLabs via `POST /api/voice/elevenlabs` (server `ELEVENLABS_API_KEY`); mobile uses `EXPO_PUBLIC_USE_ELEVENLABS_TTS` + `EXPO_PUBLIC_API_URL`, else `expo-speech`. Voice ref: `https://elevenlabs.io/app/voice-lab/share/e70117aeedd1f2d59cffcc96e42961819238d6ce7ec83e34fad935c7db9e95ec/pjcYQlDFKMbcOUp6F5GD`
 
 - **Primary client:** Expo Router app in **`mobile/`** (iOS/Android / Expo Go). Supabase session in **AsyncStorage** when using real auth; **mock auth** stores a dev user in AsyncStorage (`EXPO_PUBLIC_USE_MOCK_AUTH` or missing/invalid anon JWT — see `mobile/lib/supabase.ts`, `mobile/contexts/AuthContext.tsx`).
 - **Web + API:** Next.js (App Router) at repo root. Mobile calls the deployed Next API with **`Authorization: Bearer <access_token>`** when `EXPO_PUBLIC_API_URL` is set.

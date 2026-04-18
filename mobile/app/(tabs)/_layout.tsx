@@ -1,7 +1,7 @@
 import React from "react"
 import FontAwesome from "@expo/vector-icons/FontAwesome"
 import { Link, Tabs } from "expo-router"
-import { Pressable } from "react-native"
+import { Easing, Pressable } from "react-native"
 import { useColorScheme } from "@/components/useColorScheme"
 import { WellnessColors, WellnessColorsLight } from "@/constants/wellnessTheme"
 
@@ -26,12 +26,22 @@ export default function TabLayout() {
           backgroundColor: screenBg,
           borderTopColor: isDark ? "rgba(255,255,255,0.08)" : "#e4e4e7",
         },
+        sceneStyle: { backgroundColor: screenBg },
         headerStyle: {
           backgroundColor: screenBg,
         },
         headerTintColor: isDark ? WellnessColors.text : WellnessColorsLight.text,
         headerShadowVisible: false,
         tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
+        /** Very short cross-fade between tabs — still feels animated, not instant */
+        animation: "fade",
+        transitionSpec: {
+          animation: "timing",
+          config: {
+            duration: 72,
+            easing: Easing.out(Easing.cubic),
+          },
+        },
       }}
     >
       <Tabs.Screen

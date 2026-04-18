@@ -11,6 +11,7 @@ import {
 } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { TaskCatalogPreview } from "@/components/TaskCatalogPreview"
+import { TaskNotoIcon } from "@/components/TaskNotoIcon"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useStreak } from "@/hooks/useStreak"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
@@ -227,8 +228,9 @@ function createHomeStyles(W: WellnessPalette) {
       fontSize: 15,
       fontWeight: "600",
     },
-    previewEmoji: {
-      fontSize: 36,
+    previewEmojiWrap: {
+      width: 40,
+      height: 40,
     },
     previewTaskBox: {
       backgroundColor: W.surfaceMuted,
@@ -291,6 +293,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <ScrollView
+        style={{ flex: 1, backgroundColor: W.bg }}
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
         bounces
@@ -377,9 +380,12 @@ export default function HomeScreen() {
                 </View>
                 <Text style={styles.previewTitle}>Your Progress</Text>
               </View>
-              <Text style={styles.previewEmoji} accessibilityLabel="Task icon">
-                {todayTask.icon}
-              </Text>
+              <TaskNotoIcon
+                iconCode={todayTask.iconCode}
+                size={40}
+                accessibilityLabel={`Task icon: ${todayTask.title}`}
+                style={styles.previewEmojiWrap}
+              />
             </View>
             <View style={styles.previewTaskBox}>
               <Text style={styles.previewHint}>{"Today's focus"}</Text>

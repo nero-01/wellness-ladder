@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { ChevronLeft, Check, SkipForward, User } from "lucide-react"
+import { Check, ChevronLeft, SkipForward, User } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import {
   StreakBadge,
@@ -15,6 +15,8 @@ import {
   TimerDisplay,
   ManualWalkTimerDisplay,
 } from "@/components/wellness"
+import { TaskCompletionCelebration } from "@/components/wellness/task-completion-celebration"
+import { TaskNotoIcon } from "@/components/wellness/task-noto-icon"
 import { useStreak } from "@/hooks/use-streak"
 import { useTaskSessionTimer } from "@/hooks/use-task-session-timer"
 import {
@@ -31,7 +33,6 @@ export default function TaskPage() {
   const [mounted, setMounted] = useState(false)
   const [selectedMood, setSelectedMood] = useState<number | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
-  const [showCompletion, setShowCompletion] = useState(false)
 
   const { streakData, isLoaded, completeTask, hasCompletedToday, displayStreak } = useStreak()
   const task = getTodayTask(displayStreak)
@@ -63,13 +64,6 @@ export default function TaskPage() {
   useEffect(() => {
     setMounted(true)
   }, [])
-
-  // Redirect if already completed today
-  useEffect(() => {
-    if (isLoaded && hasCompletedToday && !showCompletion) {
-      setShowCompletion(true)
-    }
-  }, [isLoaded, hasCompletedToday, showCompletion])
 
   const breathingPhase = useMemo(() => {
     if (timer.mode !== "countdown") return null
@@ -121,10 +115,10 @@ export default function TaskPage() {
   }, [timer])
 
   const handleComplete = useCallback(() => {
+    if (hasCompletedToday) return
     wellnessWebCelebrate()
     completeTask(task.id, selectedMood || undefined)
-    setShowCompletion(true)
-  }, [completeTask, task.id, selectedMood])
+  }, [completeTask, task.id, selectedMood, hasCompletedToday])
 
   const showStartSection =
     timer.mode === "countdown"
@@ -141,7 +135,6 @@ export default function TaskPage() {
 
   const timerCompleted = timer.timerCompleted
 
-  // Loading state
   if (!isLoaded) {
     return (
       <div className="min-h-screen gradient-bg flex items-center justify-center">
@@ -150,50 +143,9 @@ export default function TaskPage() {
     )
   }
 
-  // Completion state
-  if (showCompletion) {
+  if (hasCompletedToday) {
     return (
-      <div className="min-h-screen gradient-bg flex flex-col">
-        <header className="flex items-center justify-between px-6 py-4">
-          <Link href="/" onClick={() => wellnessWebTap()}>
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <ChevronLeft className="h-5 w-5" />
-              <span className="sr-only">Back</span>
-            </Button>
-          </Link>
-          <ThemeToggle />
-        </header>
-
-        <main
-          className={`flex-1 flex flex-col items-center justify-center px-6 transition-all duration-700 ${
-            mounted ? "opacity-100 scale-100" : "opacity-0 scale-95"
-          }`}
-        >
-          <div className="h-24 w-24 rounded-full gradient-primary flex items-center justify-center mb-6 shadow-lg shadow-primary/30">
-            <Check className="h-12 w-12 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-foreground mb-2">Well Done!</h1>
-          <p className="text-muted-foreground text-center mb-4">
-            {"You've"} completed {"today's"} wellness task.
-          </p>
-          <StreakBadge days={streakData.currentStreak} size="lg" />
-          <p className="text-sm text-muted-foreground text-center mt-4 mb-8">
-            Come back tomorrow for your next step up the ladder!
-          </p>
-          <div className="flex gap-4">
-            <Link href="/">
-              <Button variant="outline" className="rounded-2xl h-12 px-6">
-                Home
-              </Button>
-            </Link>
-            <Link href="/profile">
-              <Button className="rounded-2xl h-12 px-6 gradient-primary text-white border-0">
-                View Progress
-              </Button>
-            </Link>
-          </div>
-        </main>
-      </div>
+      <TaskCompletionCelebration streakData={streakData} mounted={mounted} />
     )
   }
 
@@ -243,7 +195,9 @@ export default function TaskPage() {
             </div>
 
             <div className="text-center mb-6">
-              <span className="text-4xl mb-4 block">{task.icon}</span>
+              <span className="mb-4 flex justify-center">
+                <TaskNotoIcon iconCode={task.iconCode} size={56} />
+              </span>
               <h2 className="text-xl font-semibold text-foreground leading-relaxed">
                 {task.title}
               </h2>
@@ -316,7 +270,7 @@ export default function TaskPage() {
         >
           <Button
             onClick={handleComplete}
-            disabled={!timerCompleted}
+            disabled={!timerCompleted || hasCompletedToday}
             className="flex-1 h-14 text-lg font-semibold rounded-2xl gradient-primary text-white border-0 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] motion-reduce:active:scale-100 transition-transform duration-150"
           >
             <Check className="h-5 w-5 mr-2" />

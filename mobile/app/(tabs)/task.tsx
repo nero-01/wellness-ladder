@@ -1,5 +1,6 @@
 import { useMemo } from "react"
 import { ActivityIndicator, StyleSheet, View } from "react-native"
+import { MilestoneModal } from "@/components/MilestoneModal"
 import { TaskCompletionCelebration } from "@/components/TaskCompletionCelebration"
 import { TaskSession } from "@/components/TaskSession"
 import { useStreak } from "@/hooks/useStreak"
@@ -14,6 +15,11 @@ export default function TaskScreen() {
     completeTask,
     hasCompletedToday,
     displayStreak,
+    streakCountForBadge,
+    milestoneHit,
+    acknowledgeMilestone,
+    pendingRecovery,
+    dismissRecovery,
   } = useStreak()
 
   const task = useMemo(() => getTodayTask(displayStreak), [displayStreak])
@@ -27,13 +33,26 @@ export default function TaskScreen() {
   }
 
   if (hasCompletedToday) {
-    return <TaskCompletionCelebration streakData={streakData} />
+    return (
+      <>
+        <TaskCompletionCelebration streakData={streakData} />
+        <MilestoneModal
+          visible={milestoneHit != null}
+          milestone={milestoneHit}
+          onClose={acknowledgeMilestone}
+        />
+      </>
+    )
   }
 
   return (
     <TaskSession
       task={task}
       displayStreak={displayStreak}
+      streakCountForBadge={streakCountForBadge}
+      maxStreak={streakData.maxStreak}
+      pendingRecovery={pendingRecovery}
+      onDismissRecovery={dismissRecovery}
       completeTask={completeTask}
     />
   )

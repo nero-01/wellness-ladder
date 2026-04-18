@@ -4,6 +4,7 @@ import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import type { Task } from "@/lib/wellness-data"
 import { WELLNESS_TASKS } from "@/lib/wellness-data"
+import { TaskNotoIcon } from "@/components/TaskNotoIcon"
 
 function createCatalogStyles(W: WellnessPalette) {
   return StyleSheet.create({
@@ -45,7 +46,7 @@ function createCatalogStyles(W: WellnessPalette) {
       textTransform: "uppercase",
       letterSpacing: 0.5,
     },
-    pillIcon: { fontSize: 28, textAlign: "center", marginBottom: 6 },
+    pillIconWrap: { alignItems: "center", marginBottom: 6 },
     pillTitle: {
       fontSize: 13,
       fontWeight: "600",
@@ -92,6 +93,7 @@ export function TaskCatalogPreview({ todayTaskId }: Props) {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
+        style={{ backgroundColor: W.bg }}
         contentContainerStyle={styles.row}
       >
         {WELLNESS_TASKS.map((t: Task, index: number) => {
@@ -102,7 +104,13 @@ export function TaskCatalogPreview({ todayTaskId }: Props) {
               style={[styles.pill, isToday && styles.pillToday]}
             >
               <Text style={styles.pillStep}>Step {index + 1}</Text>
-              <Text style={styles.pillIcon}>{t.icon}</Text>
+              <View style={styles.pillIconWrap}>
+                <TaskNotoIcon
+                  iconCode={t.iconCode}
+                  size={30}
+                  accessibilityLabel={`Step ${index + 1}: ${t.title}`}
+                />
+              </View>
               <Text
                 style={[styles.pillTitle, isToday && styles.pillTitleToday]}
                 numberOfLines={2}

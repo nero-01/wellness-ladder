@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons"
+import { Image } from "expo-image"
 import { useMemo } from "react"
 import {
   Pressable,
@@ -11,7 +12,11 @@ import { SafeAreaView } from "react-native-safe-area-context"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useAuth } from "@/contexts/AuthContext"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
+import { StreakHeatMap } from "@/components/StreakHeatMap"
 import { useStreak } from "@/hooks/useStreak"
+import { emojiFamilySvgUrl } from "@/lib/mood-picker-data"
+import { MILESTONE_NOTO } from "@/lib/streak-rules"
+import { isWellnessPro } from "@/lib/wellness-pro"
 import { WELLNESS_TASKS } from "@/lib/wellness-data"
 
 function formatShortDate(iso: string): string {
@@ -101,6 +106,20 @@ function createStyles(W: WellnessPalette) {
       backgroundColor: W.surfaceMuted,
     },
     signOutText: { fontSize: 16, fontWeight: "600", color: W.text },
+    badgeRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 12,
+      marginTop: 4,
+    },
+    badgeItem: { alignItems: "center", width: 72 },
+    badgeImg: { width: 40, height: 40, marginBottom: 6 },
+    badgeLabel: {
+      fontSize: 11,
+      color: W.textMuted,
+      textAlign: "center",
+      lineHeight: 14,
+    },
   })
 }
 
@@ -109,13 +128,20 @@ export default function ProfileScreen() {
   const styles = useMemo(() => createStyles(W), [W])
   const { user, signOut } = useAuth()
   const { streakData, isLoaded } = useStreak()
+  const pro = isWellnessPro()
 
   const moods = streakData.moodHistory.slice(-10).reverse()
   const completions = streakData.completionHistory.slice(-10).reverse()
 
+  const completionDates = useMemo(
+    () => new Set(streakData.completionHistory.map((c) => c.date)),
+    [streakData.completionHistory],
+  )
+
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <ScrollView
+        style={{ flex: 1, backgroundColor: W.bg }}
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
@@ -137,8 +163,12 @@ export default function ProfileScreen() {
               <View style={styles.statRow}>
                 <Text style={styles.statLabel}>Current streak</Text>
                 <Text style={styles.statValue}>
-                  {streakData.currentStreak} days 🔥
+                  {streakData.currentStreak} days
                 </Text>
+              </View>
+              <View style={styles.statRow}>
+                <Text style={styles.statLabel}>Best streak</Text>
+                <Text style={styles.statValue}>{streakData.maxStreak} days</Text>
               </View>
               <View style={styles.statRow}>
                 <Text style={styles.statLabel}>Tasks completed (all time)</Text>
@@ -152,6 +182,42 @@ export default function ProfileScreen() {
                   : "—"}
                 </Text>
               </View>
+              {pro ?
+                <Text style={styles.statHint}>
+                  Pro: longer streak grace (extra days before your chain resets).
+                </Text>
+              : null}
+            </View>
+
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Activity heat map</Text>
+              <StreakHeatMap completionDates={completionDates} weeks={5} />
+            </View>
+
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Badge collection</Text>
+              {streakData.milestonesUnlocked.length === 0 ?
+                <Text style={styles.emptyText}>
+                  Hit 2, 3, and 7-day streaks to earn badges.
+                </Text>
+              : <View style={styles.badgeRow}>
+                  {streakData.milestonesUnlocked.map((id) => {
+                    const meta = MILESTONE_NOTO[id]
+                    const uri = emojiFamilySvgUrl(meta.code, "noto")
+                    return (
+                      <View key={id} style={styles.badgeItem}>
+                        <Image
+                          source={{ uri }}
+                          style={styles.badgeImg}
+                          contentFit="contain"
+                          cachePolicy="memory-disk"
+                        />
+                        <Text style={styles.badgeLabel}>{meta.label}</Text>
+                      </View>
+                    )
+                  })}
+                </View>
+              }
             </View>
 
             <View style={styles.card}>
