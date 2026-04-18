@@ -1,12 +1,28 @@
 import { useEffect, useRef } from "react"
 import type { WalkPhase } from "@/hooks/useTaskSessionTimer"
 import { speakGuidanceLine, stopGuidancePlayback } from "@/lib/guidanceTts"
+import type { WellnessLocale } from "@/lib/wellness-locale"
 import { getBreathingPhaseLabel, type Task } from "@/lib/wellness-data"
+import {
+  getSpeechLocaleCode,
+  localizeBreathingPhase,
+} from "@/lib/za-afrikaans-tasks"
+
+const VOICE_LINES = {
+  en: {
+    pace: "Keep your pace slow and gentle.",
+    halfway: "You're doing well. Stay with it.",
+  },
+  af: {
+    pace: "Hou jou pas stadig en sag.",
+    halfway: "Jy doen goed. Bly by dit.",
+  },
+} as const
 
 /**
  * Calming spoken guidance during tasks: **ElevenLabs** (via Next.js proxy) when
  * `EXPO_PUBLIC_USE_ELEVENLABS_TTS=true` and `EXPO_PUBLIC_API_URL` are set; otherwise **expo-speech**.
- * Toggle with the speaker control; stops when the timer stops or guidance is off.
+ * Afrikaans uses **expo-speech** with `af-ZA` (offline). Toggle with the speaker control.
  */
 export function useTaskVoiceGuidance({
   enabled,
@@ -16,6 +32,7 @@ export function useTaskVoiceGuidance({
   isActive,
   manualPhase,
   manualElapsed,
+  locale,
 }: {
   enabled: boolean
   task: Task
@@ -25,12 +42,16 @@ export function useTaskVoiceGuidance({
   /** Mindful Walk: walking / idle / stopped */
   manualPhase?: WalkPhase
   manualElapsed?: number
+  locale: WellnessLocale
 }) {
   const lastPhaseRef = useRef<string | null>(null)
   const introDoneRef = useRef(false)
   const halfDoneRef = useRef(false)
   const manualIntroRef = useRef(false)
   const lastManualBucketRef = useRef(-1)
+
+  const speechLang = getSpeechLocaleCode(locale)
+  const lines = locale === "af" ? VOICE_LINES.af : VOICE_LINES.en
 
   useEffect(() => {
     lastPhaseRef.current = null
@@ -64,8 +85,10 @@ export function useTaskVoiceGuidance({
     if (phase !== "walking") return
     if (manualIntroRef.current) return
     manualIntroRef.current = true
-    void speakGuidanceLine(`${task.title}. ${task.instruction}`)
-  }, [enabled, task, manualPhase])
+    void speakGuidanceLine(`${task.title}. ${task.instruction}`, {
+      language: speechLang,
+    })
+  }, [enabled, task, manualPhase, speechLang])
 
   // Manual walk: gentle nudges every 45s while walking
   useEffect(() => {
@@ -80,8 +103,8 @@ export function useTaskVoiceGuidance({
     const bucket = Math.floor(elapsed / 45)
     if (bucket === 0 || bucket === lastManualBucketRef.current) return
     lastManualBucketRef.current = bucket
-    void speakGuidanceLine("Keep your pace slow and gentle.")
-  }, [enabled, task, manualPhase, manualElapsed])
+    void speakGuidanceLine(lines.pace, { language: speechLang })
+  }, [enabled, task, manualPhase, manualElapsed, lines.pace, speechLang])
 
   // Spoken intro once per run (countdown, non–breathing, non-manual)
   useEffect(() => {
@@ -90,8 +113,18 @@ export function useTaskVoiceGuidance({
     if (task.timerMode === "manual") return
     if (introDoneRef.current) return
     introDoneRef.current = true
-    void speakGuidanceLine(`${task.title}. ${task.instruction}`)
-  }, [enabled, isActive, task.id, task.title, task.instruction, task.timerMode])
+    void speakGuidanceLine(`${task.title}. ${task.instruction}`, {
+      language: speechLang,
+    })
+  }, [
+    enabled,
+    isActive,
+    task.id,
+    task.title,
+    task.instruction,
+    task.timerMode,
+    speechLang,
+  ])
 
   // Breathing task: cue each phase change
   useEffect(() => {
@@ -100,8 +133,9 @@ export function useTaskVoiceGuidance({
     if (!phase) return
     if (phase === lastPhaseRef.current) return
     lastPhaseRef.current = phase
-    void speakGuidanceLine(phase)
-  }, [enabled, isActive, task.id, duration, timeLeft])
+    const spoken = localizeBreathingPhase(phase, locale) ?? phase
+    void speakGuidanceLine(spoken, { language: speechLang })
+  }, [enabled, isActive, task.id, duration, timeLeft, locale, speechLang])
 
   // Longer countdown tasks: gentle halfway nudge
   useEffect(() => {
@@ -112,6 +146,15 @@ export function useTaskVoiceGuidance({
     if (elapsed < duration / 2) return
     if (halfDoneRef.current) return
     halfDoneRef.current = true
-    void speakGuidanceLine("You're doing well. Stay with it.")
-  }, [enabled, isActive, task.id, task.timerMode, duration, timeLeft])
+    void speakGuidanceLine(lines.halfway, { language: speechLang })
+  }, [
+    enabled,
+    isActive,
+    task.id,
+    task.timerMode,
+    duration,
+    timeLeft,
+    lines.halfway,
+    speechLang,
+  ])
 }

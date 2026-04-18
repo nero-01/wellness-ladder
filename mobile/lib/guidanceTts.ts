@@ -9,11 +9,10 @@ import * as Speech from "expo-speech"
 import { Platform } from "react-native"
 import { apiFetch } from "@/lib/api"
 
-/** Default wellness voice (ElevenLabs). Override server-side with ELEVENLABS_VOICE_ID. */
-const CALM_SPEECH_OPTIONS = {
+/** Base opts; `language` set per call (en-US vs af-ZA). */
+const CALM_SPEECH_BASE = {
   rate: Platform.select({ ios: 0.9, android: 0.95, default: 0.9 }) as number,
   pitch: 1,
-  language: "en-US",
 }
 
 let currentSound: Audio.Sound | null = null
@@ -86,20 +85,32 @@ async function ensurePlaybackAudioMode(): Promise<void> {
   }
 }
 
-function fallbackSpeech(line: string): void {
+function fallbackSpeech(line: string, language: string): void {
   try {
-    Speech.speak(line, CALM_SPEECH_OPTIONS)
+    Speech.speak(line, { ...CALM_SPEECH_BASE, language })
   } catch {
     /* TTS unavailable on some platforms */
   }
 }
 
+function shouldUseElevenLabsForLanguage(language: string): boolean {
+  if (!useElevenLabsProxy()) return false
+  // Afrikaans must use on-device expo-speech (af-ZA); ElevenLabs clip is English.
+  return !language.toLowerCase().startsWith("af")
+}
+
 /**
  * Speak one guidance line: ElevenLabs via Next.js proxy when enabled, else expo-speech.
+ * Pass `language: "af-ZA"` for Afrikaans (always device TTS, works offline).
  */
-export async function speakGuidanceLine(text: string): Promise<void> {
+export async function speakGuidanceLine(
+  text: string,
+  opts?: { language?: string },
+): Promise<void> {
   const line = normalizeLine(text)
   if (!line) return
+
+  const language = opts?.language ?? "en-US"
 
   await unloadCurrentSound()
   try {
@@ -108,10 +119,12 @@ export async function speakGuidanceLine(text: string): Promise<void> {
     /* ignore */
   }
 
-  if (!useElevenLabsProxy()) {
-    logProxyDisabledReason()
+  if (!shouldUseElevenLabsForLanguage(language)) {
+    if (!language.toLowerCase().startsWith("af")) {
+      logProxyDisabledReason()
+    }
     await ensurePlaybackAudioMode()
-    fallbackSpeech(line)
+    fallbackSpeech(line, language)
     return
   }
 
@@ -142,14 +155,14 @@ export async function speakGuidanceLine(text: string): Promise<void> {
         console.warn("[guidance TTS] ElevenLabs proxy:", res.status, errBody)
       }
       await ensurePlaybackAudioMode()
-      fallbackSpeech(line)
+      fallbackSpeech(line, language)
       return
     }
 
     const buf = await res.arrayBuffer()
     if (buf.byteLength === 0) {
       await ensurePlaybackAudioMode()
-      fallbackSpeech(line)
+      fallbackSpeech(line, language)
       return
     }
 
@@ -158,7 +171,7 @@ export async function speakGuidanceLine(text: string): Promise<void> {
     const base64 = arrayBufferToBase64(buf)
     const dir = cacheDirectory
     if (!dir) {
-      fallbackSpeech(line)
+      fallbackSpeech(line, language)
       return
     }
 
@@ -183,6 +196,6 @@ export async function speakGuidanceLine(text: string): Promise<void> {
   } catch (e) {
     console.warn("[guidance TTS]", e)
     await ensurePlaybackAudioMode()
-    fallbackSpeech(line)
+    fallbackSpeech(line, language)
   }
 }

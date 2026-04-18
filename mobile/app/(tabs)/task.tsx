@@ -6,9 +6,12 @@ import { TaskSession } from "@/components/TaskSession"
 import { useStreak } from "@/hooks/useStreak"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { getTodayTask } from "@/lib/wellness-data"
+import { useWellnessLocale } from "@/lib/wellness-locale"
+import { localizeTaskForLocale } from "@/lib/za-afrikaans-tasks"
 
 export default function TaskScreen() {
   const W = useWellnessColors()
+  const { locale, ready: localeReady } = useWellnessLocale()
   const {
     streakData,
     isLoaded,
@@ -22,7 +25,11 @@ export default function TaskScreen() {
     dismissRecovery,
   } = useStreak()
 
-  const task = useMemo(() => getTodayTask(displayStreak), [displayStreak])
+  const task = useMemo(() => {
+    const base = getTodayTask(displayStreak)
+    if (!localeReady) return base
+    return localizeTaskForLocale(base, displayStreak, locale)
+  }, [displayStreak, locale, localeReady])
 
   if (!isLoaded) {
     return (

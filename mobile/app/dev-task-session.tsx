@@ -26,7 +26,7 @@ export default function DevTaskSessionScreen() {
   return (
     <TaskSession
       task={task}
-      displayStreak={1}
+      displayStreak={task.id}
       streakCountForBadge={0}
       maxStreak={0}
       pendingRecovery={false}

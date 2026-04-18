@@ -1,10 +1,12 @@
 import { Ionicons } from "@expo/vector-icons"
 import * as Haptics from "expo-haptics"
+import { Image } from "expo-image"
 import { useRouter } from "expo-router"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   Alert,
   Animated,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -24,6 +26,9 @@ import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useTaskSessionTimer } from "@/hooks/useTaskSessionTimer"
 import { useTaskVoiceGuidance } from "@/hooks/useTaskVoiceGuidance"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
+import { emojiFamilySvgUrl } from "@/lib/mood-picker-data"
+import { useWellnessLocale } from "@/lib/wellness-locale"
+import { localizeBreathingPhase } from "@/lib/za-afrikaans-tasks"
 import {
   wellnessTapLight,
   wellnessTapMedium,
@@ -196,7 +201,84 @@ function createTaskSessionStyles(W: WellnessPalette) {
       color: W.primary,
       textAlign: "center",
     },
+    langRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      marginRight: 4,
+    },
+    langFlag: { width: 26, height: 26, borderRadius: 4 },
+    langTrigger: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+      paddingVertical: 6,
+      paddingHorizontal: 8,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: W.cardBorder,
+      backgroundColor: W.surfaceMuted,
+    },
+    langTriggerText: { fontSize: 13, fontWeight: "600", color: W.text },
+    modalBackdrop: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.4)",
+      justifyContent: "flex-start",
+      paddingTop: 56,
+      paddingHorizontal: 20,
+      position: "relative",
+    },
+    langMenu: {
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: W.cardBorder,
+      backgroundColor: W.bgElevated,
+      overflow: "hidden",
+    },
+    langMenuItem: {
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: W.cardBorder,
+    },
+    langMenuItemLast: { borderBottomWidth: 0 },
+    langMenuLabel: { fontSize: 16, fontWeight: "600", color: W.text },
+    langMenuHint: { fontSize: 12, color: W.textMuted, marginTop: 2 },
   })
+}
+
+const SA_FLAG_NOTO = "1f1ff-1f1e6"
+
+function sessionUi(locale: "en" | "af", displayStreak: number) {
+  if (locale === "af") {
+    return {
+      dayOnLadder: `Dag ${displayStreak} op die leer`,
+      todayLabel: "Vandag se taak",
+      hintManual:
+        "Gebruik Begin stap en Stop stap vir die tyd. Die speaker gee stembegeleiding terwyl jy stap.",
+      hintCountdown:
+        "Tik die speaker vir kalmerende stem, of druk Begin om te begin.",
+      startWalk: "Begin stap",
+      continueWalk: "Gaan voort met stap",
+      startTask: "Begin taak",
+      stopWalk: "Stop stap",
+      keepGoing: "Gaan voort...",
+      done: "Klaar",
+    }
+  }
+  return {
+    dayOnLadder: `Day ${displayStreak} on the ladder`,
+    todayLabel: "Today's Task",
+    hintManual:
+      "Use Start walk and Stop walk to control the timer. Speaker adds voice guidance while you walk.",
+    hintCountdown: "Tap the speaker for calming voice guidance, or press Start",
+    startWalk: "Start walk",
+    continueWalk: "Continue walking",
+    startTask: "Start Task",
+    stopWalk: "Stop walk",
+    keepGoing: "Keep going...",
+    done: "Done",
+  }
 }
 
 type Props = {
@@ -225,6 +307,18 @@ export function TaskSession({
   const router = useRouter()
   const W = useWellnessColors()
   const styles = useMemo(() => createTaskSessionStyles(W), [W])
+  const { locale, setLocale, ready: localeReady } = useWellnessLocale()
+  const [langMenuOpen, setLangMenuOpen] = useState(false)
+
+  const ui = useMemo(
+    () => sessionUi(localeReady ? locale : "en", displayStreak),
+    [locale, localeReady, displayStreak],
+  )
+
+  const saFlagUri = useMemo(
+    () => emojiFamilySvgUrl(SA_FLAG_NOTO, "noto"),
+    [],
+  )
 
   const [flameDisplay, setFlameDisplay] = useState(streakCountForBadge)
   const [bumpKey, setBumpKey] = useState(0)
@@ -270,6 +364,7 @@ export function TaskSession({
     isActive: sessionActive,
     manualPhase: timer.mode === "manual" ? timer.walkPhase : undefined,
     manualElapsed: timer.mode === "manual" ? timer.elapsed : undefined,
+    locale: localeReady ? locale : "en",
   })
 
   const goBackOrHome = useCallback(() => {
@@ -286,8 +381,9 @@ export function TaskSession({
 
   const breathingPhase = useMemo(() => {
     if (timer.mode !== "countdown") return null
-    return getBreathingPhaseLabel(task.id, task.duration, timer.timeLeft)
-  }, [timer.mode, timer.timeLeft, task.id, task.duration])
+    const en = getBreathingPhaseLabel(task.id, task.duration, timer.timeLeft)
+    return localizeBreathingPhase(en, localeReady ? locale : "en")
+  }, [timer.mode, timer.timeLeft, task.id, task.duration, locale, localeReady])
 
   const ringProgress = useMemo(() => {
     if (timer.mode === "manual") {
@@ -390,10 +486,10 @@ export function TaskSession({
 
   const startLabel =
     timer.mode === "manual" && timer.walkPhase === "stopped"
-      ? "Continue walking"
+      ? ui.continueWalk
       : timer.mode === "manual"
-        ? "Start walk"
-        : "Start Task"
+        ? ui.startWalk
+        : ui.startTask
 
   const timerCompleted = timer.timerCompleted
 
@@ -418,6 +514,27 @@ export function TaskSession({
             <Ionicons name="chevron-back" size={26} color={W.text} />
           </Pressable>
           <View style={styles.topBarRight}>
+            <View style={styles.langRow}>
+              <Image
+                source={{ uri: saFlagUri }}
+                style={styles.langFlag}
+                contentFit="contain"
+                accessibilityLabel="South Africa"
+              />
+              <Pressable
+                onPress={() => {
+                  wellnessTapLight()
+                  setLangMenuOpen(true)
+                }}
+                style={({ pressed }) => [styles.langTrigger, pressed && styles.pressDim]}
+                accessibilityLabel="Choose language"
+              >
+                <Text style={styles.langTriggerText}>
+                  {locale === "af" ? "Afrikaans" : "English"}
+                </Text>
+                <Ionicons name="chevron-down" size={16} color={W.textMuted} />
+              </Pressable>
+            </View>
             <Pressable
               onPress={() => {
                 wellnessTapLight()
@@ -430,6 +547,54 @@ export function TaskSession({
             </Pressable>
           </View>
         </View>
+
+        <Modal
+          visible={langMenuOpen}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setLangMenuOpen(false)}
+        >
+          <View style={styles.modalBackdrop}>
+            <Pressable
+              style={StyleSheet.absoluteFillObject}
+              onPress={() => setLangMenuOpen(false)}
+              accessibilityLabel="Close language menu"
+            />
+            <View style={styles.langMenu}>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.langMenuItem,
+                  pressed && { opacity: 0.85 },
+                ]}
+                onPress={() => {
+                  wellnessTapLight()
+                  setLocale("en")
+                  setLangMenuOpen(false)
+                }}
+              >
+                <Text style={styles.langMenuLabel}>English</Text>
+                <Text style={styles.langMenuHint}>Voice guidance: en-US</Text>
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.langMenuItem,
+                  styles.langMenuItemLast,
+                  pressed && { opacity: 0.85 },
+                ]}
+                onPress={() => {
+                  wellnessTapLight()
+                  setLocale("af")
+                  setLangMenuOpen(false)
+                }}
+              >
+                <Text style={styles.langMenuLabel}>Afrikaans</Text>
+                <Text style={styles.langMenuHint}>
+                  Stem: af-ZA (op die toestel, werk offline)
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
 
         {previewMode ? (
           <View style={styles.devBanner}>
@@ -451,7 +616,7 @@ export function TaskSession({
         <View style={styles.streakRow}>
           <View style={{ flex: 1, marginRight: 8 }}>
             <Text style={{ fontSize: 12, color: W.textMuted, marginBottom: 6 }}>
-              Day {displayStreak} on the ladder
+              {ui.dayOnLadder}
             </Text>
             <StreakFlameBadge streakCount={flameDisplay} bumpKey={bumpKey} />
           </View>
@@ -464,7 +629,7 @@ export function TaskSession({
 
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.todayLabel}>{"Today's"} Task</Text>
+            <Text style={styles.todayLabel}>{ui.todayLabel}</Text>
             <Pressable
               onPress={handleVoiceToggle}
               style={({ pressed }) => [
@@ -512,9 +677,7 @@ export function TaskSession({
           {showStartSection ? (
             <>
               <Text style={styles.hint}>
-                {timer.mode === "manual"
-                  ? "Use Start walk and Stop walk to control the timer. Speaker adds voice guidance while you walk."
-                  : "Tap the speaker for calming voice guidance, or press Start"}
+                {timer.mode === "manual" ? ui.hintManual : ui.hintCountdown}
               </Text>
               <Pressable
                 style={({ pressed }) => [
@@ -538,7 +701,7 @@ export function TaskSession({
               accessibilityRole="button"
               accessibilityLabel="Stop walk timer"
             >
-              <Text style={styles.stopWalkText}>Stop walk</Text>
+              <Text style={styles.stopWalkText}>{ui.stopWalk}</Text>
             </Pressable>
           ) : null}
 
@@ -549,7 +712,7 @@ export function TaskSession({
           ) : null}
 
           {sessionActive && !breathingPhase ? (
-            <Text style={styles.keepGoing}>Keep going...</Text>
+            <Text style={styles.keepGoing}>{ui.keepGoing}</Text>
           ) : null}
         </View>
 
@@ -564,7 +727,7 @@ export function TaskSession({
             disabled={!timerCompleted}
           >
             <Ionicons name="checkmark-circle" size={22} color="#fff" />
-            <Text style={styles.doneBtnText}>Done</Text>
+            <Text style={styles.doneBtnText}>{ui.done}</Text>
           </Pressable>
           <Pressable
             style={({ pressed }) => [styles.skipBtn, pressed && styles.pressDim]}
