@@ -12,7 +12,15 @@ export function getBrowserSupabase(): SupabaseClient | null {
   return client
 }
 
+/**
+ * When `NEXT_PUBLIC_USE_MOCK_AUTH=true`, the web app uses client-only mock auth
+ * (see `lib/auth.tsx`) even if Supabase URL/key are set — useful for UI dev before
+ * real users exist in Supabase.
+ */
 export function isSupabaseConfigured(): boolean {
+  if (process.env.NEXT_PUBLIC_USE_MOCK_AUTH === "true") {
+    return false
+  }
   return !!(
     typeof process.env.NEXT_PUBLIC_SUPABASE_URL === "string" &&
     process.env.NEXT_PUBLIC_SUPABASE_URL.length > 0 &&

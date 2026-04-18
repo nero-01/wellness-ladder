@@ -39,6 +39,24 @@ const MOCK_USER: User = {
 
 const AUTH_STORAGE_KEY = "wellness-auth-user"
 
+/** Optional dev-only gate: set both in `.env.local` to require a fixed email/password in mock mode. */
+function getMockDevCredentials():
+  | { email: string; password: string }
+  | null {
+  const email = process.env.NEXT_PUBLIC_MOCK_DEV_EMAIL?.trim()
+  const password = process.env.NEXT_PUBLIC_MOCK_DEV_PASSWORD?.trim()
+  if (email && password) return { email, password }
+  return null
+}
+
+function assertMockSignIn(email: string, password: string) {
+  const fixed = getMockDevCredentials()
+  if (!fixed) return
+  if (email.trim() !== fixed.email || password !== fixed.password) {
+    throw new Error("Invalid email or password")
+  }
+}
+
 function mapSupabaseUser(session: Session | null): User | null {
   if (!session?.user) return null
   const u = session.user
@@ -98,10 +116,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = useCallback(async (email: string, password: string) => {
     if (!isSupabaseConfigured()) {
       await new Promise((resolve) => setTimeout(resolve, 500))
+      assertMockSignIn(email, password)
       const newUser: User = {
         ...MOCK_USER,
-        email,
-        name: email.split("@")[0] ?? "User",
+        email: email.trim(),
+        name: email.trim().split("@")[0] ?? "User",
       }
       setUser(newUser)
       localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(newUser))
@@ -111,8 +130,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const supabase = getBrowserSupabase()
     if (!supabase) throw new Error("Supabase client unavailable")
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) throw error
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    })
+    if (error) {
+      const msg = error.message || "Sign in failed"
+      if (/Invalid login credentials|Invalid email or password/i.test(msg)) {
+        throw new Error(
+          "Invalid email or password. Create the user in Supabase (Sign up), or use local mock auth: set NEXT_PUBLIC_USE_MOCK_AUTH=true in .env.local (see .env.example).",
+        )
+      }
+      throw new Error(msg)
+    }
     await bootstrapProfile()
   }, [])
 
