@@ -92,8 +92,18 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ### Mobile (Expo)
 
+The Expo app lives in **`mobile/`** — it is separate from the Next.js web app. Changes under `app/` and `components/` at the repo root **do not** apply to Expo; edit files under `mobile/` (e.g. `mobile/app/(auth)/`).
+
 ```bash
 cd mobile && npm install && npx expo start
+```
+
+From the repo root you can run:
+
+```bash
+npm run mobile:start
+# or clear Metro cache:
+npm run mobile:start:clear
 ```
 
 Native modules used include **expo-haptics** and **expo-av**.

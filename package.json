@@ -10,7 +10,8 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:push": "prisma db push",
-    "mobile:start": "npm run start --prefix mobile"
+    "mobile:start": "npm run start --prefix mobile",
+    "mobile:start:clear": "npm run start --prefix mobile -- -c"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

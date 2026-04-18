@@ -9,6 +9,7 @@ import {
 } from "react-native"
 import { Link, useRouter } from "expo-router"
 import { Text, View } from "@/components/Themed"
+import { AUTH_PLACEHOLDER, authInputStyles } from "@/constants/authFormStyles"
 import { useAuth } from "@/contexts/AuthContext"
 
 export default function SignInScreen() {
@@ -41,8 +42,9 @@ export default function SignInScreen() {
         <Text style={styles.title}>Sign in</Text>
         <Text style={styles.hint}>Supabase email + password</Text>
         <TextInput
-          style={styles.input}
+          style={authInputStyles.input}
           placeholder="Email"
+          placeholderTextColor={AUTH_PLACEHOLDER}
           autoCapitalize="none"
           keyboardType="email-address"
           autoComplete="email"
@@ -50,8 +52,9 @@ export default function SignInScreen() {
           onChangeText={setEmail}
         />
         <TextInput
-          style={styles.input}
+          style={authInputStyles.input}
           placeholder="Password"
+          placeholderTextColor={AUTH_PLACEHOLDER}
           secureTextEntry
           autoComplete="password"
           value={password}
@@ -82,13 +85,6 @@ const styles = StyleSheet.create({
   inner: { flex: 1, padding: 24, justifyContent: "center", gap: 12 },
   title: { fontSize: 24, fontWeight: "700" },
   hint: { opacity: 0.7, marginBottom: 8 },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 14,
-    fontSize: 16,
-  },
   error: { color: "#c00" },
   button: {
     backgroundColor: "#6b4d8a",
