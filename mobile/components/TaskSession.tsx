@@ -694,32 +694,6 @@ export function TaskSession({
           />
         ) : null}
 
-        {!previewMode ? <TaskCatalogPreview todayTaskId={task.id} /> : null}
-
-        <View style={styles.streakRow}>
-          <View style={{ flex: 1, marginRight: 8 }}>
-            <Text style={{ fontSize: 12, color: W.textMuted, marginBottom: 6 }}>
-              {ui.dayOnLadder}
-            </Text>
-            <StreakFlameBadge streakCount={flameDisplay} bumpKey={bumpKey} />
-            <View style={{ height: 10 }} />
-            <MoodStreakBadge moodStreak={moodStreakCount} bumpKey={bumpKey} />
-          </View>
-          <CircularProgress
-            progress={ringProgress}
-            label="1/1"
-            size={64}
-          />
-        </View>
-
-        <View style={styles.moodStrip}>
-          <MoodPickerRow
-            selectedMood={selectedMood}
-            onMoodSelect={setSelectedMood}
-            requiredForStreak={!previewMode}
-          />
-        </View>
-
         <LinearGradient
           colors={[W.iconBg, W.bgElevated]}
           start={{ x: 0, y: 0 }}
@@ -817,6 +791,32 @@ export function TaskSession({
             <Text style={styles.keepGoing}>{ui.keepGoing}</Text>
           ) : null}
         </LinearGradient>
+
+        <View style={styles.moodStrip}>
+          <MoodPickerRow
+            selectedMood={selectedMood}
+            onMoodSelect={setSelectedMood}
+            requiredForStreak={!previewMode}
+          />
+        </View>
+
+        <View style={styles.streakRow}>
+          <View style={{ flex: 1, marginRight: 8 }}>
+            <Text style={{ fontSize: 12, color: W.textMuted, marginBottom: 6 }}>
+              {ui.dayOnLadder}
+            </Text>
+            <StreakFlameBadge streakCount={flameDisplay} bumpKey={bumpKey} />
+            <View style={{ height: 10 }} />
+            <MoodStreakBadge moodStreak={moodStreakCount} bumpKey={bumpKey} />
+          </View>
+          <CircularProgress
+            progress={ringProgress}
+            label="1/1"
+            size={64}
+          />
+        </View>
+
+        {!previewMode ? <TaskCatalogPreview todayTaskId={task.id} /> : null}
 
         <View style={styles.actions}>
           <Pressable
