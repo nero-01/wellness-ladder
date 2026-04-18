@@ -118,17 +118,22 @@
   body {
     @apply bg-background text-foreground antialiased;
   }
-  /* Keep typed/autofill text visible on inputs (some browsers override color). */
-  input,
-  textarea {
-    color: hsl(var(--foreground));
-  }
-  input:-webkit-autofill,
-  input:-webkit-autofill:hover,
-  input:-webkit-autofill:focus {
-    -webkit-text-fill-color: hsl(var(--foreground));
-    transition: background-color 5000s ease-in-out 0s;
-  }
+}
+
+/* Match Input component colors so WebKit autofill cannot hide the caret/text */
+html:not(.dark) input:-webkit-autofill,
+html:not(.dark) input:-webkit-autofill:hover,
+html:not(.dark) input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #171717;
+  box-shadow: 0 0 0 1000px #ffffff inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+html.dark input:-webkit-autofill,
+html.dark input:-webkit-autofill:hover,
+html.dark input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #fafafa;
+  box-shadow: 0 0 0 1000px #09090b inset;
+  transition: background-color 5000s ease-in-out 0s;
 }
 
 /* Custom gradient utilities */

@@ -82,9 +82,13 @@ export default function SignInPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              aria-describedby="password-hint"
             />
-            <p className="text-xs text-muted-foreground">
-              Password fields hide what you type unless you choose Show — that is normal.
+            <p id="password-hint" className="text-xs text-muted-foreground space-y-1">
+              <span className="block">
+                Password fields hide characters — use Show to verify. Typed length:{" "}
+                <span className="font-medium tabular-nums text-foreground">{password.length}</span>
+              </span>
             </p>
           </div>
           {error ? <p className="text-sm text-destructive">{error}</p> : null}

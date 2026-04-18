@@ -1,11 +1,12 @@
 import { createBrowserClient, type SupabaseClient } from "@supabase/ssr"
+import { isLikelySupabaseJwtAnonKey } from "@/lib/supabase/anon-key"
 
 let client: SupabaseClient | null = null
 
 export function getBrowserSupabase(): SupabaseClient | null {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  if (!url || !key) return null
+  if (!url || !key || !isLikelySupabaseJwtAnonKey(key)) return null
   if (!client) {
     client = createBrowserClient(url, key)
   }
@@ -21,10 +22,16 @@ export function isSupabaseConfigured(): boolean {
   if (process.env.NEXT_PUBLIC_USE_MOCK_AUTH === "true") {
     return false
   }
-  return !!(
-    typeof process.env.NEXT_PUBLIC_SUPABASE_URL === "string" &&
-    process.env.NEXT_PUBLIC_SUPABASE_URL.length > 0 &&
-    typeof process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY === "string" &&
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.length > 0
-  )
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (
+    typeof url !== "string" ||
+    url.length === 0 ||
+    typeof key !== "string" ||
+    key.length === 0
+  ) {
+    return false
+  }
+  // Publishable-style keys (sb_…) are not valid for GoTrue; use mock auth or JWT anon key.
+  return isLikelySupabaseJwtAnonKey(key)
 }
