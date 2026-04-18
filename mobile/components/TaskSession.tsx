@@ -10,7 +10,6 @@ import {
   Modal,
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -22,10 +21,10 @@ import { MoodStreakBadge } from "@/components/MoodStreakBadge"
 import { ResumeLadderBanner } from "@/components/ResumeLadderBanner"
 import { StreakFlameBadge } from "@/components/StreakFlameBadge"
 import {
-  BreathingTaskVisual,
-  BREATHING_TASK_ID,
+  ImmersiveTaskShell,
+  TaskRenderer,
+  taskSlugFromTaskId,
 } from "@/components/TaskScreen"
-import { TaskCatalogPreview } from "@/components/TaskCatalogPreview"
 import { TaskNotoIcon } from "@/components/TaskNotoIcon"
 import { TaskTimerBar } from "@/components/TaskTimerBar"
 import { VoiceRecorder } from "@/components/VoiceRecorder"
@@ -47,8 +46,17 @@ import type { Task } from "@/lib/wellness-data"
 
 function createTaskSessionStyles(W: WellnessPalette) {
   return StyleSheet.create({
-    safe: { flex: 1, backgroundColor: W.bg },
-    scroll: { paddingHorizontal: 20, paddingBottom: 100 },
+    safe: { flex: 1, backgroundColor: "transparent" },
+    mainColumn: {
+      flex: 1,
+      paddingHorizontal: 20,
+      paddingBottom: 16,
+    },
+    centerBlock: {
+      flex: 1,
+      minHeight: 0,
+      justifyContent: "center",
+    },
     pressDim: { opacity: 0.85 },
     topBar: {
       flexDirection: "row",
@@ -97,8 +105,8 @@ function createTaskSessionStyles(W: WellnessPalette) {
     },
     card: {
       borderRadius: 20,
-      padding: 20,
-      marginBottom: 20,
+      padding: 16,
+      marginBottom: 12,
       shadowColor: "#000",
       shadowOpacity: 0.12,
       shadowRadius: 12,
@@ -527,19 +535,17 @@ export function TaskSession({
 
   const showVoiceWave = sessionActive && isPlaying
 
+  const taskSlug = useMemo(() => taskSlugFromTaskId(task.id), [task.id])
+
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
+      <ImmersiveTaskShell>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
       >
-        <ScrollView
-          style={{ flex: 1, backgroundColor: W.bg }}
-          contentContainerStyle={styles.scroll}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
+        <View style={styles.mainColumn}>
         <View style={styles.topBar}>
           <Pressable
             onPress={() => {
@@ -661,6 +667,7 @@ export function TaskSession({
           />
         ) : null}
 
+        <View style={styles.centerBlock}>
         <LinearGradient
           colors={[W.iconBg, W.bgElevated]}
           start={{ x: 0, y: 0 }}
@@ -690,15 +697,32 @@ export function TaskSession({
 
           <TaskNotoIcon
             iconCode={task.iconCode}
-            size={52}
+            size={44}
             accessibilityLabel={`Task icon: ${task.title}`}
             style={styles.taskIconWrap}
           />
-          <Text style={styles.taskTitle}>{task.title}</Text>
-          <Text style={styles.taskInstruction}>{task.instruction}</Text>
+          <Text style={styles.taskTitle} numberOfLines={2}>
+            {task.title}
+          </Text>
+          <Text style={styles.taskInstruction} numberOfLines={4}>
+            {task.instruction}
+          </Text>
+
+          <View style={{ alignItems: "center", marginTop: 8 }}>
+            <TaskRenderer
+              taskSlug={taskSlug}
+              sessionActive={sessionActive}
+              voiceEnabled={voiceEnabled}
+              locale={localeReady ? locale : "en"}
+              timeLeft={timer.timeLeft}
+              elapsed={timer.mode === "manual" ? timer.elapsed : 0}
+              walkPhase={timer.mode === "manual" ? timer.walkPhase : "idle"}
+              timerMode={timer.mode}
+            />
+          </View>
 
           {showVoiceWave ? (
-            <VoiceWaveformLottie active color={W.primary} height={48} />
+            <VoiceWaveformLottie active color={W.primary} height={40} />
           ) : null}
 
           {timer.mode === "countdown" ? (
@@ -748,18 +772,11 @@ export function TaskSession({
             </Pressable>
           ) : null}
 
-          {sessionActive && task.id === BREATHING_TASK_ID ? (
-            <BreathingTaskVisual
-              active={sessionActive}
-              voiceEnabled={voiceEnabled}
-              locale={localeReady ? locale : "en"}
-            />
-          ) : null}
-
-          {sessionActive && task.id !== BREATHING_TASK_ID ? (
+          {sessionActive && taskSlug !== "deep-breaths" ? (
             <Text style={styles.keepGoing}>{ui.keepGoing}</Text>
           ) : null}
         </LinearGradient>
+        </View>
 
         <View style={styles.moodStrip}>
           <MoodPickerRow
@@ -784,8 +801,6 @@ export function TaskSession({
             size={64}
           />
         </View>
-
-        {!previewMode ? <TaskCatalogPreview todayTaskId={task.id} /> : null}
 
         <View style={styles.actions}>
           <Pressable
@@ -816,8 +831,9 @@ export function TaskSession({
           <Text style={styles.recorderLabel}>Optional voice note</Text>
           <VoiceRecorder />
         </View>
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
+      </ImmersiveTaskShell>
     </SafeAreaView>
   )
 }
