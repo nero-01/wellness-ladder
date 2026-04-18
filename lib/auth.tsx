@@ -8,7 +8,7 @@ import {
   useCallback,
   type ReactNode,
 } from "react"
-import type { Session } from "@supabase/supabase-js"
+import type { AuthChangeEvent, Session } from "@supabase/supabase-js"
 import { getBrowserSupabase, isSupabaseConfigured } from "@/lib/supabase/browser"
 
 export interface User {
@@ -99,16 +99,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(mapSupabaseUser(session))
+    supabase.auth.getSession().then(({ data }: { data: { session: Session | null } }) => {
+      setUser(mapSupabaseUser(data.session))
       setIsLoaded(true)
     })
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(mapSupabaseUser(session))
-    })
+    } = supabase.auth.onAuthStateChange(
+      (_event: AuthChangeEvent, session: Session | null) => {
+        setUser(mapSupabaseUser(session))
+      },
+    )
 
     return () => subscription.unsubscribe()
   }, [])
