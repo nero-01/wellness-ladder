@@ -19,6 +19,9 @@ export interface User {
   isPremium: boolean
 }
 
+/** Supabase OAuth providers used on the sign-up page (maps to `signInWithOAuth`). */
+export type OAuthProviderId = "google" | "apple" | "facebook" | "twitter"
+
 interface AuthContextType {
   user: User | null
   isLoaded: boolean
@@ -26,6 +29,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string, name: string) => Promise<void>
   signOut: () => Promise<void>
+  signInWithOAuth: (provider: OAuthProviderId) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -185,6 +189,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }, [])
 
+  const signInWithOAuth = useCallback(async (provider: OAuthProviderId) => {
+    if (!isSupabaseConfigured()) {
+      throw new Error(
+        "Social sign-in requires Supabase. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local.",
+      )
+    }
+    const supabase = getBrowserSupabase()
+    if (!supabase) throw new Error("Supabase client unavailable")
+
+    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent("/")}`
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo },
+    })
+    if (error) throw error
+    if (data.url) window.location.assign(data.url)
+  }, [])
+
   return (
     <AuthContext.Provider
       value={{
@@ -194,6 +216,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signIn,
         signUp,
         signOut,
+        signInWithOAuth,
       }}
     >
       {children}
@@ -219,7 +242,7 @@ export function SignInButton({ children }: { children?: ReactNode }) {
 
 export function SignUpButton({ children }: { children?: ReactNode }) {
   return (
-    <button type="button" onClick={() => (window.location.href = "/sign-up")}>
+    <button type="button" onClick={() => (window.location.href = "/auth/sign-up")}>
       {children || "Sign Up"}
     </button>
   )

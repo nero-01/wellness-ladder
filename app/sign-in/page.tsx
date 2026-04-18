@@ -98,7 +98,7 @@ export default function SignInPage() {
         </form>
         <p className="text-center text-sm text-muted-foreground">
           No account?{" "}
-          <Link href="/sign-up" className="text-primary underline">
+          <Link href="/auth/sign-up" className="text-primary underline">
             Sign up
           </Link>
         </p>

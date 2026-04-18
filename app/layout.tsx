@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
+import { Toaster } from "react-hot-toast"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/lib/auth"
 
@@ -58,6 +59,7 @@ export default function RootLayout({
           <AuthProvider>
             {children}
           </AuthProvider>
+          <Toaster position="top-center" toastOptions={{ duration: 4000 }} />
         </ThemeProvider>
         <script
           dangerouslySetInnerHTML={{
