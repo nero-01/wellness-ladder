@@ -7,7 +7,7 @@ import {
 } from "expo-file-system/legacy"
 import * as Speech from "expo-speech"
 import { Platform } from "react-native"
-import { apiFetch } from "@/lib/api"
+import { fetchElevenLabsGuidanceMp3 } from "@/lib/elevenLabsProxy"
 
 /** Base opts; `language` set per call (en-US vs af-ZA). */
 const CALM_SPEECH_BASE = {
@@ -129,11 +129,7 @@ export async function speakGuidanceLine(
   }
 
   try {
-    const res = await apiFetch("/api/voice/elevenlabs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: line }),
-    })
+    const res = await fetchElevenLabsGuidanceMp3(line)
 
     if (!res.ok) {
       let errBody = await res.text().catch(() => "")

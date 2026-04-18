@@ -7,7 +7,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   Alert,
   Animated,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -24,6 +26,7 @@ import { TaskCatalogPreview } from "@/components/TaskCatalogPreview"
 import { TaskNotoIcon } from "@/components/TaskNotoIcon"
 import { TaskTimerBar } from "@/components/TaskTimerBar"
 import { VoiceRecorder } from "@/components/VoiceRecorder"
+import { VoiceWaveformLottie } from "@/components/VoiceWaveformLottie"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useTaskSessionTimer } from "@/hooks/useTaskSessionTimer"
 import { useTaskVoiceGuidance } from "@/hooks/useTaskVoiceGuidance"
@@ -43,7 +46,7 @@ import { getBreathingPhaseLabel, type Task } from "@/lib/wellness-data"
 function createTaskSessionStyles(W: WellnessPalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: W.bg },
-    scroll: { paddingHorizontal: 20, paddingBottom: 32 },
+    scroll: { paddingHorizontal: 20, paddingBottom: 100 },
     pressDim: { opacity: 0.85 },
     topBar: {
       flexDirection: "row",
@@ -123,18 +126,21 @@ function createTaskSessionStyles(W: WellnessPalette) {
       marginBottom: 8,
     },
     taskTitle: {
-      fontSize: 20,
-      fontWeight: "700",
+      fontSize: 26,
+      fontWeight: "800",
       color: W.text,
       textAlign: "center",
-      lineHeight: 26,
+      lineHeight: 32,
+      paddingHorizontal: 4,
     },
     taskInstruction: {
-      fontSize: 16,
+      fontSize: 17,
       color: W.primary,
       textAlign: "center",
-      marginTop: 8,
+      marginTop: 10,
       marginBottom: 4,
+      lineHeight: 24,
+      paddingHorizontal: 4,
     },
     hint: {
       fontSize: 13,
@@ -552,14 +558,21 @@ export function TaskSession({
 
   const timerCompleted = timer.timerCompleted
 
+  const showVoiceWave = sessionActive && isPlaying
+
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
-      <ScrollView
-        style={{ flex: 1, backgroundColor: W.bg }}
-        contentContainerStyle={styles.scroll}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
       >
+        <ScrollView
+          style={{ flex: 1, backgroundColor: W.bg }}
+          contentContainerStyle={styles.scroll}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
         <View style={styles.topBar}>
           <Pressable
             onPress={() => {
@@ -743,6 +756,10 @@ export function TaskSession({
           <Text style={styles.taskTitle}>{task.title}</Text>
           <Text style={styles.taskInstruction}>{task.instruction}</Text>
 
+          {showVoiceWave ? (
+            <VoiceWaveformLottie active color={W.primary} height={48} />
+          ) : null}
+
           {timer.mode === "countdown" ? (
             <TaskTimerBar
               mode="countdown"
@@ -830,7 +847,8 @@ export function TaskSession({
           <Text style={styles.recorderLabel}>Optional voice note</Text>
           <VoiceRecorder />
         </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   )
 }

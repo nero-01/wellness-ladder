@@ -1,5 +1,6 @@
+import * as Haptics from "expo-haptics"
 import { Image } from "expo-image"
-import { Pressable, Text, View } from "react-native"
+import { Pressable, ScrollView, Text, View } from "react-native"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { wellnessSelection } from "@/lib/wellnessFeedback"
 import {
@@ -7,7 +8,7 @@ import {
   moodNotoSvgUrlFromFamily,
 } from "@/lib/mood-picker-data"
 
-const MOOD_IMAGE_SIZE = 34
+const MOOD_IMAGE_SIZE = 38
 
 type Props = {
   selectedMood: number | null
@@ -38,15 +39,19 @@ export function MoodPickerRow({
           "How are you feeling? (required for mood streak)"
         : "How are you feeling?"}
       </Text>
-      <View
-        style={{
-          flexDirection: "row",
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{
+          flexGrow: 1,
           justifyContent: "center",
-          flexWrap: "wrap",
-          gap: 10,
+          alignItems: "center",
+          paddingHorizontal: 8,
+          paddingVertical: 4,
         }}
       >
-        {MOOD_PICKER_ITEMS.map((m) => {
+        {MOOD_PICKER_ITEMS.map((m, i) => {
           const on = selectedMood === m.value
           const uri = moodNotoSvgUrlFromFamily(m.family)
           return (
@@ -54,12 +59,14 @@ export function MoodPickerRow({
               key={m.value}
               onPress={() => {
                 wellnessSelection()
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
                 onMoodSelect(m.value)
               }}
               style={{
-                width: 48,
-                height: 48,
-                borderRadius: 16,
+                width: 52,
+                height: 52,
+                marginRight: i === MOOD_PICKER_ITEMS.length - 1 ? 0 : 12,
+                borderRadius: 18,
                 alignItems: "center",
                 justifyContent: "center",
                 backgroundColor: on ? W.iconBg : W.surfaceMuted,
@@ -82,7 +89,7 @@ export function MoodPickerRow({
             </Pressable>
           )
         })}
-      </View>
+      </ScrollView>
       {selected ? (
         <Text
           style={{

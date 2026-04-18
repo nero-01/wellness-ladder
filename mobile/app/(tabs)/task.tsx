@@ -1,3 +1,7 @@
+/**
+ * Today’s task UI: layout, mood strip, timers, and voice guidance live in
+ * `TaskSession` (ElevenLabs via Next.js `POST /api/voice/elevenlabs` — see `lib/elevenLabsProxy.ts`).
+ */
 import { useMemo } from "react"
 import { ActivityIndicator, StyleSheet, View } from "react-native"
 import { MilestoneModal } from "@/components/MilestoneModal"
