@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase"
+import { isSupabaseConfigured, supabase } from "@/lib/supabase"
 
 /**
  * Base URL for the Next.js deployment (e.g. https://your-app.vercel.app).
@@ -11,8 +11,13 @@ function getApiBase(): string {
 
 export async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
   const base = getApiBase()
-  const { data: { session } } = await supabase.auth.getSession()
-  const token = session?.access_token
+  let token: string | undefined
+  if (isSupabaseConfigured()) {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    token = session?.access_token
+  }
 
   const headers = new Headers(init?.headers)
   if (token) {
