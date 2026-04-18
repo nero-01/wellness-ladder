@@ -295,8 +295,10 @@ export function UserButton() {
   return (
     <button
       type="button"
+      title="Sign out"
+      aria-label="Sign out"
       onClick={() => void signOut()}
-      className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium"
+      className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium shrink-0"
     >
       {user.name.charAt(0).toUpperCase()}
     </button>

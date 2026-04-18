@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Calendar, Mic, Sparkles, WifiOff } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { WebAuthNav } from "@/components/web-auth-nav"
 import { wellnessWebPrimary } from "@/lib/wellness-feedback"
 import { useEffect, useState } from "react"
 
@@ -48,7 +49,10 @@ export default function LandingPage() {
           </div>
           <span className="font-semibold text-foreground">Wellness</span>
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-2 sm:gap-3">
+          <WebAuthNav mode="full" />
+          <ThemeToggle />
+        </div>
       </header>
 
       {/* Hero Section */}

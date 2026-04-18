@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChevronLeft, Crown, Calendar, TrendingUp, Target } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { WebAuthNav } from "@/components/web-auth-nav"
 import { StreakBadge } from "@/components/wellness"
 import { useStreak } from "@/hooks/use-streak"
+import { useAuth } from "@/lib/auth"
 import { 
   AreaChart, 
   Area, 
@@ -20,6 +22,7 @@ import {
 export default function ProfilePage() {
   const [mounted, setMounted] = useState(false)
   const { streakData, isLoaded } = useStreak()
+  const { user: authUser, isLoaded: authLoaded, isSignedIn } = useAuth()
 
   useEffect(() => {
     setMounted(true)
@@ -65,7 +68,7 @@ export default function ProfilePage() {
     }
   ]
 
-  if (!isLoaded) {
+  if (!isLoaded || !authLoaded) {
     return (
       <div className="min-h-screen gradient-bg flex items-center justify-center">
         <div className="h-12 w-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
@@ -76,15 +79,20 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen gradient-bg flex flex-col">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4">
+      <header className="grid grid-cols-[auto_1fr_auto] items-center gap-2 px-6 py-4">
         <Link href="/task">
           <Button variant="ghost" size="icon" className="rounded-full">
             <ChevronLeft className="h-5 w-5" />
             <span className="sr-only">Back</span>
           </Button>
         </Link>
-        <h1 className="font-semibold text-foreground">Your Progress</h1>
-        <ThemeToggle />
+        <h1 className="font-semibold text-foreground text-center truncate min-w-0">
+          Your Progress
+        </h1>
+        <div className="flex items-center justify-end gap-2">
+          <WebAuthNav mode="minimal" />
+          <ThemeToggle />
+        </div>
       </header>
 
       {/* Main Content */}
@@ -97,10 +105,28 @@ export default function ProfilePage() {
         >
           <CardContent className="p-6 text-center">
             <div className="h-20 w-20 rounded-full gradient-primary flex items-center justify-center mx-auto mb-4">
-              <span className="text-3xl text-white font-bold">W</span>
+              <span className="text-3xl text-white font-bold">
+                {isSignedIn && authUser
+                  ? authUser.name.charAt(0).toUpperCase()
+                  : "W"}
+              </span>
             </div>
-            <h2 className="text-xl font-semibold text-foreground mb-2">Wellness Climber</h2>
-            <p className="text-sm text-muted-foreground mb-4">Building healthy habits, one step at a time</p>
+            <h2 className="text-xl font-semibold text-foreground mb-2">
+              {isSignedIn && authUser ? authUser.name : "Wellness Climber"}
+            </h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              {isSignedIn && authUser
+                ? authUser.email
+                : "Building healthy habits, one step at a time"}
+            </p>
+            {!isSignedIn ? (
+              <p className="text-xs text-muted-foreground mb-4">
+                <Link href="/sign-in" className="text-primary underline underline-offset-2">
+                  Sign in
+                </Link>{" "}
+                to sync your account across devices.
+              </p>
+            ) : null}
             <StreakBadge days={streakData.currentStreak || 1} size="lg" />
           </CardContent>
         </Card>

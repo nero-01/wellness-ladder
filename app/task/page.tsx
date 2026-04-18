@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Check, ChevronLeft, SkipForward, User } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { WebAuthNav } from "@/components/web-auth-nav"
 import {
   StreakBadge,
   CircularProgress,
@@ -160,6 +161,7 @@ export default function TaskPage() {
           </Button>
         </Link>
         <div className="flex items-center gap-2">
+          <WebAuthNav mode="minimal" />
           <Link href="/profile" onClick={() => wellnessWebTap()}>
             <Button variant="ghost" size="icon" className="rounded-full">
               <User className="h-5 w-5" />
