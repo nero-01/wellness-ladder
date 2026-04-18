@@ -56,18 +56,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(mapUser(session))
-      setIsLoaded(true)
-    })
+    let subscription: { unsubscribe: () => void } | undefined
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(mapUser(session))
-    })
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        setUser(mapUser(session))
+      })
+      .catch((err: unknown) => {
+        console.warn("[wellness] getSession failed:", err)
+      })
+      .finally(() => {
+        setIsLoaded(true)
+      })
 
-    return () => subscription.unsubscribe()
+    try {
+      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+        setUser(mapUser(session))
+      })
+      subscription = data.subscription
+    } catch (err) {
+      console.warn("[wellness] onAuthStateChange failed:", err)
+    }
+
+    return () => subscription?.unsubscribe()
   }, [])
 
   const signIn = useCallback(async (email: string, password: string) => {

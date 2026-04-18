@@ -29,30 +29,14 @@ if (!url || !key) {
   )
 }
 
-let client: SupabaseClient | null = null
+const authOptions = {
+  storage: AsyncStorage,
+  autoRefreshToken: true,
+  persistSession: true,
+  detectSessionInUrl: false,
+} as const
 
-function getClient(): SupabaseClient {
-  if (!isSupabaseConfigured()) {
-    throw new Error(
-      "Supabase is not configured. Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in mobile/.env, or NEXT_PUBLIC_SUPABASE_* in the repo root .env. Restart Metro with npx expo start -c.",
-    )
-  }
-  if (!client) {
-    client = createClient(url!, key!, {
-      auth: {
-        storage: AsyncStorage,
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: false,
-      },
-    })
-  }
-  return client
-}
-
-/** Lazily created so missing/invalid env does not throw at import time (Supabase validates the URL in createClient). */
-export const supabase = new Proxy({} as SupabaseClient, {
-  get(_target, prop, receiver) {
-    return Reflect.get(getClient(), prop, receiver)
-  },
-})
+/** Real client only when env is valid; callers must guard with `isSupabaseConfigured()`. */
+export const supabase: SupabaseClient = isSupabaseConfigured()
+  ? createClient(url!, key!, { auth: authOptions })
+  : (null as unknown as SupabaseClient)
