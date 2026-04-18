@@ -15,6 +15,12 @@ export const WELLNESS_TASKS: Task[] = [
   { id: 5, title: "Quick Journal", instruction: "Mentally note one feeling you have right now.", duration: 30, icon: "\u{1F4DD}" },
   { id: 6, title: "Hydration Check", instruction: "Take a sip of water. Stay hydrated!", duration: 15, icon: "\u{1F4A7}" },
   { id: 7, title: "Reflect & Rest", instruction: "Close your eyes and breathe slowly.", duration: 45, icon: "\u{1F31F}" },
+  { id: 8, title: "Shoulder Release", instruction: "Roll your shoulders up, back, and down—slowly, five times.", duration: 30, icon: "\u{1F4AA}" },
+  { id: 9, title: "Screen Break", instruction: "Look away from any screen. Rest your eyes on something arm’s length or farther.", duration: 45, icon: "\u{1F4F4}" },
+  { id: 10, title: "Gentle Self-Words", instruction: "Say one short kind sentence to yourself, out loud or in your head.", duration: 25, icon: "\u{2728}" },
+  { id: 11, title: "Easy Neck Care", instruction: "Let your ear drift toward each shoulder—no forcing, small and slow.", duration: 35, icon: "\u{2195}\u{FE0F}" },
+  { id: 12, title: "Green Glance", instruction: "Find something natural—a plant, tree, or sky—and notice one color or texture.", duration: 40, icon: "\u{1F331}" },
+  { id: 13, title: "Posture Reset", instruction: "Sit or stand tall, feet grounded, jaw unclenched, shoulders dropped.", duration: 30, icon: "\u{1F9CD}" },
 ]
 
 export function getTodayTask(streakDay: number): Task {

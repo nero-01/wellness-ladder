@@ -49,6 +49,48 @@ export const WELLNESS_TASKS: Task[] = [
     instruction: "Close your eyes and breathe slowly.",
     duration: 45,
     icon: String.fromCodePoint(0x1F31F) // glowing star
+  },
+  {
+    id: 8,
+    title: "Shoulder Release",
+    instruction: "Roll your shoulders up, back, and down—slowly, five times.",
+    duration: 30,
+    icon: String.fromCodePoint(0x1F4AA) // flexed biceps
+  },
+  {
+    id: 9,
+    title: "Screen Break",
+    instruction: "Look away from any screen. Rest your eyes on something arm’s length or farther.",
+    duration: 45,
+    icon: String.fromCodePoint(0x1F4F4) // mobile phone off
+  },
+  {
+    id: 10,
+    title: "Gentle Self-Words",
+    instruction: "Say one short kind sentence to yourself, out loud or in your head.",
+    duration: 25,
+    icon: String.fromCodePoint(0x2728) // sparkles
+  },
+  {
+    id: 11,
+    title: "Easy Neck Care",
+    instruction: "Let your ear drift toward each shoulder—no forcing, small and slow.",
+    duration: 35,
+    icon: String.fromCodePoint(0x2195, 0xFE0F) // up-down arrow
+  },
+  {
+    id: 12,
+    title: "Green Glance",
+    instruction: "Find something natural—a plant, tree, or sky—and notice one color or texture.",
+    duration: 40,
+    icon: String.fromCodePoint(0x1F331) // seedling
+  },
+  {
+    id: 13,
+    title: "Posture Reset",
+    instruction: "Sit or stand tall, feet grounded, jaw unclenched, shoulders dropped.",
+    duration: 30,
+    icon: String.fromCodePoint(0x1F9CD) // standing person
   }
 ]
 
