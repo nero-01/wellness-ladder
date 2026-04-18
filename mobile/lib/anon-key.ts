@@ -1,10 +1,12 @@
 /**
- * Supabase Auth (GoTrue) expects the legacy **anon public JWT** from
- * Dashboard → Settings → API (starts with `eyJ`).
- * Publishable keys (`sb_publishable_…`) are not valid for password sign-in.
+ * Public client keys Supabase may show in the dashboard:
+ * - Legacy anon JWT (`eyJ…`)
+ * - Publishable key (`sb_publishable_…`) — use with current `@supabase/supabase-js`
+ *
+ * Some auth flows still expect the JWT; if sign-in fails, switch to the anon JWT.
  */
 export function isLikelySupabaseJwtAnonKey(key: string | undefined): boolean {
   const k = key?.trim()
   if (!k) return false
-  return k.startsWith("eyJ")
+  return k.startsWith("eyJ") || k.startsWith("sb_publishable_")
 }

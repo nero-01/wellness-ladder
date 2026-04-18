@@ -4,7 +4,9 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 import { isLikelySupabaseJwtAnonKey } from "@/lib/anon-key"
 
 const url = process.env.EXPO_PUBLIC_SUPABASE_URL?.trim()
-const key = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY?.trim()
+const key =
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY?.trim() ||
+  process.env.EXPO_PUBLIC_SUPABASE_KEY?.trim()
 
 function isValidHttpUrl(s: string): boolean {
   if (!/^https?:\/\//i.test(s)) return false
@@ -33,7 +35,7 @@ export function isSupabaseConfigured(): boolean {
 
 if (!useMockAuthFlag() && url && key && !isLikelySupabaseJwtAnonKey(key)) {
   console.warn(
-    "[wellness] EXPO_PUBLIC_SUPABASE_ANON_KEY should be the anon JWT (starts with eyJ). Using mock auth until fixed.",
+    "[wellness] Supabase key should be the anon JWT (eyJ…) or publishable (sb_publishable_…). Using mock auth until fixed.",
   )
 }
 
