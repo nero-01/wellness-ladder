@@ -1,5 +1,5 @@
 import { Pressable, Text, View } from "react-native"
-import { WellnessColors as W } from "@/constants/wellnessTheme"
+import { useWellnessColors } from "@/hooks/useWellnessColors"
 
 const MOODS = [
   { emoji: "😢", label: "Sad", value: 1 },
@@ -15,6 +15,7 @@ type Props = {
 }
 
 export function MoodPickerRow({ selectedMood, onMoodSelect }: Props) {
+  const W = useWellnessColors()
   const selected = MOODS.find((m) => m.value === selectedMood)
 
   return (
@@ -49,7 +50,7 @@ export function MoodPickerRow({ selectedMood, onMoodSelect }: Props) {
                 borderRadius: 16,
                 alignItems: "center",
                 justifyContent: "center",
-                backgroundColor: on ? "rgba(139,92,246,0.25)" : "rgba(255,255,255,0.06)",
+                backgroundColor: on ? W.iconBg : W.surfaceMuted,
                 borderWidth: on ? 2 : 0,
                 borderColor: W.primary,
                 transform: [{ scale: on ? 1.08 : 1 }],

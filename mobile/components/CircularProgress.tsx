@@ -1,6 +1,6 @@
 import { Text, View } from "react-native"
 import Svg, { Circle } from "react-native-svg"
-import { WellnessColors as W } from "@/constants/wellnessTheme"
+import { useWellnessColors } from "@/hooks/useWellnessColors"
 
 type Props = {
   progress: number
@@ -15,9 +15,12 @@ export function CircularProgress({
   strokeWidth = 4,
   label = "1/1",
 }: Props) {
+  const W = useWellnessColors()
   const radius = (size - strokeWidth) / 2
   const circumference = radius * 2 * Math.PI
-  const offset = circumference - (Math.min(100, Math.max(0, progress)) / 100) * circumference
+  const offset =
+    circumference -
+    (Math.min(100, Math.max(0, progress)) / 100) * circumference
 
   return (
     <View style={{ width: size, height: size }}>
@@ -26,7 +29,7 @@ export function CircularProgress({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="rgba(255,255,255,0.12)"
+          stroke={W.ringTrack}
           strokeWidth={strokeWidth}
           fill="none"
         />
@@ -50,7 +53,9 @@ export function CircularProgress({
           justifyContent: "center",
         }}
       >
-        <Text style={{ fontSize: 11, fontWeight: "700", color: W.text }}>{label}</Text>
+        <Text style={{ fontSize: 11, fontWeight: "700", color: W.text }}>
+          {label}
+        </Text>
       </View>
     </View>
   )

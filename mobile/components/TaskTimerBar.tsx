@@ -1,5 +1,5 @@
 import { Text, View } from "react-native"
-import { WellnessColors as W } from "@/constants/wellnessTheme"
+import { useWellnessColors } from "@/hooks/useWellnessColors"
 
 type Props = {
   timeLeft: number
@@ -13,6 +13,7 @@ function formatTime(seconds: number): string {
 }
 
 export function TaskTimerBar({ timeLeft, duration }: Props) {
+  const W = useWellnessColors()
   const progress = duration > 0 ? ((duration - timeLeft) / duration) * 100 : 0
 
   return (
@@ -21,7 +22,7 @@ export function TaskTimerBar({ timeLeft, duration }: Props) {
         style={{
           height: 12,
           borderRadius: 999,
-          backgroundColor: "rgba(255,255,255,0.1)",
+          backgroundColor: W.timerTrack,
           overflow: "hidden",
         }}
       >

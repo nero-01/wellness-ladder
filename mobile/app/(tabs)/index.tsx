@@ -11,8 +11,9 @@ import {
 } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { TaskCatalogPreview } from "@/components/TaskCatalogPreview"
-import { WellnessColors as W } from "@/constants/wellnessTheme"
+import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useStreak } from "@/hooks/useStreak"
+import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { getTodayTask } from "@/lib/wellness-data"
 
 const FEATURES = [
@@ -38,8 +39,209 @@ const FEATURES = [
   },
 ]
 
+function createHomeStyles(W: WellnessPalette) {
+  return StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: W.bg,
+    },
+    scroll: {
+      paddingBottom: 40,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+    },
+    brandRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+    },
+    logoMark: {
+      width: 36,
+      height: 36,
+      borderRadius: 12,
+      backgroundColor: W.primary,
+      alignItems: "center",
+      justifyContent: "center",
+      shadowColor: W.primary,
+      shadowOpacity: 0.45,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 4,
+    },
+    logoLetter: {
+      color: "#fff",
+      fontWeight: "800",
+      fontSize: 15,
+    },
+    brandName: {
+      color: W.text,
+      fontSize: 17,
+      fontWeight: "600",
+    },
+    hero: {
+      paddingHorizontal: 24,
+      paddingTop: 16,
+      alignItems: "center",
+    },
+    headline: {
+      color: W.text,
+      fontSize: 30,
+      fontWeight: "800",
+      textAlign: "center",
+      lineHeight: 36,
+      marginBottom: 12,
+    },
+    subhead: {
+      color: W.textMuted,
+      fontSize: 17,
+      lineHeight: 24,
+      textAlign: "center",
+      marginBottom: 28,
+      maxWidth: 400,
+    },
+    cta: {
+      backgroundColor: W.primary,
+      paddingVertical: 16,
+      paddingHorizontal: 40,
+      borderRadius: 18,
+      minWidth: 280,
+      maxWidth: "100%",
+      alignItems: "center",
+      shadowColor: W.primary,
+      shadowOpacity: 0.4,
+      shadowRadius: 16,
+      shadowOffset: { width: 0, height: 6 },
+      elevation: 8,
+    },
+    ctaPressed: {
+      backgroundColor: W.primaryPressed,
+      opacity: 0.95,
+    },
+    ctaText: {
+      color: "#fff",
+      fontSize: 18,
+      fontWeight: "700",
+    },
+    ladderSection: {
+      paddingHorizontal: 20,
+      marginTop: 8,
+    },
+    grid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      paddingHorizontal: 20,
+      marginTop: 36,
+      gap: 12,
+      justifyContent: "space-between",
+    },
+    card: {
+      width: "48%",
+      backgroundColor: W.card,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: W.cardBorder,
+      padding: 16,
+      alignItems: "center",
+      marginBottom: 4,
+    },
+    iconCircle: {
+      width: 48,
+      height: 48,
+      borderRadius: 16,
+      backgroundColor: W.iconBg,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 10,
+    },
+    cardTitle: {
+      color: W.text,
+      fontSize: 14,
+      fontWeight: "700",
+      textAlign: "center",
+      marginBottom: 4,
+    },
+    cardDesc: {
+      color: W.textMuted,
+      fontSize: 12,
+      textAlign: "center",
+      lineHeight: 16,
+    },
+    preview: {
+      marginHorizontal: 24,
+      marginTop: 28,
+      backgroundColor: W.bgElevated,
+      borderRadius: 20,
+      padding: 20,
+      borderWidth: 1,
+      borderColor: W.cardBorder,
+    },
+    previewTopRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 16,
+    },
+    previewLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      flex: 1,
+    },
+    dayPill: {
+      backgroundColor: W.iconBg,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 999,
+    },
+    dayPillText: {
+      color: W.primary,
+      fontSize: 13,
+      fontWeight: "600",
+    },
+    previewTitle: {
+      color: W.text,
+      fontSize: 15,
+      fontWeight: "600",
+    },
+    previewEmoji: {
+      fontSize: 36,
+    },
+    previewTaskBox: {
+      backgroundColor: W.surfaceMuted,
+      borderRadius: 16,
+      padding: 16,
+      alignItems: "center",
+    },
+    previewHint: {
+      color: W.textMuted,
+      fontSize: 13,
+      marginBottom: 6,
+    },
+    previewTask: {
+      color: W.text,
+      fontSize: 16,
+      fontWeight: "600",
+      textAlign: "center",
+    },
+    previewMeta: {
+      color: W.textMuted,
+      fontSize: 12,
+      marginTop: 10,
+      textAlign: "center",
+      lineHeight: 16,
+    },
+  })
+}
+
 export default function HomeScreen() {
   const router = useRouter()
+  const W = useWellnessColors()
+  const styles = useMemo(() => createHomeStyles(W), [W])
   const { displayStreak, isLoaded: streakLoaded } = useStreak()
   const todayTask = useMemo(
     () => getTodayTask(displayStreak),
@@ -155,200 +357,3 @@ export default function HomeScreen() {
     </SafeAreaView>
   )
 }
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: W.bg,
-  },
-  scroll: {
-    paddingBottom: 40,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-  },
-  brandRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  logoMark: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: W.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: W.primary,
-    shadowOpacity: 0.45,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 4,
-  },
-  logoLetter: {
-    color: "#fff",
-    fontWeight: "800",
-    fontSize: 15,
-  },
-  brandName: {
-    color: W.text,
-    fontSize: 17,
-    fontWeight: "600",
-  },
-  hero: {
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    alignItems: "center",
-  },
-  headline: {
-    color: W.text,
-    fontSize: 30,
-    fontWeight: "800",
-    textAlign: "center",
-    lineHeight: 36,
-    marginBottom: 12,
-  },
-  subhead: {
-    color: W.textMuted,
-    fontSize: 17,
-    lineHeight: 24,
-    textAlign: "center",
-    marginBottom: 28,
-    maxWidth: 400,
-  },
-  cta: {
-    backgroundColor: W.primary,
-    paddingVertical: 16,
-    paddingHorizontal: 40,
-    borderRadius: 18,
-    minWidth: 280,
-    maxWidth: "100%",
-    alignItems: "center",
-    shadowColor: W.primary,
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 8,
-  },
-  ctaPressed: {
-    backgroundColor: W.primaryPressed,
-    opacity: 0.95,
-  },
-  ctaText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  ladderSection: {
-    paddingHorizontal: 20,
-    marginTop: 8,
-  },
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    paddingHorizontal: 20,
-    marginTop: 36,
-    gap: 12,
-    justifyContent: "space-between",
-  },
-  card: {
-    width: "48%",
-    backgroundColor: W.card,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: W.cardBorder,
-    padding: 16,
-    alignItems: "center",
-    marginBottom: 4,
-  },
-  iconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    backgroundColor: W.iconBg,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 10,
-  },
-  cardTitle: {
-    color: W.text,
-    fontSize: 14,
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 4,
-  },
-  cardDesc: {
-    color: W.textMuted,
-    fontSize: 12,
-    textAlign: "center",
-    lineHeight: 16,
-  },
-  preview: {
-    marginHorizontal: 24,
-    marginTop: 28,
-    backgroundColor: W.bgElevated,
-    borderRadius: 20,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: W.cardBorder,
-  },
-  previewTopRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-  previewLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    flex: 1,
-  },
-  dayPill: {
-    backgroundColor: W.iconBg,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 999,
-  },
-  dayPillText: {
-    color: W.primary,
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  previewTitle: {
-    color: W.text,
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  previewEmoji: {
-    fontSize: 36,
-  },
-  previewTaskBox: {
-    backgroundColor: "rgba(255,255,255,0.05)",
-    borderRadius: 16,
-    padding: 16,
-    alignItems: "center",
-  },
-  previewHint: {
-    color: W.textMuted,
-    fontSize: 13,
-    marginBottom: 6,
-  },
-  previewTask: {
-    color: W.text,
-    fontSize: 16,
-    fontWeight: "600",
-    textAlign: "center",
-  },
-  previewMeta: {
-    color: W.textMuted,
-    fontSize: 12,
-    marginTop: 10,
-    textAlign: "center",
-    lineHeight: 16,
-  },
-})

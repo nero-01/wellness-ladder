@@ -15,7 +15,7 @@ import "react-native-reanimated"
 
 import { useColorScheme } from "@/components/useColorScheme"
 import { AuthProvider, useAuth } from "@/contexts/AuthContext"
-import { WellnessColors } from "@/constants/wellnessTheme"
+import { WellnessColors, WellnessColorsLight } from "@/constants/wellnessTheme"
 
 const WellnessDarkTheme = {
   ...NavigationDarkTheme,
@@ -27,6 +27,19 @@ const WellnessDarkTheme = {
     text: WellnessColors.text,
     border: WellnessColors.cardBorder,
     notification: WellnessColors.primary,
+  },
+}
+
+const WellnessLightNavTheme = {
+  ...NavigationDefaultTheme,
+  colors: {
+    ...NavigationDefaultTheme.colors,
+    primary: WellnessColorsLight.primary,
+    background: WellnessColorsLight.bg,
+    card: WellnessColorsLight.bgElevated,
+    text: WellnessColorsLight.text,
+    border: WellnessColorsLight.cardBorder,
+    notification: WellnessColorsLight.primary,
   },
 }
 
@@ -66,12 +79,19 @@ function RootLayoutNav() {
   useProtectedRoute()
 
   const navTheme =
-    colorScheme === "dark" ? WellnessDarkTheme : NavigationDefaultTheme
+    colorScheme === "dark" ? WellnessDarkTheme : WellnessLightNavTheme
+
+  const rootBg =
+    colorScheme === "light" ? WellnessColorsLight.bg : WellnessColors.bg
 
   return (
     <ThemeProvider value={navTheme}>
       <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
-      <Stack>
+      <Stack
+        screenOptions={{
+          contentStyle: { flex: 1, backgroundColor: rootBg },
+        }}
+      >
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

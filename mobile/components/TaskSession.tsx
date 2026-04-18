@@ -16,19 +16,162 @@ import { MoodPickerRow } from "@/components/MoodPickerRow"
 import { TaskCatalogPreview } from "@/components/TaskCatalogPreview"
 import { TaskTimerBar } from "@/components/TaskTimerBar"
 import { VoiceRecorder } from "@/components/VoiceRecorder"
-import { WellnessColors as W } from "@/constants/wellnessTheme"
+import type { WellnessPalette } from "@/constants/wellnessTheme"
+import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { useTimer } from "@/hooks/useTimer"
 import { getBreathingPhaseLabel, type Task } from "@/lib/wellness-data"
 
-function StreakBadge({ days }: { days: number }) {
-  return (
-    <View style={styles.streakBadge}>
-      <Text style={styles.streakText}>Day {days}</Text>
-      <Text style={styles.streakFlame} accessibilityLabel="streak">
-        🔥
-      </Text>
-    </View>
-  )
+function createTaskSessionStyles(W: WellnessPalette) {
+  return StyleSheet.create({
+    safe: { flex: 1, backgroundColor: W.bg },
+    scroll: { paddingHorizontal: 20, paddingBottom: 32 },
+    pressDim: { opacity: 0.85 },
+    topBar: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 12,
+    },
+    topBarRight: { flexDirection: "row", alignItems: "center", gap: 12 },
+    streakRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 20,
+    },
+    streakBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderRadius: 16,
+      backgroundColor: W.iconBg,
+    },
+    streakText: { fontWeight: "700", fontSize: 17, color: W.text },
+    streakFlame: { fontSize: 20 },
+    card: {
+      backgroundColor: W.bgElevated,
+      borderRadius: 20,
+      padding: 20,
+      borderWidth: 1,
+      borderColor: W.cardBorder,
+      marginBottom: 20,
+      shadowColor: "#000",
+      shadowOpacity: 0.12,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 3,
+    },
+    cardHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 12,
+    },
+    todayLabel: { fontSize: 13, color: W.textMuted },
+    micBtn: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    micActive: { backgroundColor: W.iconBg },
+    emoji: {
+      fontSize: 48,
+      textAlign: "center",
+      marginBottom: 8,
+    },
+    taskTitle: {
+      fontSize: 20,
+      fontWeight: "700",
+      color: W.text,
+      textAlign: "center",
+      lineHeight: 26,
+    },
+    taskInstruction: {
+      fontSize: 16,
+      color: W.primary,
+      textAlign: "center",
+      marginTop: 8,
+      marginBottom: 4,
+    },
+    hint: {
+      fontSize: 13,
+      color: W.textMuted,
+      textAlign: "center",
+      marginTop: 8,
+      marginBottom: 12,
+    },
+    startCta: {
+      backgroundColor: W.primary,
+      paddingVertical: 16,
+      borderRadius: 18,
+      alignItems: "center",
+      shadowColor: W.primary,
+      shadowOpacity: 0.35,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 6,
+    },
+    startCtaPressed: {
+      opacity: 0.92,
+      transform: [{ scale: 0.99 }],
+    },
+    startCtaText: { color: "#fff", fontSize: 18, fontWeight: "700" },
+    breathing: {
+      fontSize: 18,
+      fontWeight: "600",
+      color: W.primary,
+      textAlign: "center",
+      marginTop: 12,
+    },
+    keepGoing: {
+      fontSize: 18,
+      fontWeight: "600",
+      color: W.primary,
+      textAlign: "center",
+      marginTop: 12,
+    },
+    actions: {
+      flexDirection: "row",
+      gap: 12,
+      marginBottom: 20,
+      alignItems: "center",
+    },
+    doneBtn: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      backgroundColor: W.primary,
+      paddingVertical: 16,
+      borderRadius: 18,
+      opacity: 1,
+    },
+    doneBtnDisabled: { opacity: 0.45 },
+    doneBtnPressed: { opacity: 0.92 },
+    doneBtnText: { color: "#fff", fontSize: 17, fontWeight: "700" },
+    skipBtn: {
+      width: 52,
+      height: 52,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: W.cardBorder,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: W.surfaceMuted,
+    },
+    recorderSection: { marginTop: 8 },
+    recorderLabel: {
+      fontSize: 12,
+      color: W.textMuted,
+      marginBottom: 8,
+      textAlign: "center",
+    },
+  })
 }
 
 type Props = {
@@ -39,6 +182,19 @@ type Props = {
 
 export function TaskSession({ task, displayStreak, completeTask }: Props) {
   const router = useRouter()
+  const W = useWellnessColors()
+  const styles = useMemo(() => createTaskSessionStyles(W), [W])
+
+  function StreakBadge({ days }: { days: number }) {
+    return (
+      <View style={styles.streakBadge}>
+        <Text style={styles.streakText}>Day {days}</Text>
+        <Text style={styles.streakFlame} accessibilityLabel="streak">
+          🔥
+        </Text>
+      </View>
+    )
+  }
 
   const [selectedMood, setSelectedMood] = useState<number | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -142,7 +298,7 @@ export function TaskSession({ task, displayStreak, completeTask }: Props) {
               onPress={handleVoiceToggle}
               style={({ pressed }) => [
                 styles.micBtn,
-                isPlaying && { backgroundColor: "rgba(139,92,246,0.2)" },
+                isPlaying && styles.micActive,
                 pressed && styles.pressDim,
               ]}
               accessibilityLabel={
@@ -225,153 +381,3 @@ export function TaskSession({ task, displayStreak, completeTask }: Props) {
     </SafeAreaView>
   )
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: W.bg },
-  scroll: { paddingHorizontal: 20, paddingBottom: 32 },
-  pressDim: { opacity: 0.85 },
-  topBar: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  topBarRight: { flexDirection: "row", alignItems: "center", gap: 12 },
-  streakRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  streakBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 16,
-    backgroundColor: "rgba(139,92,246,0.18)",
-  },
-  streakText: { fontWeight: "700", fontSize: 17, color: W.text },
-  streakFlame: { fontSize: 20 },
-  card: {
-    backgroundColor: W.bgElevated,
-    borderRadius: 20,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: W.cardBorder,
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  todayLabel: { fontSize: 13, color: W.textMuted },
-  micBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  emoji: {
-    fontSize: 48,
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  taskTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: W.text,
-    textAlign: "center",
-    lineHeight: 26,
-  },
-  taskInstruction: {
-    fontSize: 16,
-    color: W.primary,
-    textAlign: "center",
-    marginTop: 8,
-    marginBottom: 4,
-  },
-  hint: {
-    fontSize: 13,
-    color: W.textMuted,
-    textAlign: "center",
-    marginTop: 8,
-    marginBottom: 12,
-  },
-  startCta: {
-    backgroundColor: W.primary,
-    paddingVertical: 16,
-    borderRadius: 18,
-    alignItems: "center",
-    shadowColor: W.primary,
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
-  },
-  startCtaPressed: {
-    opacity: 0.92,
-    transform: [{ scale: 0.99 }],
-  },
-  startCtaText: { color: "#fff", fontSize: 18, fontWeight: "700" },
-  breathing: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: W.primary,
-    textAlign: "center",
-    marginTop: 12,
-  },
-  keepGoing: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: W.primary,
-    textAlign: "center",
-    marginTop: 12,
-  },
-  actions: {
-    flexDirection: "row",
-    gap: 12,
-    marginBottom: 20,
-    alignItems: "center",
-  },
-  doneBtn: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    backgroundColor: W.primary,
-    paddingVertical: 16,
-    borderRadius: 18,
-    opacity: 1,
-  },
-  doneBtnDisabled: { opacity: 0.45 },
-  doneBtnPressed: { opacity: 0.92 },
-  doneBtnText: { color: "#fff", fontSize: 17, fontWeight: "700" },
-  skipBtn: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: W.cardBorder,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.04)",
-  },
-  recorderSection: { marginTop: 8 },
-  recorderLabel: {
-    fontSize: 12,
-    color: W.textMuted,
-    marginBottom: 8,
-    textAlign: "center",
-  },
-})

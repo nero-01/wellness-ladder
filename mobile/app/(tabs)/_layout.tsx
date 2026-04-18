@@ -3,7 +3,7 @@ import FontAwesome from "@expo/vector-icons/FontAwesome"
 import { Link, Tabs } from "expo-router"
 import { Pressable } from "react-native"
 import { useColorScheme } from "@/components/useColorScheme"
-import { WellnessColors } from "@/constants/wellnessTheme"
+import { WellnessColors, WellnessColorsLight } from "@/constants/wellnessTheme"
 
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>["name"]
@@ -15,6 +15,7 @@ function TabBarIcon(props: {
 export default function TabLayout() {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === "dark"
+  const screenBg = isDark ? WellnessColors.bg : WellnessColorsLight.bg
 
   return (
     <Tabs
@@ -22,13 +23,13 @@ export default function TabLayout() {
         tabBarActiveTintColor: isDark ? "#c4b5fd" : "#7c3aed",
         tabBarInactiveTintColor: isDark ? "#71717a" : "#a1a1aa",
         tabBarStyle: {
-          backgroundColor: isDark ? WellnessColors.bg : "#ffffff",
+          backgroundColor: screenBg,
           borderTopColor: isDark ? "rgba(255,255,255,0.08)" : "#e4e4e7",
         },
         headerStyle: {
-          backgroundColor: isDark ? WellnessColors.bg : "#ffffff",
+          backgroundColor: screenBg,
         },
-        headerTintColor: isDark ? WellnessColors.text : "#18181b",
+        headerTintColor: isDark ? WellnessColors.text : WellnessColorsLight.text,
         headerShadowVisible: false,
         tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
       }}
@@ -45,7 +46,7 @@ export default function TabLayout() {
                   <FontAwesome
                     name="info-circle"
                     size={24}
-                    color={isDark ? WellnessColors.text : "#18181b"}
+                    color={isDark ? WellnessColors.text : WellnessColorsLight.text}
                     style={{ opacity: pressed ? 0.5 : 1 }}
                   />
                 )}
@@ -64,7 +65,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profile",
+          title: "Progress",
           tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
         }}
       />

@@ -2,11 +2,12 @@ import { useMemo } from "react"
 import { ActivityIndicator, StyleSheet, View } from "react-native"
 import { TaskCompletionCelebration } from "@/components/TaskCompletionCelebration"
 import { TaskSession } from "@/components/TaskSession"
-import { WellnessColors as W } from "@/constants/wellnessTheme"
 import { useStreak } from "@/hooks/useStreak"
+import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { getTodayTask } from "@/lib/wellness-data"
 
 export default function TaskScreen() {
+  const W = useWellnessColors()
   const {
     streakData,
     isLoaded,
