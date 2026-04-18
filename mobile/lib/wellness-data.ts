@@ -22,6 +22,27 @@ export function getTodayTask(streakDay: number): Task {
   return WELLNESS_TASKS[index]
 }
 
+/**
+ * Task 1: three breaths across the full timer. Each breath is split into
+ * in / hold / out so the last seconds show “Breathe out” (unlike a fixed 12s
+ * modulo cycle on a 30s task, which ends on “Hold”).
+ */
+export function getBreathingPhaseLabel(
+  taskId: number,
+  duration: number,
+  timeLeft: number,
+): string | null {
+  if (taskId !== 1 || duration <= 0) return null
+  const elapsed = Math.max(0, duration - timeLeft)
+  const breathCycle = Math.floor(duration / 3)
+  if (breathCycle < 1) return null
+  const phaseLen = breathCycle / 3
+  const pos = elapsed % breathCycle
+  if (pos < phaseLen) return "Breathe in..."
+  if (pos < 2 * phaseLen) return "Hold..."
+  return "Breathe out..."
+}
+
 export interface StreakData {
   currentStreak: number
   lastCompletedDate: string | null

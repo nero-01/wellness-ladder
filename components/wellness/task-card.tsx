@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { VoiceMic } from "./voice-mic"
 import { TimerDisplay } from "./timer"
+import { getBreathingPhaseLabel } from "@/lib/wellness-data"
 
 export interface Task {
   id: number
@@ -30,16 +31,7 @@ export function TaskCard({
   onVoiceToggle, 
   onStart 
 }: TaskCardProps) {
-  const getBreathingPhase = (time: number, duration: number) => {
-    if (task.id !== 1) return null
-    const elapsed = duration - time
-    const cycle = elapsed % 12
-    if (cycle < 4) return "Breathe in..."
-    if (cycle < 8) return "Hold..."
-    return "Breathe out..."
-  }
-
-  const breathingPhase = getBreathingPhase(timeLeft, task.duration)
+  const breathingPhase = getBreathingPhaseLabel(task.id, task.duration, timeLeft)
 
   return (
     <Card className="border-0 shadow-xl bg-card">

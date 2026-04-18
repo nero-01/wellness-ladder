@@ -18,7 +18,7 @@ import { TaskTimerBar } from "@/components/TaskTimerBar"
 import { VoiceRecorder } from "@/components/VoiceRecorder"
 import { WellnessColors as W } from "@/constants/wellnessTheme"
 import { useTimer } from "@/hooks/useTimer"
-import type { Task } from "@/lib/wellness-data"
+import { getBreathingPhaseLabel, type Task } from "@/lib/wellness-data"
 
 function StreakBadge({ days }: { days: number }) {
   return (
@@ -29,19 +29,6 @@ function StreakBadge({ days }: { days: number }) {
       </Text>
     </View>
   )
-}
-
-function getBreathingPhase(
-  taskId: number,
-  duration: number,
-  timeLeft: number,
-): string | null {
-  if (taskId !== 1) return null
-  const elapsed = duration - timeLeft
-  const cycle = elapsed % 12
-  if (cycle < 4) return "Breathe in..."
-  if (cycle < 8) return "Hold..."
-  return "Breathe out..."
 }
 
 type Props = {
@@ -67,7 +54,7 @@ export function TaskSession({ task, displayStreak, completeTask }: Props) {
   })
 
   const breathingPhase = useMemo(
-    () => getBreathingPhase(task.id, task.duration, timeLeft),
+    () => getBreathingPhaseLabel(task.id, task.duration, timeLeft),
     [task.id, task.duration, timeLeft],
   )
   const pulse = useRef(new Animated.Value(1)).current

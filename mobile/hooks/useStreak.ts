@@ -12,7 +12,9 @@ function getToday(): string {
 }
 
 function isYesterday(dateStr: string): boolean {
+  if (!dateStr?.trim()) return false
   const date = new Date(dateStr)
+  if (Number.isNaN(date.getTime())) return false
   const yesterday = new Date()
   yesterday.setDate(yesterday.getDate() - 1)
   return date.toISOString().split("T")[0] === yesterday.toISOString().split("T")[0]
@@ -66,7 +68,9 @@ export function useStreak() {
         return prev
       }
       const newStreak =
-        isYesterday(prev.lastCompletedDate || "") || prev.currentStreak === 0
+        (prev.lastCompletedDate != null &&
+          isYesterday(prev.lastCompletedDate)) ||
+        prev.currentStreak === 0
           ? prev.currentStreak + 1
           : 1
       const newData: StreakData = {

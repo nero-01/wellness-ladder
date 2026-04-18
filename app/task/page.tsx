@@ -16,7 +16,7 @@ import {
   TimerDisplay 
 } from "@/components/wellness"
 import { useStreak } from "@/hooks/use-streak"
-import { getTodayTask } from "@/lib/wellness-data"
+import { getBreathingPhaseLabel, getTodayTask } from "@/lib/wellness-data"
 
 export default function TaskPage() {
   const router = useRouter()
@@ -66,15 +66,6 @@ export default function TaskPage() {
     completeTask(task.id, selectedMood || undefined)
     setShowCompletion(true)
   }, [completeTask, task.id, selectedMood])
-
-  const getBreathingPhase = () => {
-    if (task.id !== 1) return null
-    const elapsed = task.duration - timeLeft
-    const cycle = elapsed % 12
-    if (cycle < 4) return "Breathe in..."
-    if (cycle < 8) return "Hold..."
-    return "Breathe out..."
-  }
 
   // Loading state
   if (!isLoaded) {
@@ -132,7 +123,7 @@ export default function TaskPage() {
     )
   }
 
-  const breathingPhase = getBreathingPhase()
+  const breathingPhase = getBreathingPhaseLabel(task.id, task.duration, timeLeft)
 
   return (
     <div className="min-h-screen gradient-bg flex flex-col">
