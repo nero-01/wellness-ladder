@@ -1,14 +1,34 @@
 import "react-native-url-polyfill/auto"
 import FontAwesome from "@expo/vector-icons/FontAwesome"
-import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native"
+import {
+  DarkTheme as NavigationDarkTheme,
+  DefaultTheme as NavigationDefaultTheme,
+  ThemeProvider,
+} from "@react-navigation/native"
+import { SafeAreaProvider } from "react-native-safe-area-context"
 import { useFonts } from "expo-font"
 import { Stack, usePathname, useRouter } from "expo-router"
 import * as SplashScreen from "expo-splash-screen"
+import { StatusBar } from "expo-status-bar"
 import { useEffect } from "react"
 import "react-native-reanimated"
 
 import { useColorScheme } from "@/components/useColorScheme"
 import { AuthProvider, useAuth } from "@/contexts/AuthContext"
+import { WellnessColors } from "@/constants/wellnessTheme"
+
+const WellnessDarkTheme = {
+  ...NavigationDarkTheme,
+  colors: {
+    ...NavigationDarkTheme.colors,
+    primary: WellnessColors.primary,
+    background: WellnessColors.bg,
+    card: WellnessColors.bgElevated,
+    text: WellnessColors.text,
+    border: WellnessColors.cardBorder,
+    notification: WellnessColors.primary,
+  },
+}
 
 export { ErrorBoundary } from "expo-router"
 
@@ -45,8 +65,12 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme()
   useProtectedRoute()
 
+  const navTheme =
+    colorScheme === "dark" ? WellnessDarkTheme : NavigationDefaultTheme
+
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={navTheme}>
+      <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
       <Stack>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
@@ -74,8 +98,10 @@ export default function RootLayout() {
   if (!loaded) return null
 
   return (
-    <AuthProvider>
-      <RootLayoutNav />
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <RootLayoutNav />
+      </AuthProvider>
+    </SafeAreaProvider>
   )
 }

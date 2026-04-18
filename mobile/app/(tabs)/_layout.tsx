@@ -2,10 +2,8 @@ import React from "react"
 import FontAwesome from "@expo/vector-icons/FontAwesome"
 import { Link, Tabs } from "expo-router"
 import { Pressable } from "react-native"
-
-import Colors from "@/constants/Colors"
 import { useColorScheme } from "@/components/useColorScheme"
-import { useClientOnlyValue } from "@/components/useClientOnlyValue"
+import { WellnessColors } from "@/constants/wellnessTheme"
 
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>["name"]
@@ -16,12 +14,23 @@ function TabBarIcon(props: {
 
 export default function TabLayout() {
   const colorScheme = useColorScheme()
+  const isDark = colorScheme === "dark"
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
-        headerShown: useClientOnlyValue(false, true),
+        tabBarActiveTintColor: isDark ? "#c4b5fd" : "#7c3aed",
+        tabBarInactiveTintColor: isDark ? "#71717a" : "#a1a1aa",
+        tabBarStyle: {
+          backgroundColor: isDark ? WellnessColors.bg : "#ffffff",
+          borderTopColor: isDark ? "rgba(255,255,255,0.08)" : "#e4e4e7",
+        },
+        headerStyle: {
+          backgroundColor: isDark ? WellnessColors.bg : "#ffffff",
+        },
+        headerTintColor: isDark ? WellnessColors.text : "#18181b",
+        headerShadowVisible: false,
+        tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
       }}
     >
       <Tabs.Screen
@@ -36,7 +45,7 @@ export default function TabLayout() {
                   <FontAwesome
                     name="info-circle"
                     size={24}
-                    color={Colors[colorScheme ?? "light"].text}
+                    color={isDark ? WellnessColors.text : "#18181b"}
                     style={{ opacity: pressed ? 0.5 : 1 }}
                   />
                 )}

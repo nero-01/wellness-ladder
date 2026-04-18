@@ -3,6 +3,7 @@ import { useCallback, useMemo, useState } from "react"
 import { Pressable, StyleSheet } from "react-native"
 import { Text, View } from "@/components/Themed"
 import { VoiceRecorder } from "@/components/VoiceRecorder"
+import { WellnessColors } from "@/constants/wellnessTheme"
 import { getTodayTask } from "@/lib/wellness-data"
 
 export default function TaskScreen() {
@@ -43,6 +44,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     paddingTop: 48,
     gap: 12,
+    backgroundColor: WellnessColors.bg,
   },
   emoji: { fontSize: 48, marginBottom: 8 },
   title: { fontSize: 22, fontWeight: "700", textAlign: "center" },

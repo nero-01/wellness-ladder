@@ -36,12 +36,12 @@ module.exports = {
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "mobile",
-    userInterfaceStyle: "automatic",
+    userInterfaceStyle: "dark",
     newArchEnabled: true,
     splash: {
       image: "./assets/images/splash-icon.png",
       resizeMode: "contain",
-      backgroundColor: "#ffffff",
+      backgroundColor: "#151118",
     },
     ios: {
       supportsTablet: true,
