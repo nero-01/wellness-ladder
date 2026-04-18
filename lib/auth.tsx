@@ -10,6 +10,7 @@ import {
 } from "react"
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js"
 import { sanitizeAuthEmailForSupabase } from "@/lib/auth-email"
+import { mapSupabaseAuthError } from "@/lib/auth-errors"
 import { getBrowserSupabase, isSupabaseConfigured } from "@/lib/supabase/browser"
 
 export interface User {
@@ -202,7 +203,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ...(emailRedirectTo ? { emailRedirectTo } : {}),
       },
     })
-    if (error) throw error
+    if (error) throw mapSupabaseAuthError(error)
 
     if (data.session) {
       await bootstrapProfile()

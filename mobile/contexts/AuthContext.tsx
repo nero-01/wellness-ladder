@@ -14,6 +14,7 @@ import { sanitizeAuthEmailForSupabase } from "@/lib/auth-email"
 import { bootstrapUserProfile } from "@/lib/api"
 import { signInWithOAuthNative } from "@/lib/supabase-oauth"
 import { isSupabaseConfigured, logSupabaseAuthDebug, supabase } from "@/lib/supabase"
+import { mapSupabaseAuthError } from "@/utils/auth-errors"
 
 /** Supabase OAuth providers (same as web `lib/auth.tsx`). */
 export type OAuthProviderId = "google" | "apple" | "facebook" | "twitter"
@@ -208,15 +209,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
     })
     if (__DEV__) {
-      // eslint-disable-next-line no-console
-      console.log("[Auth] signUp response", {
-        error: error?.message ?? null,
-        hasSession: !!data?.session,
-        userId: data?.user?.id,
-        confirmationSentAt: data?.user?.confirmation_sent_at ?? null,
-      })
+      if (error) {
+        // eslint-disable-next-line no-console
+        console.warn("[Auth] signUp failed:", error.message)
+      } else {
+        // eslint-disable-next-line no-console
+        console.log("[Auth] signUp ok", {
+          hasSession: !!data?.session,
+          userId: data?.user?.id,
+          confirmationSentAt: data?.user?.confirmation_sent_at ?? null,
+        })
+      }
     }
-    if (error) throw error
+    if (error) throw mapSupabaseAuthError(error)
 
     if (data.session) {
       await logSupabaseAuthDebug("signUpImmediateSession")
@@ -238,7 +243,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: normalizedEmail,
       options: emailRedirectTo ? { emailRedirectTo } : undefined,
     })
-    if (error) throw error
+    if (error) throw mapSupabaseAuthError(error)
   }, [])
 
   const signOut = useCallback(async () => {

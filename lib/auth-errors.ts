@@ -1,4 +1,5 @@
-/** Supabase / GoTrue rate limits and email send caps */
+/** Shared with mobile `utils/auth-errors.ts` — keep messages aligned. */
+
 export function isAuthRateLimitError(message: string): boolean {
   const m = message.toLowerCase()
   return (
@@ -11,9 +12,6 @@ export function isAuthRateLimitError(message: string): boolean {
   )
 }
 
-/**
- * Turns GoTrue errors (e.g. `email rate limit exceeded`) into copy the UI can show as-is.
- */
 export function mapSupabaseAuthError(error: { message?: string }): Error {
   const msg = error.message ?? "Auth request failed"
   if (isAuthRateLimitError(msg)) {

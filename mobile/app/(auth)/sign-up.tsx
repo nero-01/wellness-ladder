@@ -186,15 +186,11 @@ export default function SignUpScreen() {
       }
     } catch (e) {
       const raw = e instanceof Error ? e.message : "Sign up failed"
-      if (isAuthRateLimitError(raw)) {
-        setError("Too many email attempts. Wait a few minutes before retrying.")
-        if (__DEV__) {
-          setInfoBanner(
-            'Tip: Auth → Providers → Email — turn off "Confirm email" for local testing to avoid repeated sends.',
-          )
-        }
-      } else {
-        setError(raw)
+      setError(raw)
+      if (__DEV__ && isAuthRateLimitError(raw)) {
+        setInfoBanner(
+          'Tip: Auth → Providers → Email — turn off "Confirm email" for local testing to avoid repeated sends.',
+        )
       }
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
     } finally {
@@ -226,11 +222,7 @@ export default function SignUpScreen() {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     } catch (e) {
       const raw = e instanceof Error ? e.message : "Could not resend email"
-      setError(
-        isAuthRateLimitError(raw)
-          ? "Too many resend attempts. Wait a few minutes."
-          : raw,
-      )
+      setError(raw)
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
     } finally {
       setResendLoading(false)
