@@ -85,6 +85,21 @@ export function SignUpView() {
     )
   }, [])
 
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const params = new URLSearchParams(window.location.search)
+    const err = params.get("error")
+    if (!err) return
+    const hints: Record<string, string> = {
+      auth: "That confirmation link is invalid or expired. Request a new one from Supabase or sign up again.",
+      oauth: "Social sign-in was cancelled or failed.",
+      no_client:
+        "Supabase client unavailable. Check NEXT_PUBLIC_SUPABASE_URL and anon key (JWT eyJ…).",
+    }
+    toast.error(hints[err] ?? decodeURIComponent(err))
+    router.replace(window.location.pathname, { scroll: false })
+  }, [router])
+
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {

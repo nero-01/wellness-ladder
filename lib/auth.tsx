@@ -88,8 +88,11 @@ async function bootstrapProfile() {
   await fetch("/api/users/bootstrap", { method: "POST", credentials: "same-origin" })
 }
 
-/** Redirect used in confirmation / magic-link emails — must match Supabase Auth → Redirect URLs. */
-function getAuthEmailRedirectTo(): string {
+/**
+ * OAuth + email confirmation return URL — must match Supabase Auth → Redirect URLs
+ * (e.g. `https://yourapp.com/auth/callback`).
+ */
+function getAuthCallbackUrl(): string {
   const fromEnv = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "").trim()
   const origin =
     fromEnv ||
@@ -186,7 +189,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const supabase = getBrowserSupabase()
     if (!supabase) throw new Error("Supabase client unavailable")
 
-    const emailRedirectTo = getAuthEmailRedirectTo()
+    const emailRedirectTo = getAuthCallbackUrl()
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
@@ -225,7 +228,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const supabase = getBrowserSupabase()
     if (!supabase) throw new Error("Supabase client unavailable")
 
-    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent("/")}`
+    const redirectTo = getAuthCallbackUrl()
+    if (!redirectTo) {
+      throw new Error(
+        "Could not build callback URL. Set NEXT_PUBLIC_SITE_URL in production.",
+      )
+    }
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
       options: { redirectTo },
