@@ -66,7 +66,11 @@ function useProtectedRoute() {
 
     if (isRootEntry) return
 
-    if (!user && !inAuthScreen) {
+    const isDevTaskLab =
+      __DEV__ &&
+      (path.includes("dev-task-preview") || path.includes("dev-task-session"))
+
+    if (!user && !inAuthScreen && !isDevTaskLab) {
       router.replace("/(auth)/sign-in")
     } else if (user && inAuthScreen) {
       router.replace("/(tabs)")
@@ -84,6 +88,10 @@ function RootLayoutNav() {
   const rootBg =
     colorScheme === "light" ? WellnessColorsLight.bg : WellnessColors.bg
 
+  const headerBg = rootBg
+  const headerTint =
+    colorScheme === "light" ? WellnessColorsLight.text : WellnessColors.text
+
   return (
     <ThemeProvider value={navTheme}>
       <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
@@ -96,6 +104,16 @@ function RootLayoutNav() {
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+        <Stack.Screen
+          name="dev-task-preview"
+          options={{
+            title: "Dev · All tasks",
+            headerBackTitle: "Back",
+            headerStyle: { backgroundColor: headerBg },
+            headerTintColor: headerTint,
+          }}
+        />
+        <Stack.Screen name="dev-task-session" options={{ headerShown: false }} />
       </Stack>
     </ThemeProvider>
   )

@@ -3,6 +3,7 @@ import * as Haptics from "expo-haptics"
 import { useRouter } from "expo-router"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
+  Alert,
   Animated,
   Pressable,
   ScrollView,
@@ -17,6 +18,7 @@ import { TaskCatalogPreview } from "@/components/TaskCatalogPreview"
 import { TaskTimerBar } from "@/components/TaskTimerBar"
 import { VoiceRecorder } from "@/components/VoiceRecorder"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
+import { useTaskVoiceGuidance } from "@/hooks/useTaskVoiceGuidance"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { useTimer } from "@/hooks/useTimer"
 import { getBreathingPhaseLabel, type Task } from "@/lib/wellness-data"
@@ -171,6 +173,21 @@ function createTaskSessionStyles(W: WellnessPalette) {
       marginBottom: 8,
       textAlign: "center",
     },
+    devBanner: {
+      marginBottom: 12,
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      borderRadius: 12,
+      backgroundColor: W.iconBg,
+      borderWidth: 1,
+      borderColor: W.cardBorder,
+    },
+    devBannerText: {
+      fontSize: 12,
+      fontWeight: "600",
+      color: W.primary,
+      textAlign: "center",
+    },
   })
 }
 
@@ -178,9 +195,16 @@ type Props = {
   task: Task
   displayStreak: number
   completeTask: (taskId: number, mood?: number) => void
+  /** Dev-only: run without saving streak; navigation returns to task list */
+  previewMode?: boolean
 }
 
-export function TaskSession({ task, displayStreak, completeTask }: Props) {
+export function TaskSession({
+  task,
+  displayStreak,
+  completeTask,
+  previewMode = false,
+}: Props) {
   const router = useRouter()
   const W = useWellnessColors()
   const styles = useMemo(() => createTaskSessionStyles(W), [W])
@@ -208,6 +232,26 @@ export function TaskSession({ task, displayStreak, completeTask }: Props) {
     duration: task.duration,
     onComplete: () => setIsPlaying(false),
   })
+
+  useTaskVoiceGuidance({
+    enabled: isPlaying && isActive,
+    task,
+    timeLeft,
+    duration: task.duration,
+    isActive,
+  })
+
+  const goBackOrHome = useCallback(() => {
+    if (previewMode) {
+      if (router.canGoBack()) {
+        router.back()
+      } else {
+        router.replace("/dev-task-preview")
+      }
+      return
+    }
+    router.push("/(tabs)")
+  }, [previewMode, router])
 
   const breathingPhase = useMemo(
     () => getBreathingPhaseLabel(task.id, task.duration, timeLeft),
@@ -250,8 +294,25 @@ export function TaskSession({ task, displayStreak, completeTask }: Props) {
 
   const handleComplete = useCallback(() => {
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    if (previewMode) {
+      Alert.alert(
+        "Preview complete",
+        "Dev run only — nothing saved to your streak.",
+        [
+          { text: "Back to task list", onPress: () => goBackOrHome() },
+          { text: "Stay", style: "cancel" },
+        ],
+      )
+      return
+    }
     completeTask(task.id, selectedMood ?? undefined)
-  }, [completeTask, task.id, selectedMood])
+  }, [
+    completeTask,
+    goBackOrHome,
+    previewMode,
+    selectedMood,
+    task.id,
+  ])
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
@@ -262,7 +323,7 @@ export function TaskSession({ task, displayStreak, completeTask }: Props) {
       >
         <View style={styles.topBar}>
           <Pressable
-            onPress={() => router.push("/(tabs)")}
+            onPress={goBackOrHome}
             hitSlop={12}
             accessibilityLabel="Back to home"
             style={({ pressed }) => pressed && styles.pressDim}
@@ -280,7 +341,15 @@ export function TaskSession({ task, displayStreak, completeTask }: Props) {
           </View>
         </View>
 
-        <TaskCatalogPreview todayTaskId={task.id} />
+        {previewMode ? (
+          <View style={styles.devBanner}>
+            <Text style={styles.devBannerText}>
+              DEV · Preview — streak not saved
+            </Text>
+          </View>
+        ) : null}
+
+        {!previewMode ? <TaskCatalogPreview todayTaskId={task.id} /> : null}
 
         <View style={styles.streakRow}>
           <StreakBadge days={displayStreak} />
@@ -302,7 +371,7 @@ export function TaskSession({ task, displayStreak, completeTask }: Props) {
                 pressed && styles.pressDim,
               ]}
               accessibilityLabel={
-                isPlaying ? "Voice guidance on" : "Voice guidance off"
+                isPlaying ? "Calming voice guidance on" : "Voice guidance off"
               }
             >
               <Ionicons
@@ -322,7 +391,7 @@ export function TaskSession({ task, displayStreak, completeTask }: Props) {
           {!isActive && timeLeft === task.duration ? (
             <>
               <Text style={styles.hint}>
-                Tap the voice icon or start button to begin
+                Tap the speaker for calming voice guidance, or press Start
               </Text>
               <Pressable
                 style={({ pressed }) => [
@@ -362,7 +431,7 @@ export function TaskSession({ task, displayStreak, completeTask }: Props) {
           </Pressable>
           <Pressable
             style={({ pressed }) => [styles.skipBtn, pressed && styles.pressDim]}
-            onPress={() => router.push("/(tabs)")}
+            onPress={goBackOrHome}
           >
             <Ionicons name="play-skip-forward" size={22} color={W.textMuted} />
           </Pressable>

@@ -131,6 +131,24 @@ function createHomeStyles(W: WellnessPalette) {
       paddingHorizontal: 20,
       marginTop: 8,
     },
+    devLinkWrap: {
+      paddingHorizontal: 20,
+      marginTop: 16,
+    },
+    devLink: {
+      alignSelf: "flex-start",
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: W.primary,
+      backgroundColor: W.iconBg,
+    },
+    devLinkText: {
+      fontSize: 13,
+      fontWeight: "700",
+      color: W.primary,
+    },
     grid: {
       flexDirection: "row",
       flexWrap: "wrap",
@@ -314,6 +332,22 @@ export default function HomeScreen() {
         {streakLoaded ? (
           <View style={styles.ladderSection}>
             <TaskCatalogPreview todayTaskId={todayTask.id} />
+          </View>
+        ) : null}
+
+        {__DEV__ ? (
+          <View style={styles.devLinkWrap}>
+            <Pressable
+              onPress={() => router.push("/dev-task-preview")}
+              style={({ pressed }) => [
+                styles.devLink,
+                pressed && { opacity: 0.85 },
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel="Open development task preview list"
+            >
+              <Text style={styles.devLinkText}>Dev: preview all tasks →</Text>
+            </Pressable>
           </View>
         ) : null}
 
