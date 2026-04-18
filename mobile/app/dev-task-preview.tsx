@@ -141,9 +141,7 @@ export default function DevTaskPreviewScreen() {
               />
               <View style={styles.rowBody}>
                 <Text style={styles.rowTitle}>{task.title}</Text>
-                <Text style={styles.rowMeta}>
-                  ~{task.duration}s · id {task.id}
-                </Text>
+                <Text style={styles.rowMeta}>~{task.duration}s</Text>
               </View>
               <Ionicons
                 name="chevron-forward"

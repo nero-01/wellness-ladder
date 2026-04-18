@@ -44,6 +44,7 @@ import {
   wellnessWalkReady,
 } from "@/lib/wellnessFeedback"
 import type { Task } from "@/lib/wellness-data"
+import { speakTask } from "@/utils/elevenlabs"
 
 function createTaskSessionStyles(W: WellnessPalette) {
   return StyleSheet.create({
@@ -143,6 +144,26 @@ function createTaskSessionStyles(W: WellnessPalette) {
       marginBottom: 4,
       lineHeight: 24,
       paddingHorizontal: 4,
+    },
+    voiceGuideBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      alignSelf: "center",
+      marginTop: 12,
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: W.cardBorder,
+      backgroundColor: W.surfaceMuted,
+    },
+    voiceGuideBtnDisabled: { opacity: 0.65 },
+    voiceGuideLabel: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: W.primary,
     },
     hint: {
       fontSize: 13,
@@ -311,6 +332,8 @@ function sessionUi(locale: "en" | "af", displayStreak: number) {
       moodRequiredTitle: "Kies eers jou bui",
       moodRequiredBody:
         "Jou bui word gebruik om jou stemming-streep te bereken. Kies een emoji hier onder.",
+      voiceGuide: "Stemgids",
+      voiceGuideSpeaking: "Besig om te praat…",
     }
   }
   return {
@@ -328,6 +351,8 @@ function sessionUi(locale: "en" | "af", displayStreak: number) {
     moodRequiredTitle: "Pick your mood first",
     moodRequiredBody:
       "Your mood powers your mood streak. Tap one of the faces below.",
+    voiceGuide: "Voice guide",
+    voiceGuideSpeaking: "Speaking…",
   }
 }
 
@@ -382,6 +407,7 @@ export function TaskSession({
 
   const [selectedMood, setSelectedMood] = useState<number | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [voiceGuideBusy, setVoiceGuideBusy] = useState(false)
 
   const timer = useTaskSessionTimer(task, () => {
     setIsPlaying(false)
@@ -475,6 +501,18 @@ export function TaskSession({
     wellnessTapLight()
     if (timer.mode === "manual") timer.stopWalk()
   }, [timer])
+
+  const handleVoiceGuide = useCallback(async () => {
+    wellnessTapLight()
+    const lang = localeReady ? locale : "en"
+    const line = `${task.title}. ${task.instruction}`
+    setVoiceGuideBusy(true)
+    try {
+      await speakTask(line, { lang })
+    } finally {
+      setVoiceGuideBusy(false)
+    }
+  }, [localeReady, locale, task.title, task.instruction])
 
   const handleComplete = useCallback(() => {
     wellnessTaskComplete()
@@ -696,6 +734,26 @@ export function TaskSession({
           />
           <Text style={styles.taskTitle}>{task.title}</Text>
           <Text style={styles.taskInstruction}>{task.instruction}</Text>
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.voiceGuideBtn,
+              (pressed || voiceGuideBusy) && styles.voiceGuideBtnDisabled,
+            ]}
+            onPress={handleVoiceGuide}
+            disabled={voiceGuideBusy}
+            accessibilityRole="button"
+            accessibilityLabel={ui.voiceGuide}
+          >
+            <Ionicons
+              name={voiceGuideBusy ? "volume-high" : "chatbubble-ellipses-outline"}
+              size={20}
+              color={W.primary}
+            />
+            <Text style={styles.voiceGuideLabel}>
+              {voiceGuideBusy ? ui.voiceGuideSpeaking : ui.voiceGuide}
+            </Text>
+          </Pressable>
 
           {showVoiceWave ? (
             <VoiceWaveformLottie active color={W.primary} height={48} />

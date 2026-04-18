@@ -224,3 +224,6 @@ function withAlpha(hex: string, alphaPair: string): string {
   if (!hex.startsWith("#") || hex.length < 7) return `rgba(139, 92, 246, 0.35)`
   return `${hex.slice(0, 7)}${alphaPair}`
 }
+
+/** Re-export for task routes that import from `TaskScreen`. Prefer `speakTask` from `@/utils/elevenlabs`. */
+export { speakTask } from "@/utils/elevenlabs"
