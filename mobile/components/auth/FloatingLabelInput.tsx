@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react"
+import { useEffect, type ReactNode } from "react"
 import {
   StyleSheet,
   TextInput,
@@ -8,7 +8,14 @@ import {
   type TextStyle,
   type ViewStyle,
 } from "react-native"
-import { Text } from "@/components/Themed"
+import Animated, {
+  interpolate,
+  interpolateColor,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated"
+import { useLabeledInput } from "@/utils/useLabeledInput"
 
 export type FloatingLabelInputProps = Omit<
   TextInputProps,
@@ -29,7 +36,8 @@ export type FloatingLabelInputProps = Omit<
 }
 
 /**
- * Floating label pattern (shadcn-like): label moves up when focused or filled.
+ * Floating label with Reanimated: smooth float when focused or filled.
+ * Label rests inside the field only when blurred and empty — never “vanishes” on focus.
  */
 export function FloatingLabelInput({
   label,
@@ -50,24 +58,34 @@ export function FloatingLabelInput({
   multiline = false,
   ...rest
 }: FloatingLabelInputProps) {
-  const [focused, setFocused] = useState(false)
-  const active = focused || (typeof rest.value === "string" && rest.value.length > 0)
+  const value = typeof rest.value === "string" ? rest.value : ""
+  const { active, onFocus: hookFocus, onBlur: hookBlur } = useLabeledInput(value)
+
+  const progress = useSharedValue(active ? 1 : 0)
+
+  useEffect(() => {
+    progress.value = withTiming(active ? 1 : 0, { duration: 180 })
+  }, [active, progress])
+
+  const labelStyle = useAnimatedStyle(() => {
+    return {
+      position: "absolute",
+      left: 14,
+      zIndex: 1,
+      fontWeight: "600",
+      top: interpolate(progress.value, [0, 1], [18, 8]),
+      fontSize: interpolate(progress.value, [0, 1], [16, 12]),
+      color: interpolateColor(
+        progress.value,
+        [0, 1],
+        [labelColorInside, labelColorFloating],
+      ),
+    }
+  })
 
   return (
     <View style={[styles.wrap, containerStyle]}>
-      <Text
-        pointerEvents="none"
-        style={[
-          styles.floatingLabel,
-          {
-            color: active ? labelColorFloating : labelColorInside,
-            fontSize: active ? 12 : 16,
-            top: active ? 8 : 18,
-          },
-        ]}
-      >
-        {label}
-      </Text>
+      <Animated.Text style={labelStyle}>{label}</Animated.Text>
       <View
         style={[
           styles.inputRow,
@@ -86,11 +104,11 @@ export function FloatingLabelInput({
           multiline={multiline}
           textAlignVertical={multiline ? "top" : "center"}
           onFocus={(e) => {
-            setFocused(true)
+            hookFocus()
             onFocus?.(e)
           }}
           onBlur={(e) => {
-            setFocused(false)
+            hookBlur()
             onBlur?.(e)
           }}
           {...rest}
@@ -105,12 +123,6 @@ const styles = StyleSheet.create({
   wrap: {
     marginBottom: 12,
     paddingTop: 4,
-  },
-  floatingLabel: {
-    position: "absolute",
-    left: 14,
-    zIndex: 1,
-    fontWeight: "600",
   },
   inputRow: {
     flexDirection: "row",

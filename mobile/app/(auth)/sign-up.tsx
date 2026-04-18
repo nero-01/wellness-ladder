@@ -2,18 +2,20 @@ import type { ComponentProps } from "react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import {
   ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Linking,
   Platform,
   Pressable,
   StyleSheet,
+  ToastAndroid,
   View as RNView,
 } from "react-native"
 import * as Haptics from "expo-haptics"
 import { FontAwesome5 } from "@expo/vector-icons"
 import { Ionicons } from "@expo/vector-icons"
 import { LinearGradient } from "expo-linear-gradient"
-import { Link } from "expo-router"
+import { Link, useRouter } from "expo-router"
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Text } from "@/components/Themed"
@@ -33,6 +35,7 @@ import {
 } from "@/lib/email-signup-cooldown"
 import { isPlausibleMailbox, sanitizeAuthEmailForSupabase } from "@/lib/auth-email"
 import { WellnessColors } from "@/constants/wellnessTheme"
+import { isAuthRateLimitError } from "@/utils/auth-errors"
 
 if (__DEV__) {
   // eslint-disable-next-line no-console
@@ -60,6 +63,7 @@ function passwordStrongEnough(p: string): boolean {
 }
 
 export default function SignUpScreen() {
+  const router = useRouter()
   const colorScheme = useColorScheme()
   const isDark = colorScheme === "dark"
   const textPrimary = isDark ? "#f9fafb" : "#111827"
@@ -165,8 +169,33 @@ export default function SignUpScreen() {
         return
       }
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      /** Immediate session (e.g. “Confirm email” off in Dashboard). */
+      router.replace("/(tabs)/task")
+      if (__DEV__) {
+        if (Platform.OS === "android") {
+          ToastAndroid.show(
+            "Dev: Auto-logged in (immediate session)",
+            ToastAndroid.LONG,
+          )
+        } else {
+          Alert.alert(
+            "Dev: Auto-logged in",
+            "Immediate session (no inbox step). For confirmation email, enable Confirm email in Supabase → Auth → Providers.",
+          )
+        }
+      }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Sign up failed")
+      const raw = e instanceof Error ? e.message : "Sign up failed"
+      if (isAuthRateLimitError(raw)) {
+        setError("Too many email attempts. Wait a few minutes before retrying.")
+        if (__DEV__) {
+          setInfoBanner(
+            'Tip: Auth → Providers → Email — turn off "Confirm email" for local testing to avoid repeated sends.',
+          )
+        }
+      } else {
+        setError(raw)
+      }
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
     } finally {
       submitLock.current = false
@@ -196,7 +225,12 @@ export default function SignUpScreen() {
       console.log("Email sent")
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not resend email")
+      const raw = e instanceof Error ? e.message : "Could not resend email"
+      setError(
+        isAuthRateLimitError(raw)
+          ? "Too many resend attempts. Wait a few minutes."
+          : raw,
+      )
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
     } finally {
       setResendLoading(false)
@@ -210,7 +244,12 @@ export default function SignUpScreen() {
     try {
       await signInWithOAuth(provider)
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Social sign-in failed")
+      const raw = e instanceof Error ? e.message : "Social sign-in failed"
+      setError(
+        isAuthRateLimitError(raw)
+          ? "Too many attempts. Wait a few minutes and try again."
+          : raw,
+      )
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
     } finally {
       setOauthBusy(null)
