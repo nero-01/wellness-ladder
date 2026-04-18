@@ -10,6 +10,7 @@ import {
 } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
+import { IS_DEV_BYPASS } from "@/constants/devBypass"
 import { useAuth } from "@/contexts/AuthContext"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { StreakHeatMap } from "@/components/StreakHeatMap"
@@ -106,6 +107,17 @@ function createStyles(W: WellnessPalette) {
       backgroundColor: W.surfaceMuted,
     },
     signOutText: { fontSize: 16, fontWeight: "600", color: W.text },
+    devBadge: {
+      alignSelf: "flex-start",
+      marginTop: 10,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 8,
+      backgroundColor: W.surfaceMuted,
+      borderWidth: 1,
+      borderColor: W.primary,
+    },
+    devBadgeText: { fontSize: 12, fontWeight: "800", color: W.primary },
     badgeRow: {
       flexDirection: "row",
       flexWrap: "wrap",
@@ -326,6 +338,11 @@ export default function ProfileScreen() {
 
         <View style={[styles.card, styles.accountBlock]}>
           <Text style={styles.cardTitle}>Account</Text>
+          {IS_DEV_BYPASS ? (
+            <View style={styles.devBadge} accessibilityLabel="Development mode">
+              <Text style={styles.devBadgeText}>DEV MODE 🚀</Text>
+            </View>
+          ) : null}
           {user ?
             <>
               <Text style={styles.accountName}>{user.name}</Text>

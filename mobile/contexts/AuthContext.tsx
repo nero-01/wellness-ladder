@@ -42,6 +42,11 @@ interface AuthContextType {
   ) => Promise<SignUpResult>
   /** Supabase only — resends signup confirmation (same redirect as signUp). Not Clerk. */
   resendSignupEmail: (email: string) => Promise<void>
+  /**
+   * `__DEV__` only. If Supabase is configured: `signInWithPassword` using
+   * `EXPO_PUBLIC_DEV_BYPASS_*` (or defaults). Else: same local mock as `EXPO_PUBLIC_USE_MOCK_AUTH`.
+   */
+  signInWithDevBypass: () => Promise<void>
   signOut: () => Promise<void>
   signInWithOAuth: (provider: OAuthProviderId) => Promise<void>
 }
@@ -268,6 +273,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await bootstrapUserProfile().catch(() => {})
   }, [])
 
+  const signInWithDevBypass = useCallback(async () => {
+    if (!__DEV__) {
+      throw new Error("Dev bypass is only available in development.")
+    }
+    // eslint-disable-next-line no-console
+    console.log("[Dev bypass] starting (no fake JWTs; uses seed user or local mock)")
+    if (!isSupabaseConfigured()) {
+      await new Promise((r) => setTimeout(r, 200))
+      const newUser: User = {
+        ...MOCK_USER,
+        id: "00000000-0000-4000-8000-00000000d3v1",
+        email: "dev@wellness.app",
+        name: "Dev Bypass",
+      }
+      setUser(newUser)
+      await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(newUser))
+      return
+    }
+
+    const email =
+      process.env.EXPO_PUBLIC_DEV_BYPASS_EMAIL?.trim() || "dev@wellness.test"
+    const password =
+      process.env.EXPO_PUBLIC_DEV_BYPASS_PASSWORD?.trim() || "WellnessDev123!"
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email: sanitizeAuthEmailForSupabase(email),
+      password,
+    })
+    if (error) {
+      throw new Error(
+        `Dev bypass: create this user in Supabase Auth (email: ${email}) or set EXPO_PUBLIC_DEV_BYPASS_EMAIL / EXPO_PUBLIC_DEV_BYPASS_PASSWORD in mobile/.env. ${error.message}`,
+      )
+    }
+    await logSupabaseAuthDebug("devBypass")
+    await bootstrapUserProfile().catch(() => {})
+  }, [])
+
   const value = useMemo(
     () => ({
       user,
@@ -276,10 +318,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signIn,
       signUp,
       resendSignupEmail,
+      signInWithDevBypass,
       signOut,
       signInWithOAuth,
     }),
-    [user, isLoaded, signIn, signUp, resendSignupEmail, signOut, signInWithOAuth],
+    [
+      user,
+      isLoaded,
+      signIn,
+      signUp,
+      resendSignupEmail,
+      signInWithDevBypass,
+      signOut,
+      signInWithOAuth,
+    ],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -1,25 +1,29 @@
 import { useState } from "react"
 import {
   ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   StyleSheet,
+  ToastAndroid,
   View as RNView,
 } from "react-native"
 import * as Haptics from "expo-haptics"
 import { Ionicons } from "@expo/vector-icons"
 import { LinearGradient } from "expo-linear-gradient"
-import { Link } from "expo-router"
+import { Link, useRouter } from "expo-router"
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Text } from "@/components/Themed"
 import { FloatingLabelInput } from "@/components/auth/FloatingLabelInput"
 import { useColorScheme } from "@/components/useColorScheme"
+import { IS_DEV_BYPASS } from "@/constants/devBypass"
 import { WellnessColors } from "@/constants/wellnessTheme"
 import { useAuth } from "@/contexts/AuthContext"
 
 export default function SignInScreen() {
+  const router = useRouter()
   const colorScheme = useColorScheme()
   const isDark = colorScheme === "dark"
   const textPrimary = isDark ? "#f9fafb" : "#111827"
@@ -29,12 +33,13 @@ export default function SignInScreen() {
   const labelFloat = isDark ? "#a78bfa" : WellnessColors.primary
   const labelInside = isDark ? "#9ca3af" : "#6b7280"
 
-  const { signIn } = useAuth()
+  const { signIn, signInWithDevBypass } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPw, setShowPw] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [bypassBusy, setBypassBusy] = useState(false)
 
   async function onSubmit() {
     setError(null)
@@ -48,6 +53,30 @@ export default function SignInScreen() {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function onDevBypass() {
+    if (!IS_DEV_BYPASS) return
+    setError(null)
+    setBypassBusy(true)
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    try {
+      await signInWithDevBypass()
+      // eslint-disable-next-line no-console
+      console.log("[Dev bypass] active — navigating to task")
+      router.replace("/(tabs)/task")
+      if (Platform.OS === "android") {
+        ToastAndroid.show("Dev bypass active", ToastAndroid.SHORT)
+      } else {
+        Alert.alert("Dev bypass", "Signed in — opening task tab.")
+      }
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Dev bypass failed")
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+    } finally {
+      setBypassBusy(false)
     }
   }
 
@@ -94,7 +123,7 @@ export default function SignInScreen() {
                 autoComplete="email"
                 autoFocus
                 multiline={false}
-                editable={!loading}
+                editable={!loading && !bypassBusy}
                 borderColor={border}
                 backgroundColor={inputBg}
                 textColor={textPrimary}
@@ -109,7 +138,7 @@ export default function SignInScreen() {
                 secureTextEntry={!showPw}
                 autoComplete="password"
                 multiline={false}
-                editable={!loading}
+                editable={!loading && !bypassBusy}
                 borderColor={border}
                 backgroundColor={inputBg}
                 textColor={textPrimary}
@@ -139,9 +168,12 @@ export default function SignInScreen() {
               {error ? <Text style={styles.error}>{error}</Text> : null}
 
               <Pressable
-                style={[styles.button, loading && styles.buttonDisabled]}
+                style={[
+                  styles.button,
+                  (loading || bypassBusy) && styles.buttonDisabled,
+                ]}
                 onPress={() => void onSubmit()}
-                disabled={loading}
+                disabled={loading || bypassBusy}
               >
                 {loading ? (
                   <ActivityIndicator color="#fff" />
@@ -149,6 +181,30 @@ export default function SignInScreen() {
                   <Text style={styles.buttonText}>Sign in</Text>
                 )}
               </Pressable>
+
+              {IS_DEV_BYPASS ? (
+                <Pressable
+                  style={[
+                    styles.devBypassBtn,
+                    {
+                      borderColor: WellnessColors.primary,
+                      opacity: bypassBusy || loading ? 0.65 : 1,
+                    },
+                  ]}
+                  onPress={() => void onDevBypass()}
+                  disabled={loading || bypassBusy}
+                >
+                  {bypassBusy ? (
+                    <ActivityIndicator color={WellnessColors.primary} />
+                  ) : (
+                    <Text
+                      style={[styles.devBypassText, { color: WellnessColors.primary }]}
+                    >
+                      🚀 Dev bypass login
+                    </Text>
+                  )}
+                </Pressable>
+              ) : null}
             </RNView>
 
             <Link href="/(auth)/sign-up" asChild>
@@ -206,6 +262,16 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: { opacity: 0.65 },
   buttonText: { color: "#fff", fontWeight: "700", fontSize: 16 },
+  devBypassBtn: {
+    marginTop: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    alignItems: "center",
+    backgroundColor: "transparent",
+  },
+  devBypassText: { fontWeight: "700", fontSize: 15 },
   linkWrap: { marginTop: 24, paddingVertical: 8 },
   link: { textAlign: "center", fontSize: 15, fontWeight: "600" },
 })

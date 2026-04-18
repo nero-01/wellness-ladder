@@ -34,6 +34,7 @@ import {
   recordResendConfirmationAttempt,
 } from "@/lib/email-signup-cooldown"
 import { isPlausibleMailbox, sanitizeAuthEmailForSupabase } from "@/lib/auth-email"
+import { IS_DEV_BYPASS } from "@/constants/devBypass"
 import { WellnessColors } from "@/constants/wellnessTheme"
 import { isAuthRateLimitError } from "@/utils/auth-errors"
 
@@ -73,7 +74,8 @@ export default function SignUpScreen() {
   const labelFloat = isDark ? "#a78bfa" : WellnessColors.primary
   const labelInside = isDark ? "#9ca3af" : "#6b7280"
 
-  const { signUp, signInWithOAuth, resendSignupEmail } = useAuth()
+  const { signUp, signInWithOAuth, resendSignupEmail, signInWithDevBypass } =
+    useAuth()
 
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
@@ -88,6 +90,7 @@ export default function SignUpScreen() {
   const [awaitingEmail, setAwaitingEmail] = useState<string | null>(null)
   const [resendLoading, setResendLoading] = useState(false)
   const [resendCooldownMs, setResendCooldownMs] = useState(0)
+  const [bypassBusy, setBypassBusy] = useState(false)
   const submitLock = useRef(false)
 
   useEffect(() => {
@@ -226,6 +229,30 @@ export default function SignUpScreen() {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
     } finally {
       setResendLoading(false)
+    }
+  }
+
+  async function onDevBypass() {
+    if (!IS_DEV_BYPASS) return
+    setError(null)
+    setBypassBusy(true)
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    try {
+      await signInWithDevBypass()
+      // eslint-disable-next-line no-console
+      console.log("[Dev bypass] active — navigating to task")
+      router.replace("/(tabs)/task")
+      if (Platform.OS === "android") {
+        ToastAndroid.show("Dev bypass active", ToastAndroid.SHORT)
+      } else {
+        Alert.alert("Dev bypass", "Signed in — opening task tab.")
+      }
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Dev bypass failed")
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+    } finally {
+      setBypassBusy(false)
     }
   }
 
@@ -459,10 +486,11 @@ export default function SignUpScreen() {
                   <Pressable
                     style={[
                       styles.button,
-                      (loading || mismatch || oauthBusy) && styles.buttonDisabled,
+                      (loading || mismatch || oauthBusy || bypassBusy) &&
+                        styles.buttonDisabled,
                     ]}
                     onPress={() => void onSubmit()}
-                    disabled={loading || !!oauthBusy || mismatch}
+                    disabled={loading || !!oauthBusy || mismatch || bypassBusy}
                   >
                     {loading ? (
                       <ActivityIndicator color="#fff" />
@@ -470,6 +498,30 @@ export default function SignUpScreen() {
                       <Text style={styles.buttonText}>Sign up</Text>
                     )}
                   </Pressable>
+
+                  {IS_DEV_BYPASS ? (
+                    <Pressable
+                      style={[
+                        styles.devBypassBtn,
+                        {
+                          borderColor: WellnessColors.primary,
+                          opacity: bypassBusy || oauthBusy ? 0.65 : 1,
+                        },
+                      ]}
+                      onPress={() => void onDevBypass()}
+                      disabled={!!oauthBusy || bypassBusy || loading}
+                    >
+                      {bypassBusy ? (
+                        <ActivityIndicator color={WellnessColors.primary} />
+                      ) : (
+                        <Text
+                          style={[styles.devBypassText, { color: WellnessColors.primary }]}
+                        >
+                          🚀 Dev bypass login
+                        </Text>
+                      )}
+                    </Pressable>
+                  ) : null}
 
                   <RNView style={styles.dividerRow}>
                     <RNView style={[styles.dividerLine, { backgroundColor: isDark ? "#4b5563" : "#e5e7eb" }]} />
@@ -490,8 +542,8 @@ export default function SignUpScreen() {
                           pressed && { opacity: 0.85 },
                           oauthBusy && oauthBusy !== s.id && { opacity: 0.5 },
                         ]}
-                        onPress={() => void onOAuth(s.id)}
-                        disabled={!!oauthBusy || loading}
+                    onPress={() => void onOAuth(s.id)}
+                    disabled={!!oauthBusy || loading || bypassBusy}
                       >
                         {oauthBusy === s.id ? (
                           <ActivityIndicator />
@@ -517,7 +569,7 @@ export default function SignUpScreen() {
                           oauthBusy && oauthBusy !== "apple" && { opacity: 0.5 },
                         ]}
                         onPress={() => void onOAuth("apple")}
-                        disabled={!!oauthBusy || loading}
+                        disabled={!!oauthBusy || loading || bypassBusy}
                       >
                         {oauthBusy === "apple" ? (
                           <ActivityIndicator />
@@ -610,6 +662,16 @@ const styles = StyleSheet.create({
   buttonOutlineText: { fontWeight: "700", fontSize: 16 },
   buttonDisabled: { opacity: 0.65 },
   buttonText: { color: "#fff", fontWeight: "700", fontSize: 16 },
+  devBypassBtn: {
+    marginTop: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    alignItems: "center",
+    backgroundColor: "transparent",
+  },
+  devBypassText: { fontWeight: "700", fontSize: 15 },
   dividerRow: {
     flexDirection: "row",
     alignItems: "center",
