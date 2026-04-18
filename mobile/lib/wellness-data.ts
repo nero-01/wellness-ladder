@@ -21,3 +21,19 @@ export function getTodayTask(streakDay: number): Task {
   const index = (streakDay - 1) % WELLNESS_TASKS.length
   return WELLNESS_TASKS[index]
 }
+
+export interface StreakData {
+  currentStreak: number
+  lastCompletedDate: string | null
+  totalCompleted: number
+  moodHistory: { date: string; mood: number }[]
+  completionHistory: { date: string; taskId: number }[]
+}
+
+export const DEFAULT_STREAK_DATA: StreakData = {
+  currentStreak: 0,
+  lastCompletedDate: null,
+  totalCompleted: 0,
+  moodHistory: [],
+  completionHistory: [],
+}
