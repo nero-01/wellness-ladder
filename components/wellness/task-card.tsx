@@ -5,14 +5,9 @@ import { Button } from "@/components/ui/button"
 import { VoiceMic } from "./voice-mic"
 import { TimerDisplay } from "./timer"
 import { getBreathingPhaseLabel } from "@/lib/wellness-data"
+import type { Task } from "@/lib/wellness-data"
 
-export interface Task {
-  id: number
-  title: string
-  instruction: string
-  duration: number
-  icon: string
-}
+export type { Task }
 
 interface TaskCardProps {
   task: Task
@@ -23,13 +18,13 @@ interface TaskCardProps {
   onStart: () => void
 }
 
-export function TaskCard({ 
-  task, 
-  timeLeft, 
-  isPlaying, 
-  isActive, 
-  onVoiceToggle, 
-  onStart 
+export function TaskCard({
+  task,
+  timeLeft,
+  isPlaying,
+  isActive,
+  onVoiceToggle,
+  onStart,
 }: TaskCardProps) {
   const breathingPhase = getBreathingPhaseLabel(task.id, task.duration, timeLeft)
 
@@ -49,9 +44,9 @@ export function TaskCard({
           <p className="text-primary mt-2">{task.instruction}</p>
         </div>
 
-        <TimerDisplay 
-          timeLeft={timeLeft} 
-          duration={task.duration} 
+        <TimerDisplay
+          timeLeft={timeLeft}
+          duration={task.duration}
           className="mb-6"
         />
 
@@ -60,7 +55,7 @@ export function TaskCard({
             <p className="text-sm text-muted-foreground text-center mb-4">
               Tap the voice icon or start button to begin
             </p>
-            <Button 
+            <Button
               onClick={onStart}
               className="w-full h-14 text-lg font-semibold rounded-2xl gradient-primary text-white border-0"
             >

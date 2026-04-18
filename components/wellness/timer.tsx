@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
+import type { WalkPhase } from "@/hooks/use-task-session-timer"
 
 interface TimerProps {
   duration: number
@@ -99,6 +100,54 @@ export function TimerDisplay({ timeLeft, duration, className = "" }: TimerDispla
           {formatTime(timeLeft)}
         </span>
       </div>
+    </div>
+  )
+}
+
+interface ManualWalkTimerDisplayProps {
+  elapsed: number
+  targetSeconds: number
+  walkPhase: WalkPhase
+  minSeconds: number
+  className?: string
+}
+
+export function ManualWalkTimerDisplay({
+  elapsed,
+  targetSeconds,
+  walkPhase,
+  minSeconds,
+  className = "",
+}: ManualWalkTimerDisplayProps) {
+  const progress =
+    targetSeconds > 0 ? Math.min(100, (elapsed / targetSeconds) * 100) : 0
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, "0")}`
+  }
+  const label =
+    walkPhase === "idle" ? "Walk timer"
+    : walkPhase === "walking" ? "Walking"
+    : "Walk paused"
+
+  return (
+    <div className={className}>
+      <div className="h-3 rounded-full bg-secondary overflow-hidden">
+        <div
+          className="h-full rounded-full gradient-primary transition-all duration-1000 ease-linear"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+      <div className="flex items-center justify-between mt-2">
+        <span className="text-sm text-muted-foreground">{label}</span>
+        <span className="text-sm font-mono font-semibold text-foreground">
+          {formatTime(elapsed)}
+        </span>
+      </div>
+      <p className="text-xs text-muted-foreground mt-2">
+        {`Done unlocks after at least ${minSeconds}s walked (after Stop).`}
+      </p>
     </div>
   )
 }

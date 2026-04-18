@@ -1,6 +1,6 @@
 export { StreakBadge } from "./streak-badge"
 export { CircularProgress } from "./circular-progress"
-export { useTimer, TimerDisplay } from "./timer"
+export { useTimer, TimerDisplay, ManualWalkTimerDisplay } from "./timer"
 export { MoodPicker, moods } from "./mood-picker"
 export { VoiceMic } from "./voice-mic"
 export { TaskCard, type Task } from "./task-card"

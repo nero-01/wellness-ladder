@@ -18,9 +18,9 @@ import { TaskCatalogPreview } from "@/components/TaskCatalogPreview"
 import { TaskTimerBar } from "@/components/TaskTimerBar"
 import { VoiceRecorder } from "@/components/VoiceRecorder"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
+import { useTaskSessionTimer } from "@/hooks/useTaskSessionTimer"
 import { useTaskVoiceGuidance } from "@/hooks/useTaskVoiceGuidance"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
-import { useTimer } from "@/hooks/useTimer"
 import { getBreathingPhaseLabel, type Task } from "@/lib/wellness-data"
 
 function createTaskSessionStyles(W: WellnessPalette) {
@@ -122,6 +122,16 @@ function createTaskSessionStyles(W: WellnessPalette) {
       transform: [{ scale: 0.99 }],
     },
     startCtaText: { color: "#fff", fontSize: 18, fontWeight: "700" },
+    stopWalkBtn: {
+      marginTop: 14,
+      paddingVertical: 14,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: W.cardBorder,
+      backgroundColor: W.surfaceMuted,
+      alignItems: "center",
+    },
+    stopWalkText: { color: W.text, fontSize: 16, fontWeight: "700" },
     breathing: {
       fontSize: 18,
       fontWeight: "600",
@@ -223,22 +233,21 @@ export function TaskSession({
   const [selectedMood, setSelectedMood] = useState<number | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
 
-  const {
-    timeLeft,
-    isActive,
-    isCompleted: timerCompleted,
-    start: startTimer,
-  } = useTimer({
-    duration: task.duration,
-    onComplete: () => setIsPlaying(false),
-  })
+  const timer = useTaskSessionTimer(task, () => setIsPlaying(false))
+
+  const sessionActive =
+    timer.mode === "countdown" ? timer.isActive : timer.walkPhase === "walking"
+
+  const voiceEnabled = isPlaying && sessionActive
 
   useTaskVoiceGuidance({
-    enabled: isPlaying && isActive,
+    enabled: voiceEnabled,
     task,
-    timeLeft,
-    duration: task.duration,
-    isActive,
+    timeLeft: timer.timeLeft,
+    duration: timer.duration,
+    isActive: sessionActive,
+    manualPhase: timer.mode === "manual" ? timer.walkPhase : undefined,
+    manualElapsed: timer.mode === "manual" ? timer.elapsed : undefined,
   })
 
   const goBackOrHome = useCallback(() => {
@@ -253,10 +262,23 @@ export function TaskSession({
     router.push("/(tabs)")
   }, [previewMode, router])
 
-  const breathingPhase = useMemo(
-    () => getBreathingPhaseLabel(task.id, task.duration, timeLeft),
-    [task.id, task.duration, timeLeft],
-  )
+  const breathingPhase = useMemo(() => {
+    if (timer.mode !== "countdown") return null
+    return getBreathingPhaseLabel(task.id, task.duration, timer.timeLeft)
+  }, [timer.mode, timer.timeLeft, task.id, task.duration])
+
+  const ringProgress = useMemo(() => {
+    if (timer.mode === "manual") {
+      if (timer.timerCompleted) return 100
+      const target = task.duration > 0 ? task.duration : 60
+      return Math.min(100, (timer.elapsed / target) * 100)
+    }
+    if (timer.timerCompleted) return 100
+    return task.duration > 0
+      ? ((task.duration - timer.timeLeft) / task.duration) * 100
+      : 0
+  }, [timer, task.duration])
+
   const pulse = useRef(new Animated.Value(1)).current
 
   useEffect(() => {
@@ -281,16 +303,34 @@ export function TaskSession({
 
   const handleVoiceToggle = useCallback(() => {
     setIsPlaying((prev) => !prev)
-    if (!isActive && timeLeft === task.duration) {
-      startTimer()
+    if (timer.mode === "countdown") {
+      if (!timer.isActive && timer.timeLeft === task.duration) {
+        timer.start()
+      }
+    } else {
+      if (timer.walkPhase === "idle") {
+        timer.startWalk()
+      } else if (timer.walkPhase === "stopped" && !timer.timerCompleted) {
+        timer.resumeWalk()
+      }
     }
-  }, [isActive, timeLeft, task.duration, startTimer])
+  }, [timer, task.duration])
 
   const handleStart = useCallback(() => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-    startTimer()
+    if (timer.mode === "manual") {
+      if (timer.walkPhase === "stopped") timer.resumeWalk()
+      else timer.startWalk()
+    } else {
+      timer.start()
+    }
     setIsPlaying(true)
-  }, [startTimer])
+  }, [timer])
+
+  const handleStopWalk = useCallback(() => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    if (timer.mode === "manual") timer.stopWalk()
+  }, [timer])
 
   const handleComplete = useCallback(() => {
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
@@ -313,6 +353,21 @@ export function TaskSession({
     selectedMood,
     task.id,
   ])
+
+  const showStartSection =
+    timer.mode === "countdown"
+      ? !timer.isActive && timer.timeLeft === task.duration
+      : timer.walkPhase === "idle" ||
+        (timer.walkPhase === "stopped" && !timer.timerCompleted)
+
+  const startLabel =
+    timer.mode === "manual" && timer.walkPhase === "stopped"
+      ? "Continue walking"
+      : timer.mode === "manual"
+        ? "Start walk"
+        : "Start Task"
+
+  const timerCompleted = timer.timerCompleted
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
@@ -354,7 +409,7 @@ export function TaskSession({
         <View style={styles.streakRow}>
           <StreakBadge days={displayStreak} />
           <CircularProgress
-            progress={timerCompleted ? 100 : 0}
+            progress={ringProgress}
             label="1/1"
             size={64}
           />
@@ -386,12 +441,28 @@ export function TaskSession({
           <Text style={styles.taskTitle}>{task.title}</Text>
           <Text style={styles.taskInstruction}>{task.instruction}</Text>
 
-          <TaskTimerBar timeLeft={timeLeft} duration={task.duration} />
+          {timer.mode === "countdown" ? (
+            <TaskTimerBar
+              mode="countdown"
+              timeLeft={timer.timeLeft}
+              duration={task.duration}
+            />
+          ) : (
+            <TaskTimerBar
+              mode="manual"
+              elapsed={timer.elapsed}
+              targetSeconds={task.duration}
+              walkPhase={timer.walkPhase}
+              minSeconds={task.manualMinSeconds ?? 15}
+            />
+          )}
 
-          {!isActive && timeLeft === task.duration ? (
+          {showStartSection ? (
             <>
               <Text style={styles.hint}>
-                Tap the speaker for calming voice guidance, or press Start
+                {timer.mode === "manual"
+                  ? "Use Start walk and Stop walk to control the timer. Speaker adds voice guidance while you walk."
+                  : "Tap the speaker for calming voice guidance, or press Start"}
               </Text>
               <Pressable
                 style={({ pressed }) => [
@@ -400,18 +471,32 @@ export function TaskSession({
                 ]}
                 onPress={handleStart}
               >
-                <Text style={styles.startCtaText}>Start Task</Text>
+                <Text style={styles.startCtaText}>{startLabel}</Text>
               </Pressable>
             </>
           ) : null}
 
-          {isActive && breathingPhase ? (
+          {timer.mode === "manual" && timer.walkPhase === "walking" ? (
+            <Pressable
+              style={({ pressed }) => [
+                styles.stopWalkBtn,
+                pressed && styles.pressDim,
+              ]}
+              onPress={handleStopWalk}
+              accessibilityRole="button"
+              accessibilityLabel="Stop walk timer"
+            >
+              <Text style={styles.stopWalkText}>Stop walk</Text>
+            </Pressable>
+          ) : null}
+
+          {sessionActive && breathingPhase ? (
             <Animated.Text style={[styles.breathing, { opacity: pulse }]}>
               {breathingPhase}
             </Animated.Text>
           ) : null}
 
-          {isActive && !breathingPhase ? (
+          {sessionActive && !breathingPhase ? (
             <Text style={styles.keepGoing}>Keep going...</Text>
           ) : null}
         </View>

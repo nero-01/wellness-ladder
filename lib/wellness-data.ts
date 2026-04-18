@@ -1,97 +1,70 @@
-import type { Task } from "@/components/wellness/task-card"
+/** Web daily task catalog — keep in sync with `mobile/lib/wellness-data.ts`. */
+
+export type TaskTimerMode = "countdown" | "manual"
+
+export interface Task {
+  id: number
+  title: string
+  instruction: string
+  duration: number
+  icon: string
+  timerMode?: TaskTimerMode
+  manualMinSeconds?: number
+}
+
+export function isManualTimerTask(task: Task): boolean {
+  return task.timerMode === "manual"
+}
 
 export const WELLNESS_TASKS: Task[] = [
-  {
-    id: 1,
-    title: "Take 3 Deep Breaths",
-    instruction: "In... hold... out.",
-    duration: 30,
-    icon: String.fromCodePoint(0x1F32C) // wind
-  },
+  { id: 1, title: "Take 3 Deep Breaths", instruction: "In... hold... out.", duration: 30, icon: "\u{1F32C}" },
   {
     id: 2,
     title: "Gratitude Moment",
-    instruction: "Think of one thing you're grateful for today.",
-    duration: 45,
-    icon: String.fromCodePoint(0x1F64F) // folded hands
+    instruction:
+      "Name three things you are grateful for today—big or small. Pause for a few breaths on each one.",
+    duration: 60,
+    icon: "\u{1F64F}",
   },
   {
     id: 3,
     title: "Gentle Stretch",
-    instruction: "Stretch your arms above your head and hold.",
-    duration: 30,
-    icon: String.fromCodePoint(0x1F9D8) // person in lotus
+    instruction:
+      "Stand or sit tall. Interlace your fingers, turn palms up, and reach gently toward the ceiling. Keep shoulders soft and ribs stacked—no flaring. Hold where it feels easy, breathe, then release slowly and roll shoulders open.",
+    duration: 35,
+    icon: "\u{1F9D8}",
   },
   {
     id: 4,
     title: "Mindful Walk",
-    instruction: "Take 10 slow, mindful steps anywhere.",
+    instruction:
+      "Walk slowly and notice lifting and placing each foot. Tap Start walk when you begin moving and Stop walk when you finish—the timer runs only while you walk. Even ten mindful steps count.",
     duration: 60,
-    icon: String.fromCodePoint(0x1F6B6) // walking
+    icon: "\u{1F6B6}",
+    timerMode: "manual",
+    manualMinSeconds: 15,
   },
-  {
-    id: 5,
-    title: "Quick Journal",
-    instruction: "Mentally note one feeling you have right now.",
-    duration: 30,
-    icon: String.fromCodePoint(0x1F4DD) // memo
-  },
-  {
-    id: 6,
-    title: "Hydration Check",
-    instruction: "Take a sip of water. Stay hydrated!",
-    duration: 15,
-    icon: String.fromCodePoint(0x1F4A7) // droplet
-  },
-  {
-    id: 7,
-    title: "Reflect & Rest",
-    instruction: "Close your eyes and breathe slowly.",
-    duration: 45,
-    icon: String.fromCodePoint(0x1F31F) // glowing star
-  },
-  {
-    id: 8,
-    title: "Shoulder Release",
-    instruction: "Roll your shoulders up, back, and down—slowly, five times.",
-    duration: 30,
-    icon: String.fromCodePoint(0x1F4AA) // flexed biceps
-  },
-  {
-    id: 9,
-    title: "Screen Break",
-    instruction: "Look away from any screen. Rest your eyes on something arm’s length or farther.",
-    duration: 45,
-    icon: String.fromCodePoint(0x1F4F4) // mobile phone off
-  },
-  {
-    id: 10,
-    title: "Gentle Self-Words",
-    instruction: "Say one short kind sentence to yourself, out loud or in your head.",
-    duration: 25,
-    icon: String.fromCodePoint(0x2728) // sparkles
-  },
-  {
-    id: 11,
-    title: "Easy Neck Care",
-    instruction: "Let your ear drift toward each shoulder—no forcing, small and slow.",
-    duration: 35,
-    icon: String.fromCodePoint(0x2195, 0xFE0F) // up-down arrow
-  },
-  {
-    id: 12,
-    title: "Green Glance",
-    instruction: "Find something natural—a plant, tree, or sky—and notice one color or texture.",
-    duration: 40,
-    icon: String.fromCodePoint(0x1F331) // seedling
-  },
-  {
-    id: 13,
-    title: "Posture Reset",
-    instruction: "Sit or stand tall, feet grounded, jaw unclenched, shoulders dropped.",
-    duration: 30,
-    icon: String.fromCodePoint(0x1F9CD) // standing person
-  }
+  { id: 5, title: "Quick Journal", instruction: "Mentally note one feeling you have right now.", duration: 30, icon: "\u{1F4DD}" },
+  { id: 6, title: "Hydration Check", instruction: "Take a sip of water. Stay hydrated!", duration: 15, icon: "\u{1F4A7}" },
+  { id: 7, title: "Reflect & Rest", instruction: "Close your eyes and breathe slowly.", duration: 45, icon: "\u{1F31F}" },
+  { id: 8, title: "Shoulder Release", instruction: "Roll your shoulders up, back, and down—slowly, five times.", duration: 30, icon: "\u{1F4AA}" },
+  { id: 9, title: "Screen Break", instruction: "Look away from any screen. Rest your eyes on something arm’s length or farther.", duration: 45, icon: "\u{1F4F4}" },
+  { id: 10, title: "Gentle Self-Words", instruction: "Say one short kind sentence to yourself, out loud or in your head.", duration: 25, icon: "\u{2728}" },
+  { id: 11, title: "Easy Neck Care", instruction: "Let your ear drift toward each shoulder—no forcing, small and slow.", duration: 35, icon: "\u{2195}\u{FE0F}" },
+  { id: 12, title: "Green Glance", instruction: "Find something natural—a plant, tree, or sky—and notice one color or texture.", duration: 40, icon: "\u{1F331}" },
+  { id: 13, title: "Posture Reset", instruction: "Sit or stand tall, feet grounded, jaw unclenched, shoulders dropped.", duration: 30, icon: "\u{1F9CD}" },
+  { id: 14, title: "Wrist & Hand Wake-Up", instruction: "Circle wrists slowly in both directions, then spread and close fingers a few times.", duration: 25, icon: "\u{270B}" },
+  { id: 15, title: "Listening Pause", instruction: "Stay still and name one sound you hear—near or far, no judgment.", duration: 40, icon: "\u{1F442}" },
+  { id: 16, title: "Soft Smile", instruction: "Relax your face and lift the corners of your mouth slightly—hold it soft and easy.", duration: 20, icon: "\u{1F60A}" },
+  { id: 17, title: "Ground Through Feet", instruction: "Feel soles on the floor. Shift weight slightly side to side, then stand balanced.", duration: 35, icon: "\u{1F9B6}" },
+  { id: 18, title: "Upper Back Open", instruction: "Reach arms wide or gently clasp hands behind you; open chest, breathe wide.", duration: 40, icon: "\u{1F9D1}" },
+  { id: 19, title: "Mindful Sip", instruction: "If you have a drink nearby, take one slow sip—notice temperature and swallow.", duration: 30, icon: "\u{2615}" },
+  { id: 20, title: "Shoulder Blade Squeeze", instruction: "Draw shoulder blades gently toward each other; hold a few seconds, then release.", duration: 30, icon: "\u{1F9B4}" },
+  { id: 21, title: "Jaw Release", instruction: "Let teeth part slightly, tongue rest on the roof of the mouth, exhale through the nose.", duration: 25, icon: "\u{1F9B7}" },
+  { id: 22, title: "Finger Spreads", instruction: "Spread fingers wide on a table or thigh, then relax—repeat slowly.", duration: 20, icon: "\u{270C}\u{FE0F}" },
+  { id: 23, title: "Distant Focus", instruction: "Gaze at something far away for a few breaths—soft eyes, blink naturally.", duration: 35, icon: "\u{1F441}\u{FE0F}" },
+  { id: 24, title: "One Thankful Breath", instruction: "Inhale gently; exhale with one silent word of thanks.", duration: 25, icon: "\u{1F49A}" },
+  { id: 25, title: "Tomorrow’s First Step", instruction: "Picture one small thing you could do tomorrow to care for yourself.", duration: 40, icon: "\u{1F31E}" },
 ]
 
 export function getTodayTask(streakDay: number): Task {
@@ -99,7 +72,6 @@ export function getTodayTask(streakDay: number): Task {
   return WELLNESS_TASKS[index]
 }
 
-/** Task 1: three breaths across the timer; in/hold/out per third of each breath. */
 export function getBreathingPhaseLabel(
   taskId: number,
   duration: number,
@@ -129,5 +101,5 @@ export const DEFAULT_STREAK_DATA: StreakData = {
   lastCompletedDate: null,
   totalCompleted: 0,
   moodHistory: [],
-  completionHistory: []
+  completionHistory: [],
 }

@@ -1,21 +1,22 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ChevronLeft, Check, SkipForward, User } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { 
-  StreakBadge, 
-  CircularProgress, 
-  MoodPicker, 
-  VoiceMic, 
-  useTimer,
-  TimerDisplay 
+import {
+  StreakBadge,
+  CircularProgress,
+  MoodPicker,
+  VoiceMic,
+  TimerDisplay,
+  ManualWalkTimerDisplay,
 } from "@/components/wellness"
 import { useStreak } from "@/hooks/use-streak"
+import { useTaskSessionTimer } from "@/hooks/use-task-session-timer"
 import { getBreathingPhaseLabel, getTodayTask } from "@/lib/wellness-data"
 
 export default function TaskPage() {
@@ -28,16 +29,10 @@ export default function TaskPage() {
   const { streakData, isLoaded, completeTask, hasCompletedToday, displayStreak } = useStreak()
   const task = getTodayTask(displayStreak)
 
-  const { 
-    timeLeft, 
-    isActive, 
-    isCompleted: timerCompleted,
-    start: startTimer, 
-    progress 
-  } = useTimer({
-    duration: task.duration,
-    onComplete: () => setIsPlaying(false)
-  })
+  const timer = useTaskSessionTimer(task, () => setIsPlaying(false))
+
+  const sessionActive =
+    timer.mode === "countdown" ? timer.isActive : timer.walkPhase === "walking"
 
   useEffect(() => {
     setMounted(true)
@@ -50,22 +45,71 @@ export default function TaskPage() {
     }
   }, [isLoaded, hasCompletedToday, showCompletion])
 
-  const handleVoiceToggle = useCallback(() => {
-    setIsPlaying(prev => !prev)
-    if (!isActive && timeLeft === task.duration) {
-      startTimer()
+  const breathingPhase = useMemo(() => {
+    if (timer.mode !== "countdown") return null
+    return getBreathingPhaseLabel(task.id, task.duration, timer.timeLeft)
+  }, [timer.mode, timer.timeLeft, task.id, task.duration])
+
+  const ringProgress = useMemo(() => {
+    if (timer.mode === "manual") {
+      if (timer.timerCompleted) return 100
+      const target = task.duration > 0 ? task.duration : 60
+      return Math.min(100, (timer.elapsed / target) * 100)
     }
-  }, [isActive, timeLeft, task.duration, startTimer])
+    if (timer.timerCompleted) return 100
+    return task.duration > 0
+      ? ((task.duration - timer.timeLeft) / task.duration) * 100
+      : 0
+  }, [timer, task.duration])
+
+  const handleVoiceToggle = useCallback(() => {
+    setIsPlaying((prev) => !prev)
+    if (timer.mode === "countdown") {
+      if (!timer.isActive && timer.timeLeft === task.duration) {
+        timer.start()
+      }
+    } else {
+      if (timer.walkPhase === "idle") {
+        timer.startWalk()
+      } else if (timer.walkPhase === "stopped" && !timer.timerCompleted) {
+        timer.resumeWalk()
+      }
+    }
+  }, [timer, task.duration])
 
   const handleStart = useCallback(() => {
-    startTimer()
+    if (timer.mode === "manual") {
+      if (timer.walkPhase === "stopped") timer.resumeWalk()
+      else timer.startWalk()
+    } else {
+      timer.start()
+    }
     setIsPlaying(true)
-  }, [startTimer])
+  }, [timer])
+
+  const handleStopWalk = useCallback(() => {
+    if (timer.mode === "manual") timer.stopWalk()
+  }, [timer])
 
   const handleComplete = useCallback(() => {
     completeTask(task.id, selectedMood || undefined)
     setShowCompletion(true)
   }, [completeTask, task.id, selectedMood])
+
+  const showStartSection =
+    timer.mode === "countdown"
+      ? !timer.isActive && timer.timeLeft === task.duration
+      : timer.walkPhase === "idle" ||
+        (timer.walkPhase === "stopped" && !timer.timerCompleted)
+
+  const startLabel =
+    timer.mode === "manual" && timer.walkPhase === "stopped"
+      ? "Continue walking"
+      : timer.mode === "manual"
+        ? "Start walk"
+        : "Start Task"
+
+  const timerCompleted = timer.timerCompleted
 
   // Loading state
   if (!isLoaded) {
@@ -90,7 +134,7 @@ export default function TaskPage() {
           <ThemeToggle />
         </header>
 
-        <main 
+        <main
           className={`flex-1 flex flex-col items-center justify-center px-6 transition-all duration-700 ${
             mounted ? "opacity-100 scale-100" : "opacity-0 scale-95"
           }`}
@@ -123,8 +167,6 @@ export default function TaskPage() {
     )
   }
 
-  const breathingPhase = getBreathingPhaseLabel(task.id, task.duration, timeLeft)
-
   return (
     <div className="min-h-screen gradient-bg flex flex-col">
       {/* Header */}
@@ -149,20 +191,17 @@ export default function TaskPage() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col px-6 pb-8">
         {/* Streak & Progress */}
-        <div 
+        <div
           className={`flex items-center justify-between mb-8 transition-all duration-500 ${
             mounted ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
           }`}
         >
           <StreakBadge days={displayStreak} />
-          <CircularProgress 
-            progress={timerCompleted ? 100 : 0} 
-            label="1/1"
-          />
+          <CircularProgress progress={ringProgress} label="1/1" />
         </div>
 
         {/* Task Card */}
-        <Card 
+        <Card
           className={`border-0 shadow-xl bg-card mb-6 transition-all duration-700 delay-100 ${
             mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
           }`}
@@ -181,51 +220,71 @@ export default function TaskPage() {
               <p className="text-primary mt-2">{task.instruction}</p>
             </div>
 
-            <TimerDisplay 
-              timeLeft={timeLeft} 
-              duration={task.duration} 
-              className="mb-6"
-            />
+            {timer.mode === "countdown" ? (
+              <TimerDisplay
+                timeLeft={timer.timeLeft}
+                duration={task.duration}
+                className="mb-6"
+              />
+            ) : (
+              <ManualWalkTimerDisplay
+                elapsed={timer.elapsed}
+                targetSeconds={task.duration > 0 ? task.duration : 60}
+                walkPhase={timer.walkPhase}
+                minSeconds={task.manualMinSeconds ?? 15}
+                className="mb-6"
+              />
+            )}
 
-            {!isActive && timeLeft === task.duration && (
+            {showStartSection ? (
               <>
                 <p className="text-sm text-muted-foreground text-center mb-4">
-                  Tap the voice icon or start button to begin
+                  {timer.mode === "manual"
+                    ? "Use Start walk and Stop walk to control the timer."
+                    : "Tap the voice icon or start button to begin"}
                 </p>
-                <Button 
+                <Button
                   onClick={handleStart}
                   className="w-full h-14 text-lg font-semibold rounded-2xl gradient-primary text-white border-0"
                 >
-                  Start Task
+                  {startLabel}
                 </Button>
               </>
-            )}
+            ) : null}
 
-            {isActive && breathingPhase && (
-              <div className="text-center">
+            {timer.mode === "manual" && timer.walkPhase === "walking" ? (
+              <Button
+                variant="outline"
+                className="w-full h-14 mt-4 text-lg font-semibold rounded-2xl"
+                onClick={handleStopWalk}
+              >
+                Stop walk
+              </Button>
+            ) : null}
+
+            {sessionActive && breathingPhase ? (
+              <div className="text-center mt-4">
                 <p className="text-lg font-medium text-primary animate-pulse">
                   {breathingPhase}
                 </p>
               </div>
-            )}
+            ) : null}
 
-            {isActive && !breathingPhase && (
-              <div className="text-center">
-                <p className="text-lg font-medium text-primary">
-                  Keep going...
-                </p>
+            {sessionActive && !breathingPhase ? (
+              <div className="text-center mt-4">
+                <p className="text-lg font-medium text-primary">Keep going...</p>
               </div>
-            )}
+            ) : null}
           </CardContent>
         </Card>
 
         {/* Action Buttons */}
-        <div 
+        <div
           className={`flex gap-4 mb-6 transition-all duration-700 delay-200 ${
             mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
           }`}
         >
-          <Button 
+          <Button
             onClick={handleComplete}
             disabled={!timerCompleted}
             className="flex-1 h-14 text-lg font-semibold rounded-2xl gradient-primary text-white border-0 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -233,8 +292,8 @@ export default function TaskPage() {
             <Check className="h-5 w-5 mr-2" />
             Done
           </Button>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="h-14 px-6 rounded-2xl text-muted-foreground"
             onClick={() => router.push("/")}
           >
@@ -244,15 +303,12 @@ export default function TaskPage() {
         </div>
 
         {/* Mood Picker */}
-        <div 
+        <div
           className={`mt-auto transition-all duration-700 delay-300 ${
             mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
           }`}
         >
-          <MoodPicker 
-            selectedMood={selectedMood} 
-            onMoodSelect={setSelectedMood} 
-          />
+          <MoodPicker selectedMood={selectedMood} onMoodSelect={setSelectedMood} />
         </div>
       </main>
     </div>
