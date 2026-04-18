@@ -44,7 +44,7 @@ import {
   wellnessWalkReady,
 } from "@/lib/wellnessFeedback"
 import type { Task } from "@/lib/wellness-data"
-import { speakTask } from "@/utils/elevenlabs"
+import { speakTask, stopTaskSpeech } from "@/utils/elevenlabs"
 
 function createTaskSessionStyles(W: WellnessPalette) {
   return StyleSheet.create({
@@ -408,6 +408,7 @@ export function TaskSession({
   const [selectedMood, setSelectedMood] = useState<number | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [voiceGuideBusy, setVoiceGuideBusy] = useState(false)
+  const autoVoiceKeyRef = useRef<string | null>(null)
 
   const timer = useTaskSessionTimer(task, () => {
     setIsPlaying(false)
@@ -502,17 +503,31 @@ export function TaskSession({
     if (timer.mode === "manual") timer.stopWalk()
   }, [timer])
 
-  const handleVoiceGuide = useCallback(async () => {
-    wellnessTapLight()
+  const handleVoiceGuide = useCallback(async (isAuto = false) => {
+    if (!isAuto) wellnessTapLight()
     const lang = localeReady ? locale : "en"
     const line = `${task.title}. ${task.instruction}`
     setVoiceGuideBusy(true)
     try {
-      await speakTask(line, { lang })
+      await speakTask(line, lang)
     } finally {
       setVoiceGuideBusy(false)
     }
   }, [localeReady, locale, task.title, task.instruction])
+
+  useEffect(() => {
+    const key = `${task.id}:${localeReady ? locale : "en"}`
+    if (autoVoiceKeyRef.current === key) return
+    autoVoiceKeyRef.current = key
+    void handleVoiceGuide(true)
+  }, [task.id, locale, localeReady, handleVoiceGuide])
+
+  useEffect(
+    () => () => {
+      void stopTaskSpeech()
+    },
+    [],
+  )
 
   const handleComplete = useCallback(() => {
     wellnessTaskComplete()
@@ -740,7 +755,9 @@ export function TaskSession({
               styles.voiceGuideBtn,
               (pressed || voiceGuideBusy) && styles.voiceGuideBtnDisabled,
             ]}
-            onPress={handleVoiceGuide}
+            onPress={() => {
+              void handleVoiceGuide()
+            }}
             disabled={voiceGuideBusy}
             accessibilityRole="button"
             accessibilityLabel={ui.voiceGuide}
