@@ -6,7 +6,6 @@ import { useRouter } from "expo-router"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   Alert,
-  Animated,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -22,6 +21,10 @@ import { MoodPickerRow } from "@/components/MoodPickerRow"
 import { MoodStreakBadge } from "@/components/MoodStreakBadge"
 import { ResumeLadderBanner } from "@/components/ResumeLadderBanner"
 import { StreakFlameBadge } from "@/components/StreakFlameBadge"
+import {
+  BreathingTaskVisual,
+  BREATHING_TASK_ID,
+} from "@/components/TaskScreen"
 import { TaskCatalogPreview } from "@/components/TaskCatalogPreview"
 import { TaskNotoIcon } from "@/components/TaskNotoIcon"
 import { TaskTimerBar } from "@/components/TaskTimerBar"
@@ -33,7 +36,6 @@ import { useTaskVoiceGuidance } from "@/hooks/useTaskVoiceGuidance"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { emojiFamilySvgUrl } from "@/lib/mood-picker-data"
 import { useWellnessLocale } from "@/lib/wellness-locale"
-import { localizeBreathingPhase } from "@/lib/za-afrikaans-tasks"
 import {
   wellnessTapLight,
   wellnessTapMedium,
@@ -41,7 +43,7 @@ import {
   wellnessTimerFinished,
   wellnessWalkReady,
 } from "@/lib/wellnessFeedback"
-import { getBreathingPhaseLabel, type Task } from "@/lib/wellness-data"
+import type { Task } from "@/lib/wellness-data"
 
 function createTaskSessionStyles(W: WellnessPalette) {
   return StyleSheet.create({
@@ -175,13 +177,6 @@ function createTaskSessionStyles(W: WellnessPalette) {
       alignItems: "center",
     },
     stopWalkText: { color: W.text, fontSize: 16, fontWeight: "700" },
-    breathing: {
-      fontSize: 18,
-      fontWeight: "600",
-      color: W.primary,
-      textAlign: "center",
-      marginTop: 12,
-    },
     keepGoing: {
       fontSize: 18,
       fontWeight: "600",
@@ -437,12 +432,6 @@ export function TaskSession({
     router.push("/(tabs)")
   }, [previewMode, router])
 
-  const breathingPhase = useMemo(() => {
-    if (timer.mode !== "countdown") return null
-    const en = getBreathingPhaseLabel(task.id, task.duration, timer.timeLeft)
-    return localizeBreathingPhase(en, localeReady ? locale : "en")
-  }, [timer.mode, timer.timeLeft, task.id, task.duration, locale, localeReady])
-
   const ringProgress = useMemo(() => {
     if (timer.mode === "manual") {
       if (timer.timerCompleted) return 100
@@ -454,28 +443,6 @@ export function TaskSession({
       ? ((task.duration - timer.timeLeft) / task.duration) * 100
       : 0
   }, [timer, task.duration])
-
-  const pulse = useRef(new Animated.Value(1)).current
-
-  useEffect(() => {
-    if (!breathingPhase) return
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, {
-          toValue: 0.65,
-          duration: 280,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulse, {
-          toValue: 1,
-          duration: 280,
-          useNativeDriver: true,
-        }),
-      ]),
-    )
-    loop.start()
-    return () => loop.stop()
-  }, [breathingPhase, pulse])
 
   const handleVoiceToggle = useCallback(() => {
     wellnessTapLight()
@@ -781,13 +748,15 @@ export function TaskSession({
             </Pressable>
           ) : null}
 
-          {sessionActive && breathingPhase ? (
-            <Animated.Text style={[styles.breathing, { opacity: pulse }]}>
-              {breathingPhase}
-            </Animated.Text>
+          {sessionActive && task.id === BREATHING_TASK_ID ? (
+            <BreathingTaskVisual
+              active={sessionActive}
+              voiceEnabled={voiceEnabled}
+              locale={localeReady ? locale : "en"}
+            />
           ) : null}
 
-          {sessionActive && !breathingPhase ? (
+          {sessionActive && task.id !== BREATHING_TASK_ID ? (
             <Text style={styles.keepGoing}>{ui.keepGoing}</Text>
           ) : null}
         </LinearGradient>

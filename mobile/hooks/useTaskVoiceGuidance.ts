@@ -2,11 +2,8 @@ import { useEffect, useRef } from "react"
 import type { WalkPhase } from "@/hooks/useTaskSessionTimer"
 import { speakGuidanceLine, stopGuidancePlayback } from "@/lib/guidanceTts"
 import type { WellnessLocale } from "@/lib/wellness-locale"
-import { getBreathingPhaseLabel, type Task } from "@/lib/wellness-data"
-import {
-  getSpeechLocaleCode,
-  localizeBreathingPhase,
-} from "@/lib/za-afrikaans-tasks"
+import type { Task } from "@/lib/wellness-data"
+import { getSpeechLocaleCode } from "@/lib/za-afrikaans-tasks"
 
 const VOICE_LINES = {
   en: {
@@ -44,7 +41,6 @@ export function useTaskVoiceGuidance({
   manualElapsed?: number
   locale: WellnessLocale
 }) {
-  const lastPhaseRef = useRef<string | null>(null)
   const introDoneRef = useRef(false)
   const halfDoneRef = useRef(false)
   const manualIntroRef = useRef(false)
@@ -54,7 +50,6 @@ export function useTaskVoiceGuidance({
   const lines = locale === "af" ? VOICE_LINES.af : VOICE_LINES.en
 
   useEffect(() => {
-    lastPhaseRef.current = null
     introDoneRef.current = false
     halfDoneRef.current = false
     manualIntroRef.current = false
@@ -126,16 +121,7 @@ export function useTaskVoiceGuidance({
     speechLang,
   ])
 
-  // Breathing task: cue each phase change
-  useEffect(() => {
-    if (!enabled || !isActive || task.id !== 1) return
-    const phase = getBreathingPhaseLabel(task.id, duration, timeLeft)
-    if (!phase) return
-    if (phase === lastPhaseRef.current) return
-    lastPhaseRef.current = phase
-    const spoken = localizeBreathingPhase(phase, locale) ?? phase
-    void speakGuidanceLine(spoken, { language: speechLang })
-  }, [enabled, isActive, task.id, duration, timeLeft, locale, speechLang])
+  // Breathing task (id 1): phase TTS is driven by `BreathingTaskVisual` + Reanimated cycle.
 
   // Longer countdown tasks: gentle halfway nudge
   useEffect(() => {
