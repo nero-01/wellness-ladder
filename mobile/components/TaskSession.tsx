@@ -49,7 +49,39 @@ function createTaskSessionStyles(W: WellnessPalette) {
       alignItems: "center",
       marginBottom: 12,
     },
-    topBarRight: { flexDirection: "row", alignItems: "center", gap: 12 },
+    topBarRight: { flexDirection: "row", alignItems: "center", gap: 8 },
+    langStrip: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 16,
+      paddingVertical: 12,
+      paddingHorizontal: 14,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: W.cardBorder,
+      backgroundColor: W.bgElevated,
+      gap: 12,
+    },
+    langStripLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      flex: 1,
+      flexShrink: 1,
+    },
+    langStripTitles: { flex: 1, minWidth: 0 },
+    langStripHeading: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: W.text,
+    },
+    langStripCaption: {
+      fontSize: 12,
+      color: W.textMuted,
+      marginTop: 2,
+    },
+    langFlagStrip: { width: 32, height: 32, borderRadius: 4 },
     streakRow: {
       flexDirection: "row",
       justifyContent: "space-between",
@@ -205,7 +237,7 @@ function createTaskSessionStyles(W: WellnessPalette) {
       flexDirection: "row",
       alignItems: "center",
       gap: 8,
-      marginRight: 4,
+      flexShrink: 0,
     },
     langFlag: { width: 26, height: 26, borderRadius: 4 },
     langTrigger: {
@@ -514,27 +546,6 @@ export function TaskSession({
             <Ionicons name="chevron-back" size={26} color={W.text} />
           </Pressable>
           <View style={styles.topBarRight}>
-            <View style={styles.langRow}>
-              <Image
-                source={{ uri: saFlagUri }}
-                style={styles.langFlag}
-                contentFit="contain"
-                accessibilityLabel="South Africa"
-              />
-              <Pressable
-                onPress={() => {
-                  wellnessTapLight()
-                  setLangMenuOpen(true)
-                }}
-                style={({ pressed }) => [styles.langTrigger, pressed && styles.pressDim]}
-                accessibilityLabel="Choose language"
-              >
-                <Text style={styles.langTriggerText}>
-                  {locale === "af" ? "Afrikaans" : "English"}
-                </Text>
-                <Ionicons name="chevron-down" size={16} color={W.textMuted} />
-              </Pressable>
-            </View>
             <Pressable
               onPress={() => {
                 wellnessTapLight()
@@ -544,6 +555,38 @@ export function TaskSession({
               style={({ pressed }) => pressed && styles.pressDim}
             >
               <Ionicons name="person-circle-outline" size={28} color={W.text} />
+            </Pressable>
+          </View>
+        </View>
+
+        <View style={styles.langStrip}>
+          <View style={styles.langStripLeft}>
+            <Image
+              source={{ uri: saFlagUri }}
+              style={styles.langFlagStrip}
+              contentFit="contain"
+              accessibilityLabel="South Africa flag"
+            />
+            <View style={styles.langStripTitles}>
+              <Text style={styles.langStripHeading}>Language · Taal</Text>
+              <Text style={styles.langStripCaption} numberOfLines={2}>
+                English or Afrikaans (first 7 ladder days). Voice uses en-US or af-ZA.
+              </Text>
+            </View>
+          </View>
+          <View style={styles.langRow}>
+            <Pressable
+              onPress={() => {
+                wellnessTapLight()
+                setLangMenuOpen(true)
+              }}
+              style={({ pressed }) => [styles.langTrigger, pressed && styles.pressDim]}
+              accessibilityLabel="Choose language"
+            >
+              <Text style={styles.langTriggerText}>
+                {locale === "af" ? "Afrikaans" : "English"}
+              </Text>
+              <Ionicons name="chevron-down" size={16} color={W.textMuted} />
             </Pressable>
           </View>
         </View>

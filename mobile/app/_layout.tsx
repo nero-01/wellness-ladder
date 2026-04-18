@@ -69,7 +69,9 @@ function useProtectedRoute() {
 
     const isDevTaskLab =
       __DEV__ &&
-      (path.includes("dev-task-preview") || path.includes("dev-task-session"))
+      (path.includes("dev-task-preview") ||
+        path.includes("dev-task-session") ||
+        path.includes("dev-celebration-preview"))
 
     if (!user && !inAuthScreen && !isDevTaskLab) {
       router.replace("/(auth)/sign-in")
@@ -124,6 +126,15 @@ function RootLayoutNav() {
           }}
         />
         <Stack.Screen name="dev-task-session" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="dev-celebration-preview"
+          options={{
+            title: "Dev · SADAG completion",
+            headerBackTitle: "Back",
+            headerStyle: { backgroundColor: headerBg },
+            headerTintColor: headerTint,
+          }}
+        />
         </Stack>
       </View>
     </ThemeProvider>

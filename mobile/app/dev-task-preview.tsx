@@ -28,6 +28,30 @@ function createStyles(W: WellnessPalette) {
       marginBottom: 6,
     },
     bannerBody: { fontSize: 13, color: W.textMuted, lineHeight: 18 },
+    sectionLabel: {
+      marginHorizontal: 20,
+      marginBottom: 8,
+      fontSize: 11,
+      fontWeight: "700",
+      letterSpacing: 0.6,
+      textTransform: "uppercase",
+      color: W.textMuted,
+    },
+    saRow: {
+      marginHorizontal: 20,
+      marginBottom: 12,
+      padding: 16,
+      borderRadius: 16,
+      backgroundColor: W.iconBg,
+      borderWidth: 1,
+      borderColor: W.primary,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+    saBody: { flex: 1 },
+    saTitle: { fontSize: 15, fontWeight: "700", color: W.text, marginBottom: 4 },
+    saMeta: { fontSize: 13, color: W.textMuted, lineHeight: 18 },
     row: {
       marginHorizontal: 20,
       marginBottom: 10,
@@ -70,6 +94,36 @@ export default function DevTaskPreviewScreen() {
               your streak. The shipped app only surfaces today’s unlocked step.
             </Text>
           </View>
+
+          <Text style={styles.sectionLabel}>South Africa · language & SADAG</Text>
+          <Pressable
+            style={({ pressed }) => [styles.saRow, pressed && { opacity: 0.92 }]}
+            onPress={() => router.push("/dev-task-session?taskId=1")}
+          >
+            <View style={styles.saBody}>
+              <Text style={styles.saTitle}>Task screen · Afrikaans ladder (day 1)</Text>
+              <Text style={styles.saMeta}>
+                Opens breathing task with the Language · Taal strip, 🇿🇦 flag, and
+                English/Afrikaans menu. Try task IDs 1–7 for the full SA copy.
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={22} color={W.textMuted} />
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [styles.saRow, pressed && { opacity: 0.92 }]}
+            onPress={() => router.push("/dev-celebration-preview")}
+          >
+            <View style={styles.saBody}>
+              <Text style={styles.saTitle}>Post-done screen · SADAG tips</Text>
+              <Text style={styles.saMeta}>
+                Same view as after you finish today’s task: random tip, helplines,
+                WhatsApp. Toggle EN/AF at the top.
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={22} color={W.textMuted} />
+          </Pressable>
+
+          <Text style={styles.sectionLabel}>All catalog tasks</Text>
 
           {WELLNESS_TASKS.map((task) => (
             <Pressable

@@ -352,7 +352,19 @@ export default function HomeScreen() {
               accessibilityRole="button"
               accessibilityLabel="Open development task preview list"
             >
-              <Text style={styles.devLinkText}>Dev: preview all tasks →</Text>
+              <Text style={styles.devLinkText}>Dev: tasks + SA language / SADAG →</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => router.push("/dev-celebration-preview")}
+              style={({ pressed }) => [
+                styles.devLink,
+                { marginTop: 10 },
+                pressed && { opacity: 0.85 },
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel="Preview completion screen with SADAG tips"
+            >
+              <Text style={styles.devLinkText}>Dev: SADAG completion screen →</Text>
             </Pressable>
           </View>
         ) : null}
