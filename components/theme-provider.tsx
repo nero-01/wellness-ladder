@@ -7,5 +7,13 @@ import {
 } from 'next-themes'
 
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
-  return <NextThemesProvider {...props}>{children}</NextThemesProvider>
+  return (
+    <NextThemesProvider
+      {...props}
+      /* Avoid native form controls getting wrong forced colors vs our explicit input backgrounds */
+      enableColorScheme={props.enableColorScheme ?? false}
+    >
+      {children}
+    </NextThemesProvider>
+  )
 }

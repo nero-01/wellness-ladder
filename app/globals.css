@@ -120,19 +120,40 @@
   }
 }
 
-/* Match Input component colors so WebKit autofill cannot hide the caret/text */
-html:not(.dark) input:-webkit-autofill,
-html:not(.dark) input:-webkit-autofill:hover,
-html:not(.dark) input:-webkit-autofill:focus {
-  -webkit-text-fill-color: #171717;
-  box-shadow: 0 0 0 1000px #ffffff inset;
+/*
+ * Hard-set text/caret on `.wellness-input` so typing stays visible when:
+ * - `color-scheme` / next-themes fights Tailwind
+ * - WebKit autofill or iOS password fields override `color`
+ */
+input.wellness-input,
+textarea.wellness-input {
+  color-scheme: light;
+  background-color: #ffffff !important;
+  color: #171717 !important;
+  caret-color: #171717 !important;
+  -webkit-text-fill-color: #171717 !important;
+}
+html.dark input.wellness-input,
+html.dark textarea.wellness-input {
+  color-scheme: dark;
+  background-color: #09090b !important;
+  color: #fafafa !important;
+  caret-color: #fafafa !important;
+  -webkit-text-fill-color: #fafafa !important;
+}
+
+html:not(.dark) input.wellness-input:-webkit-autofill,
+html:not(.dark) input.wellness-input:-webkit-autofill:hover,
+html:not(.dark) input.wellness-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #171717 !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
   transition: background-color 5000s ease-in-out 0s;
 }
-html.dark input:-webkit-autofill,
-html.dark input:-webkit-autofill:hover,
-html.dark input:-webkit-autofill:focus {
-  -webkit-text-fill-color: #fafafa;
-  box-shadow: 0 0 0 1000px #09090b inset;
+html.dark input.wellness-input:-webkit-autofill,
+html.dark input.wellness-input:-webkit-autofill:hover,
+html.dark input.wellness-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #fafafa !important;
+  box-shadow: 0 0 0 1000px #09090b inset !important;
   transition: background-color 5000s ease-in-out 0s;
 }
 
