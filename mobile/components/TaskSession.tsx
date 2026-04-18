@@ -1,5 +1,4 @@
 import { Ionicons } from "@expo/vector-icons"
-import * as Haptics from "expo-haptics"
 import { useRouter } from "expo-router"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
@@ -21,6 +20,13 @@ import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useTaskSessionTimer } from "@/hooks/useTaskSessionTimer"
 import { useTaskVoiceGuidance } from "@/hooks/useTaskVoiceGuidance"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
+import {
+  wellnessTapLight,
+  wellnessTapMedium,
+  wellnessTaskComplete,
+  wellnessTimerFinished,
+  wellnessWalkReady,
+} from "@/lib/wellnessFeedback"
 import { getBreathingPhaseLabel, type Task } from "@/lib/wellness-data"
 
 function createTaskSessionStyles(W: WellnessPalette) {
@@ -233,7 +239,26 @@ export function TaskSession({
   const [selectedMood, setSelectedMood] = useState<number | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
 
-  const timer = useTaskSessionTimer(task, () => setIsPlaying(false))
+  const timer = useTaskSessionTimer(task, () => {
+    setIsPlaying(false)
+    wellnessTimerFinished()
+  })
+
+  const prevManualDone = useRef(false)
+  useEffect(() => {
+    prevManualDone.current = false
+  }, [task.id])
+
+  useEffect(() => {
+    if (timer.mode !== "manual") {
+      prevManualDone.current = false
+      return
+    }
+    if (timer.timerCompleted && !prevManualDone.current) {
+      wellnessWalkReady()
+    }
+    prevManualDone.current = timer.timerCompleted
+  }, [timer.mode, timer.timerCompleted])
 
   const sessionActive =
     timer.mode === "countdown" ? timer.isActive : timer.walkPhase === "walking"
@@ -302,6 +327,7 @@ export function TaskSession({
   }, [breathingPhase, pulse])
 
   const handleVoiceToggle = useCallback(() => {
+    wellnessTapLight()
     setIsPlaying((prev) => !prev)
     if (timer.mode === "countdown") {
       if (!timer.isActive && timer.timeLeft === task.duration) {
@@ -317,7 +343,7 @@ export function TaskSession({
   }, [timer, task.duration])
 
   const handleStart = useCallback(() => {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+    wellnessTapMedium()
     if (timer.mode === "manual") {
       if (timer.walkPhase === "stopped") timer.resumeWalk()
       else timer.startWalk()
@@ -328,12 +354,12 @@ export function TaskSession({
   }, [timer])
 
   const handleStopWalk = useCallback(() => {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    wellnessTapLight()
     if (timer.mode === "manual") timer.stopWalk()
   }, [timer])
 
   const handleComplete = useCallback(() => {
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    wellnessTaskComplete()
     if (previewMode) {
       Alert.alert(
         "Preview complete",
@@ -378,7 +404,10 @@ export function TaskSession({
       >
         <View style={styles.topBar}>
           <Pressable
-            onPress={goBackOrHome}
+            onPress={() => {
+              wellnessTapLight()
+              goBackOrHome()
+            }}
             hitSlop={12}
             accessibilityLabel="Back to home"
             style={({ pressed }) => pressed && styles.pressDim}
@@ -387,7 +416,10 @@ export function TaskSession({
           </Pressable>
           <View style={styles.topBarRight}>
             <Pressable
-              onPress={() => router.push("/(tabs)/profile")}
+              onPress={() => {
+                wellnessTapLight()
+                router.push("/(tabs)/profile")
+              }}
               hitSlop={12}
               style={({ pressed }) => pressed && styles.pressDim}
             >

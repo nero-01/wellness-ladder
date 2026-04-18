@@ -3,8 +3,9 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Moon, Sun, Calendar, Mic, Sparkles, WifiOff } from "lucide-react"
-import { useTheme } from "next-themes"
+import { Calendar, Mic, Sparkles, WifiOff } from "lucide-react"
+import { ThemeToggle } from "@/components/theme-toggle"
+import { wellnessWebPrimary } from "@/lib/wellness-feedback"
 import { useEffect, useState } from "react"
 
 const features = [
@@ -29,39 +30,6 @@ const features = [
     description: "Works without internet"
   }
 ]
-
-function ThemeToggle() {
-  const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) {
-    return (
-      <Button variant="ghost" size="icon" className="rounded-full">
-        <Sun className="h-5 w-5" />
-      </Button>
-    )
-  }
-
-  return (
-    <Button
-      variant="ghost"
-      size="icon"
-      className="rounded-full"
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-    >
-      {theme === "dark" ? (
-        <Sun className="h-5 w-5" />
-      ) : (
-        <Moon className="h-5 w-5" />
-      )}
-      <span className="sr-only">Toggle theme</span>
-    </Button>
-  )
-}
 
 export default function LandingPage() {
   const [mounted, setMounted] = useState(false)
@@ -98,10 +66,14 @@ export default function LandingPage() {
           </p>
 
           {/* CTA Button */}
-          <Link href="/task">
-            <Button 
-              size="lg" 
-              className="w-full max-w-xs h-14 text-lg font-semibold rounded-2xl gradient-primary hover:opacity-90 transition-opacity text-white border-0 shadow-lg shadow-primary/25"
+          <Link
+            href="/task"
+            onClick={() => wellnessWebPrimary()}
+            className="inline-block w-full max-w-xs"
+          >
+            <Button
+              size="lg"
+              className="w-full h-14 text-lg font-semibold rounded-2xl gradient-primary hover:opacity-90 transition-opacity text-white border-0 shadow-lg shadow-primary/25"
             >
               Start Your Ladder
             </Button>

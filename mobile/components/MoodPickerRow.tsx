@@ -1,5 +1,6 @@
 import { Pressable, Text, View } from "react-native"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
+import { wellnessSelection } from "@/lib/wellnessFeedback"
 
 const MOODS = [
   { emoji: "😢", label: "Sad", value: 1 },
@@ -43,7 +44,10 @@ export function MoodPickerRow({ selectedMood, onMoodSelect }: Props) {
           return (
             <Pressable
               key={m.value}
-              onPress={() => onMoodSelect(m.value)}
+              onPress={() => {
+                wellnessSelection()
+                onMoodSelect(m.value)
+              }}
               style={{
                 width: 48,
                 height: 48,

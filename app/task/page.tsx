@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -17,6 +17,13 @@ import {
 } from "@/components/wellness"
 import { useStreak } from "@/hooks/use-streak"
 import { useTaskSessionTimer } from "@/hooks/use-task-session-timer"
+import {
+  wellnessWebCelebrate,
+  wellnessWebPrimary,
+  wellnessWebTap,
+  wellnessWebTimerDone,
+  wellnessWebWalkReady,
+} from "@/lib/wellness-feedback"
 import { getBreathingPhaseLabel, getTodayTask } from "@/lib/wellness-data"
 
 export default function TaskPage() {
@@ -29,7 +36,26 @@ export default function TaskPage() {
   const { streakData, isLoaded, completeTask, hasCompletedToday, displayStreak } = useStreak()
   const task = getTodayTask(displayStreak)
 
-  const timer = useTaskSessionTimer(task, () => setIsPlaying(false))
+  const timer = useTaskSessionTimer(task, () => {
+    setIsPlaying(false)
+    wellnessWebTimerDone()
+  })
+
+  const prevManualDone = useRef(false)
+  useEffect(() => {
+    prevManualDone.current = false
+  }, [task.id])
+
+  useEffect(() => {
+    if (timer.mode !== "manual") {
+      prevManualDone.current = false
+      return
+    }
+    if (timer.timerCompleted && !prevManualDone.current) {
+      wellnessWebWalkReady()
+    }
+    prevManualDone.current = timer.timerCompleted
+  }, [timer.mode, timer.timerCompleted])
 
   const sessionActive =
     timer.mode === "countdown" ? timer.isActive : timer.walkPhase === "walking"
@@ -63,6 +89,7 @@ export default function TaskPage() {
   }, [timer, task.duration])
 
   const handleVoiceToggle = useCallback(() => {
+    wellnessWebTap()
     setIsPlaying((prev) => !prev)
     if (timer.mode === "countdown") {
       if (!timer.isActive && timer.timeLeft === task.duration) {
@@ -78,6 +105,7 @@ export default function TaskPage() {
   }, [timer, task.duration])
 
   const handleStart = useCallback(() => {
+    wellnessWebPrimary()
     if (timer.mode === "manual") {
       if (timer.walkPhase === "stopped") timer.resumeWalk()
       else timer.startWalk()
@@ -88,10 +116,12 @@ export default function TaskPage() {
   }, [timer])
 
   const handleStopWalk = useCallback(() => {
+    wellnessWebTap()
     if (timer.mode === "manual") timer.stopWalk()
   }, [timer])
 
   const handleComplete = useCallback(() => {
+    wellnessWebCelebrate()
     completeTask(task.id, selectedMood || undefined)
     setShowCompletion(true)
   }, [completeTask, task.id, selectedMood])
@@ -125,7 +155,7 @@ export default function TaskPage() {
     return (
       <div className="min-h-screen gradient-bg flex flex-col">
         <header className="flex items-center justify-between px-6 py-4">
-          <Link href="/">
+          <Link href="/" onClick={() => wellnessWebTap()}>
             <Button variant="ghost" size="icon" className="rounded-full">
               <ChevronLeft className="h-5 w-5" />
               <span className="sr-only">Back</span>
@@ -171,14 +201,14 @@ export default function TaskPage() {
     <div className="min-h-screen gradient-bg flex flex-col">
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4">
-        <Link href="/">
+        <Link href="/" onClick={() => wellnessWebTap()}>
           <Button variant="ghost" size="icon" className="rounded-full">
             <ChevronLeft className="h-5 w-5" />
             <span className="sr-only">Back</span>
           </Button>
         </Link>
         <div className="flex items-center gap-2">
-          <Link href="/profile">
+          <Link href="/profile" onClick={() => wellnessWebTap()}>
             <Button variant="ghost" size="icon" className="rounded-full">
               <User className="h-5 w-5" />
               <span className="sr-only">Profile</span>
@@ -245,7 +275,7 @@ export default function TaskPage() {
                 </p>
                 <Button
                   onClick={handleStart}
-                  className="w-full h-14 text-lg font-semibold rounded-2xl gradient-primary text-white border-0"
+                  className="w-full h-14 text-lg font-semibold rounded-2xl gradient-primary text-white border-0 active:scale-[0.98] motion-reduce:active:scale-100 transition-transform duration-150"
                 >
                   {startLabel}
                 </Button>
@@ -255,7 +285,7 @@ export default function TaskPage() {
             {timer.mode === "manual" && timer.walkPhase === "walking" ? (
               <Button
                 variant="outline"
-                className="w-full h-14 mt-4 text-lg font-semibold rounded-2xl"
+                className="w-full h-14 mt-4 text-lg font-semibold rounded-2xl active:scale-[0.98] motion-reduce:active:scale-100 transition-transform duration-150"
                 onClick={handleStopWalk}
               >
                 Stop walk
@@ -287,7 +317,7 @@ export default function TaskPage() {
           <Button
             onClick={handleComplete}
             disabled={!timerCompleted}
-            className="flex-1 h-14 text-lg font-semibold rounded-2xl gradient-primary text-white border-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 h-14 text-lg font-semibold rounded-2xl gradient-primary text-white border-0 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] motion-reduce:active:scale-100 transition-transform duration-150"
           >
             <Check className="h-5 w-5 mr-2" />
             Done
@@ -295,7 +325,10 @@ export default function TaskPage() {
           <Button
             variant="outline"
             className="h-14 px-6 rounded-2xl text-muted-foreground"
-            onClick={() => router.push("/")}
+            onClick={() => {
+              wellnessWebTap()
+              router.push("/")
+            }}
           >
             <SkipForward className="h-5 w-5" />
             <span className="sr-only">Skip task</span>

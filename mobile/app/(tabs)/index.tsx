@@ -14,6 +14,7 @@ import { TaskCatalogPreview } from "@/components/TaskCatalogPreview"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useStreak } from "@/hooks/useStreak"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
+import { wellnessTapLight, wellnessTapMedium } from "@/lib/wellnessFeedback"
 import { getTodayTask } from "@/lib/wellness-data"
 
 const FEATURES = [
@@ -277,11 +278,13 @@ export default function HomeScreen() {
   }, [])
 
   const toggleTheme = useCallback(() => {
+    wellnessTapLight()
     const next = colorScheme === "dark" ? "light" : "dark"
     Appearance.setColorScheme(next)
   }, [colorScheme])
 
   const goTask = useCallback(() => {
+    wellnessTapMedium()
     router.push("/(tabs)/task")
   }, [router])
 

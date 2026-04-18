@@ -1,5 +1,5 @@
 import { Audio } from "expo-av"
-import * as Haptics from "expo-haptics"
+import { wellnessTapLight, wellnessTapMedium } from "@/lib/wellnessFeedback"
 import { useCallback, useState } from "react"
 import { Pressable, StyleSheet, View as RNView } from "react-native"
 import { Text, View } from "@/components/Themed"
@@ -23,7 +23,7 @@ export function VoiceRecorder() {
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
       })
-      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      wellnessTapMedium()
       const { recording: rec } = await Audio.Recording.createAsync(
         Audio.RecordingOptionsPresets.HIGH_QUALITY,
       )
@@ -37,7 +37,7 @@ export function VoiceRecorder() {
   const stop = useCallback(async () => {
     if (!recording) return
     try {
-      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+      wellnessTapLight()
       await recording.stopAndUnloadAsync()
       const uri = recording.getURI()
       setRecording(null)

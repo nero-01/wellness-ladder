@@ -1,5 +1,7 @@
 "use client"
 
+import { wellnessWebTap } from "@/lib/wellness-feedback"
+
 const moods = [
   { emoji: "1F622", label: "Sad", value: 1 },
   { emoji: "1F614", label: "Down", value: 2 },
@@ -30,7 +32,10 @@ export function MoodPicker({ selectedMood, onMoodSelect, showLabel = true }: Moo
         {moods.map((mood) => (
           <button
             key={mood.value}
-            onClick={() => onMoodSelect(mood.value)}
+            onClick={() => {
+              wellnessWebTap()
+              onMoodSelect(mood.value)
+            }}
             className={`h-12 w-12 rounded-2xl flex items-center justify-center text-2xl transition-all duration-200 ${
               selectedMood === mood.value 
                 ? "bg-primary/20 scale-110 ring-2 ring-primary" 

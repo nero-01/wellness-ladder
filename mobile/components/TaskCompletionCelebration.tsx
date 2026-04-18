@@ -1,10 +1,11 @@
 import { Ionicons } from "@expo/vector-icons"
 import { useRouter } from "expo-router"
-import { useMemo } from "react"
+import { useEffect, useMemo } from "react"
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
+import { wellnessCelebration } from "@/lib/wellnessFeedback"
 import type { StreakData } from "@/lib/wellness-data"
 
 function createCelebrationStyles(W: WellnessPalette) {
@@ -86,6 +87,10 @@ export function TaskCompletionCelebration({ streakData }: Props) {
   const router = useRouter()
   const W = useWellnessColors()
   const styles = useMemo(() => createCelebrationStyles(W), [W])
+
+  useEffect(() => {
+    wellnessCelebration()
+  }, [])
 
   function StreakBadge({ days }: { days: number }) {
     return (
