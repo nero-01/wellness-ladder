@@ -80,6 +80,11 @@ const floatingLabel =
 
 /** Premium sign-up screen: confirm password, OAuth, floating labels, gradient shell. */
 export function SignUpView() {
+  if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+    // eslint-disable-next-line no-console
+    console.log("Auth [SignUpView] rendered (Next.js / Supabase — no Clerk)")
+  }
+
   const { signUp, signInWithOAuth } = useAuth()
   const router = useRouter()
   const [loading, setLoading] = useState(false)

@@ -1,5 +1,8 @@
 import "react-native-url-polyfill/auto"
+import * as WebBrowser from "expo-web-browser"
 import FontAwesome from "@expo/vector-icons/FontAwesome"
+
+WebBrowser.maybeCompleteAuthSession()
 import {
   DarkTheme as NavigationDarkTheme,
   DefaultTheme as NavigationDefaultTheme,

@@ -12,7 +12,11 @@ import React, {
 } from "react"
 import { sanitizeAuthEmailForSupabase } from "@/lib/auth-email"
 import { bootstrapUserProfile } from "@/lib/api"
+import { signInWithOAuthNative } from "@/lib/supabase-oauth"
 import { isSupabaseConfigured, supabase } from "@/lib/supabase"
+
+/** Supabase OAuth providers (same as web `lib/auth.tsx`). */
+export type OAuthProviderId = "google" | "apple" | "facebook" | "twitter"
 
 export interface User {
   id: string
@@ -36,6 +40,7 @@ interface AuthContextType {
     name: string,
   ) => Promise<SignUpResult>
   signOut: () => Promise<void>
+  signInWithOAuth: (provider: OAuthProviderId) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -219,6 +224,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }, [])
 
+  const signInWithOAuth = useCallback(async (provider: OAuthProviderId) => {
+    if (!isSupabaseConfigured()) {
+      throw new Error(
+        "Social sign-in needs Supabase. Set EXPO_PUBLIC_SUPABASE_URL and anon JWT in mobile/.env.",
+      )
+    }
+    const redirectTo = getAuthEmailRedirectTo()
+    await signInWithOAuthNative(supabase, provider, redirectTo)
+    await bootstrapUserProfile().catch(() => {})
+  }, [])
+
   const value = useMemo(
     () => ({
       user,
@@ -227,8 +243,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signIn,
       signUp,
       signOut,
+      signInWithOAuth,
     }),
-    [user, isLoaded, signIn, signUp, signOut],
+    [user, isLoaded, signIn, signUp, signOut, signInWithOAuth],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
