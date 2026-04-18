@@ -25,7 +25,7 @@ export function MoodPickerRow({
   const selected = MOOD_PICKER_ITEMS.find((m) => m.value === selectedMood)
 
   return (
-    <View style={{ marginTop: 8 }}>
+    <View style={{ marginTop: 0 }}>
       <Text
         style={{
           fontSize: 13,

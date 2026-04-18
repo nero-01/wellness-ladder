@@ -278,6 +278,15 @@ function createTaskSessionStyles(W: WellnessPalette) {
     langMenuItemLast: { borderBottomWidth: 0 },
     langMenuLabel: { fontSize: 16, fontWeight: "600", color: W.text },
     langMenuHint: { fontSize: 12, color: W.textMuted, marginTop: 2 },
+    moodStrip: {
+      marginBottom: 16,
+      paddingVertical: 14,
+      paddingHorizontal: 14,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: W.cardBorder,
+      backgroundColor: W.bgElevated,
+    },
   })
 }
 
@@ -690,6 +699,14 @@ export function TaskSession({
           />
         </View>
 
+        <View style={styles.moodStrip}>
+          <MoodPickerRow
+            selectedMood={selectedMood}
+            onMoodSelect={setSelectedMood}
+            requiredForStreak={!previewMode}
+          />
+        </View>
+
         <LinearGradient
           colors={[W.iconBg, W.bgElevated]}
           start={{ x: 0, y: 0 }}
@@ -808,12 +825,6 @@ export function TaskSession({
             <Ionicons name="play-skip-forward" size={22} color={W.textMuted} />
           </Pressable>
         </View>
-
-        <MoodPickerRow
-          selectedMood={selectedMood}
-          onMoodSelect={setSelectedMood}
-          requiredForStreak={!previewMode}
-        />
 
         <View style={styles.recorderSection}>
           <Text style={styles.recorderLabel}>Optional voice note</Text>
