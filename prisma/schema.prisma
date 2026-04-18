@@ -20,10 +20,30 @@ model User {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
-  moodLogs MoodLog[]
-  tasks    UserTask[]
+  moodLogs         MoodLog[]
+  tasks            UserTask[]
+  recurringHabits  RecurringHabit[]
 
   @@map("users")
+}
+
+/// Optional support habits (not the daily featured ladder task). Local reminders via mobile.
+model RecurringHabit {
+  id                String    @id @default(cuid())
+  userId            String    @db.Uuid
+  title             String
+  description       String?
+  repeatType        String /// daily | weekdays | custom
+  repeatDays        Json? /// number[] 0=Sun … 6=Sat when repeatType === custom
+  reminderTime      String? /// "HH:mm" 24h, optional
+  enabled           Boolean   @default(true)
+  streakCount       Int       @default(0)
+  lastCompletedDate DateTime? @db.Date
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("recurring_habits")
 }
 
 model MoodLog {

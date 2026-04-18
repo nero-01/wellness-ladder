@@ -8,6 +8,7 @@ import {
   Text,
   View,
 } from "react-native"
+import { Link } from "expo-router"
 import { SafeAreaView } from "react-native-safe-area-context"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { IS_DEV_BYPASS } from "@/constants/devBypass"
@@ -132,6 +133,18 @@ function createStyles(W: WellnessPalette) {
       textAlign: "center",
       lineHeight: 14,
     },
+    habitsRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 12,
+    },
+    habitsLead: {
+      fontSize: 14,
+      color: W.textMuted,
+      marginTop: 8,
+      lineHeight: 20,
+    },
   })
 }
 
@@ -168,6 +181,28 @@ export default function ProfileScreen() {
             Your streak, completed tasks, and mood check-ins stay on this device.
           </Text>
         </View>
+
+        <Link href="/recurring-habits" asChild>
+          <Pressable
+            style={({ pressed }) => [
+              styles.card,
+              { marginTop: 4 },
+              pressed && { opacity: 0.92 },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel="Recurring habits"
+          >
+            <View style={styles.habitsRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.cardTitle}>Recurring habits</Text>
+                <Text style={styles.habitsLead}>
+                  Small optional reminders — not your main daily task.
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={22} color={W.textMuted} />
+            </View>
+          </Pressable>
+        </Link>
 
         {!isLoaded ? (
           <View style={[styles.card, { marginTop: 20 }]}>

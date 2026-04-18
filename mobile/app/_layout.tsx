@@ -19,6 +19,8 @@ import "react-native-reanimated"
 
 import { useColorScheme } from "@/components/useColorScheme"
 import { AuthProvider, useAuth } from "@/contexts/AuthContext"
+import { RecurringHabitsProvider } from "@/contexts/RecurringHabitsContext"
+import { initRecurringNotificationHandler } from "@/lib/recurring-habit-notifications"
 import { WellnessColors, WellnessColorsLight } from "@/constants/wellnessTheme"
 
 const WellnessDarkTheme = {
@@ -88,6 +90,10 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme()
   useProtectedRoute()
 
+  useEffect(() => {
+    initRecurringNotificationHandler()
+  }, [])
+
   const navTheme =
     colorScheme === "dark" ? WellnessDarkTheme : WellnessLightNavTheme
 
@@ -138,6 +144,15 @@ function RootLayoutNav() {
             headerTintColor: headerTint,
           }}
         />
+        <Stack.Screen
+          name="recurring-habits"
+          options={{
+            title: "Recurring habits",
+            headerBackTitle: "Back",
+            headerStyle: { backgroundColor: headerBg },
+            headerTintColor: headerTint,
+          }}
+        />
         </Stack>
       </View>
     </ThemeProvider>
@@ -163,7 +178,9 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <RootLayoutNav />
+        <RecurringHabitsProvider>
+          <RootLayoutNav />
+        </RecurringHabitsProvider>
       </AuthProvider>
     </SafeAreaProvider>
   )

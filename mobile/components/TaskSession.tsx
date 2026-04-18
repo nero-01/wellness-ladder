@@ -20,6 +20,7 @@ import { CircularProgress } from "@/components/CircularProgress"
 import { MoodPickerRow } from "@/components/MoodPickerRow"
 import { MoodStreakBadge } from "@/components/MoodStreakBadge"
 import { ResumeLadderBanner } from "@/components/ResumeLadderBanner"
+import { SupportHabitsSection } from "@/components/SupportHabitsSection"
 import { StreakFlameBadge } from "@/components/StreakFlameBadge"
 import {
   BreathingTaskVisual,
@@ -859,6 +860,8 @@ export function TaskSession({
             size={64}
           />
         </View>
+
+        <SupportHabitsSection previewMode={previewMode} />
 
         {!previewMode ? <TaskCatalogPreview todayTaskId={task.id} /> : null}
 

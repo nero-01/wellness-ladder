@@ -81,6 +81,13 @@ module.exports = {
             "Allow $(PRODUCT_NAME) to record voice notes for wellness features.",
         },
       ],
+      [
+        "expo-notifications",
+        {
+          sounds: [],
+          enableBackgroundRemoteNotifications: false,
+        },
+      ],
     ],
     experiments: {
       typedRoutes: true,
