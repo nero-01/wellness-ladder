@@ -5,101 +5,207 @@ import {
   Platform,
   Pressable,
   StyleSheet,
-  TextInput,
+  View as RNView,
 } from "react-native"
+import * as Haptics from "expo-haptics"
+import { Ionicons } from "@expo/vector-icons"
+import { LinearGradient } from "expo-linear-gradient"
 import { Link } from "expo-router"
-import { Text, View } from "@/components/Themed"
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view"
+import { SafeAreaView } from "react-native-safe-area-context"
+import { Text } from "@/components/Themed"
+import { FloatingLabelInput } from "@/components/auth/FloatingLabelInput"
 import { useColorScheme } from "@/components/useColorScheme"
-import { AUTH_PLACEHOLDER, authInputStyles } from "@/constants/authFormStyles"
-import { WellnessColors, WellnessColorsLight } from "@/constants/wellnessTheme"
+import { WellnessColors } from "@/constants/wellnessTheme"
 import { useAuth } from "@/contexts/AuthContext"
 
 export default function SignInScreen() {
   const colorScheme = useColorScheme()
-  const screenBg =
-    colorScheme === "light" ? WellnessColorsLight.bg : WellnessColors.bg
+  const isDark = colorScheme === "dark"
+  const textPrimary = isDark ? "#f9fafb" : "#111827"
+  const textMuted = isDark ? "#9ca3af" : "#6b7280"
+  const border = isDark ? "#4b5563" : "#d1d5db"
+  const inputBg = isDark ? "#252030" : "#ffffff"
+  const labelFloat = isDark ? "#a78bfa" : WellnessColors.primary
+  const labelInside = isDark ? "#9ca3af" : "#6b7280"
+
   const { signIn } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [showPw, setShowPw] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   async function onSubmit() {
     setError(null)
     setLoading(true)
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
     try {
       await signIn(email.trim(), password)
-      // Navigation: `useProtectedRoute` in app/_layout.tsx sends authed users to /(tabs)
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     } catch (e) {
       setError(e instanceof Error ? e.message : "Sign in failed")
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
     } finally {
       setLoading(false)
     }
   }
 
+  const gradientColors = isDark
+    ? (["#1e1033", "#0f172a", "#0c2e28"] as const)
+    : (["#f3e8ff", "#ecfdf5", "#f8fafc"] as const)
+
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      style={[styles.container, { backgroundColor: screenBg }]}
-    >
-      <View style={styles.inner}>
-        <Text style={styles.title}>Sign in</Text>
-        <Text style={styles.hint}>
-          Use a Supabase JWT anon key (eyJ…) and a real user, or set EXPO_PUBLIC_USE_MOCK_AUTH=true
-          for local mock login (see mobile/.env.example).
-        </Text>
-        <TextInput
-          style={authInputStyles.input}
-          placeholder="Email"
-          placeholderTextColor={AUTH_PLACEHOLDER}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          autoComplete="email"
-          value={email}
-          onChangeText={setEmail}
-        />
-        <TextInput
-          style={authInputStyles.input}
-          placeholder="Password"
-          placeholderTextColor={AUTH_PLACEHOLDER}
-          secureTextEntry
-          autoComplete="password"
-          value={password}
-          onChangeText={setPassword}
-        />
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-        <Pressable
-          style={[styles.button, loading && styles.buttonDisabled]}
-          onPress={() => void onSubmit()}
-          disabled={loading}
+    <LinearGradient colors={[...gradientColors]} style={styles.gradient}>
+      <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.kav}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
         >
-          {loading ?
-            <ActivityIndicator color="#fff" />
-          : <Text style={styles.buttonText}>Sign in</Text>}
-        </Pressable>
-        <Link href="/(auth)/sign-up" asChild>
-          <Pressable>
-            <Text style={styles.link}>Create an account</Text>
-          </Pressable>
-        </Link>
-      </View>
-    </KeyboardAvoidingView>
+          <KeyboardAwareScrollView
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            enableOnAndroid
+            extraScrollHeight={Platform.OS === "ios" ? 24 : 48}
+            contentContainerStyle={styles.scrollContent}
+          >
+            <Text style={[styles.hero, { color: textPrimary }]}>Sign in</Text>
+            <Text style={[styles.sub, { color: textMuted }]}>
+              Fields stay above the keyboard on iOS and Android.
+            </Text>
+
+            <RNView
+              style={[
+                styles.card,
+                {
+                  backgroundColor: isDark ? "#1a1520" : "#ffffff",
+                  borderWidth: isDark ? 1 : 0,
+                  borderColor: isDark ? "#374151" : "transparent",
+                },
+              ]}
+            >
+              <FloatingLabelInput
+                label="Email"
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                autoComplete="email"
+                autoFocus
+                multiline={false}
+                editable={!loading}
+                borderColor={border}
+                backgroundColor={inputBg}
+                textColor={textPrimary}
+                labelColorFloating={labelFloat}
+                labelColorInside={labelInside}
+                placeholderTextColor={labelInside}
+              />
+              <FloatingLabelInput
+                label="Password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPw}
+                autoComplete="password"
+                multiline={false}
+                editable={!loading}
+                borderColor={border}
+                backgroundColor={inputBg}
+                textColor={textPrimary}
+                labelColorFloating={labelFloat}
+                labelColorInside={labelInside}
+                placeholderTextColor={labelInside}
+                rightSlot={
+                  <Pressable
+                    onPress={() => setShowPw((s) => !s)}
+                    hitSlop={12}
+                    accessibilityLabel={showPw ? "Hide password" : "Show password"}
+                  >
+                    <Ionicons
+                      name={showPw ? "eye-off-outline" : "eye-outline"}
+                      size={22}
+                      color="#6b7280"
+                    />
+                  </Pressable>
+                }
+              />
+
+              <Text style={[styles.hint, { color: textMuted }]}>
+                Use a Supabase JWT anon key (eyJ…) and a real user, or set
+                EXPO_PUBLIC_USE_MOCK_AUTH=true for local mock login (see mobile/.env.example).
+              </Text>
+
+              {error ? <Text style={styles.error}>{error}</Text> : null}
+
+              <Pressable
+                style={[styles.button, loading && styles.buttonDisabled]}
+                onPress={() => void onSubmit()}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.buttonText}>Sign in</Text>
+                )}
+              </Pressable>
+            </RNView>
+
+            <Link href="/(auth)/sign-up" asChild>
+              <Pressable style={styles.linkWrap}>
+                <Text style={[styles.link, { color: WellnessColors.primary }]}>
+                  Create an account
+                </Text>
+              </Pressable>
+            </Link>
+          </KeyboardAwareScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </LinearGradient>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  inner: { flex: 1, padding: 24, justifyContent: "center", gap: 12 },
-  title: { fontSize: 24, fontWeight: "700" },
-  hint: { opacity: 0.7, marginBottom: 8 },
-  error: { color: "#c00" },
+  gradient: { flex: 1 },
+  safe: { flex: 1, backgroundColor: "transparent" },
+  kav: { flex: 1 },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingBottom: 100,
+    paddingTop: 8,
+  },
+  hero: {
+    fontSize: 26,
+    fontWeight: "700",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  sub: {
+    fontSize: 13,
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  card: {
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  hint: { fontSize: 13, lineHeight: 18, marginTop: 4 },
+  error: { color: "#c00", marginTop: 8, fontSize: 14 },
   button: {
     backgroundColor: "#6b4d8a",
     padding: 16,
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: "center",
+    marginTop: 16,
   },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: "#fff", fontWeight: "600", fontSize: 16 },
-  link: { color: "#6b4d8a", textAlign: "center", marginTop: 16 },
+  buttonDisabled: { opacity: 0.65 },
+  buttonText: { color: "#fff", fontWeight: "700", fontSize: 16 },
+  linkWrap: { marginTop: 24, paddingVertical: 8 },
+  link: { textAlign: "center", fontSize: 15, fontWeight: "600" },
 })
