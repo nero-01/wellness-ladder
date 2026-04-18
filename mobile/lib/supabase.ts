@@ -49,14 +49,46 @@ if (!useMockAuthFlag() && (!url || !key)) {
   )
 }
 
+/**
+ * PKCE is required for reliable OAuth / deep-link flows on React Native (session exchange).
+ * See: https://supabase.com/docs/guides/auth/native-mobile-deep-linking
+ */
 const authOptions = {
   storage: AsyncStorage,
   autoRefreshToken: true,
   persistSession: true,
   detectSessionInUrl: false,
+  flowType: "pkce" as const,
 } as const
 
 /** Real client only when Supabase is fully configured; guard with `isSupabaseConfigured()`. */
 export const supabase: SupabaseClient = isSupabaseConfigured()
   ? createClient(url!, key!, { auth: authOptions })
   : (null as unknown as SupabaseClient)
+
+/**
+ * Dev-only: logs `getSession` + `getUser()` for debugging sign-in / token issues.
+ * Call after successful password or OAuth sign-in (not a substitute for Dashboard SMTP checks).
+ */
+export async function logSupabaseAuthDebug(context: string): Promise<void> {
+  if (!__DEV__ || !isSupabaseConfigured()) return
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser()
+    // eslint-disable-next-line no-console
+    console.log(`[Supabase auth debug:${context}]`, {
+      hasSession: !!session,
+      userId: user?.id,
+      email: user?.email,
+      getUserError: error?.message ?? null,
+    })
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn(`[Supabase auth debug:${context}]`, e)
+  }
+}

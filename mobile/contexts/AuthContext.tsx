@@ -13,7 +13,7 @@ import React, {
 import { sanitizeAuthEmailForSupabase } from "@/lib/auth-email"
 import { bootstrapUserProfile } from "@/lib/api"
 import { signInWithOAuthNative } from "@/lib/supabase-oauth"
-import { isSupabaseConfigured, supabase } from "@/lib/supabase"
+import { isSupabaseConfigured, logSupabaseAuthDebug, supabase } from "@/lib/supabase"
 
 /** Supabase OAuth providers (same as web `lib/auth.tsx`). */
 export type OAuthProviderId = "google" | "apple" | "facebook" | "twitter"
@@ -177,6 +177,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       throw new Error(msg)
     }
+    await logSupabaseAuthDebug("signInWithPassword")
     await bootstrapUserProfile().catch(() => {
       /* backend optional in dev */
     })
@@ -218,6 +219,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error
 
     if (data.session) {
+      await logSupabaseAuthDebug("signUpImmediateSession")
       await bootstrapUserProfile().catch(() => {})
       return { needsEmailConfirmation: false }
     }
@@ -257,6 +259,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     const redirectTo = getAuthEmailRedirectTo()
     await signInWithOAuthNative(supabase, provider, redirectTo)
+    await logSupabaseAuthDebug("signInWithOAuth")
     await bootstrapUserProfile().catch(() => {})
   }, [])
 

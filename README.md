@@ -48,6 +48,36 @@ After any env change: **`cd mobile && npx expo start -c`**.
 
 ---
 
+## Supabase Auth (Expo) — email delivery, PKCE, and testing
+
+The Expo client is created in **`mobile/lib/supabase.ts`** with **AsyncStorage**, **`flowType: 'pkce'`** (required for OAuth and deep-link session exchange on React Native), and `detectSessionInUrl: false`. Sign-in, sign-up, resend, and OAuth live in **`mobile/contexts/AuthContext.tsx`**.
+
+### If confirmation emails are not sent or not received
+
+1. **Supabase Dashboard → Authentication → Logs** — check for SMTP failures or rate limits.
+2. **Authentication → SMTP** — enable **Custom SMTP** for reliable delivery (e.g. SendGrid: host `smtp.sendgrid.net`, port `587`, user `apikey`, password = your SendGrid API key; sender must be a verified domain/sender).
+3. **Authentication → URL configuration** — **Site URL** must match how users open the app (local vs production). **Redirect URLs** must include:
+   - The value of **`EXPO_PUBLIC_AUTH_REDIRECT_URL`** if set (e.g. `https://your-app.vercel.app/auth/callback`), and  
+   - The deep link Expo generates when **`EXPO_PUBLIC_AUTH_REDIRECT_URL` is unset** (`Linking.createURL('auth/callback', …)` — add the exact URL from Metro / device logs to Redirect URLs).
+4. **Authentication → Email** — use **Send test** from templates to verify SMTP.
+5. **Dev only:** under **Providers → Email**, you can disable **Confirm email** to skip the inbox while testing UI (re-enable for production).
+
+**Row-level security:** apply policies on your **`public.*`** tables using `auth.uid()`, matching `users.id` to `auth.users.id`. Do not attempt to “bypass” `auth.users` from the client; that table is managed by Supabase Auth.
+
+**Optional UI package:** `@supabase/auth-ui-react-native` is **not** available on the public npm registry; this repo uses custom **`mobile/app/(auth)/`** screens instead.
+
+### Test flow (Expo)
+
+```bash
+cd mobile
+npx expo start --clear
+```
+
+1. Sign up with a real inbox or Mailtrap; check **spam**.
+2. In development builds, **`logSupabaseAuthDebug`** runs after password sign-in, immediate post-signup session, and OAuth success — watch Metro for `[Supabase auth debug:…]` and `[Auth] signUp response`.
+
+---
+
 ## Mock auth (Expo) — seed user & password
 
 Use mock mode while you have no Supabase user or only a publishable key:
@@ -86,7 +116,7 @@ Open [http://localhost:3000](http://localhost:3000). Web auth mock lives in **`l
 |--------|--------|
 | Mobile | Expo Router, React Native (`mobile/`) |
 | Web UI | Next.js 15 (App Router), React 19, Tailwind, Radix UI |
-| Auth | Supabase email/password; mobile: `@supabase/supabase-js` + AsyncStorage; web: `@supabase/ssr` cookies |
+| Auth | Supabase email/password; mobile: `@supabase/supabase-js` + AsyncStorage + **PKCE** (`mobile/lib/supabase.ts`); web: `@supabase/ssr` cookies |
 | Database | PostgreSQL (Supabase); Prisma — `users.id` matches `auth.users.id` |
 | API | `app/api/*` — mobile calls with `Authorization: Bearer` + `EXPO_PUBLIC_API_URL` |
 
@@ -146,7 +176,7 @@ Server auth: **`lib/api-auth.ts`** — cookies (web) or `Authorization: Bearer` 
 ## Production notes
 
 - Deploy Next.js (e.g. Vercel); set env in the host dashboard. Point **`EXPO_PUBLIC_API_URL`** at that URL for production mobile builds.
-- Supabase **Authentication → URL configuration** for your deployed origins.
+- Supabase **Authentication → URL configuration** and **Custom SMTP** for production email (see **Supabase Auth (Expo)** in this README).
 - Prefer additive DB migrations when merging with production (`docs/context/AGENT-CONTEXT.md`).
 
 ---
