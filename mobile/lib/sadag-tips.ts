@@ -4,7 +4,7 @@ import { isWellnessPro } from "@/lib/wellness-pro"
 
 export const SADAG_HELPLINE_PRIMARY = "0800 567 567"
 export const SADAG_HELPLINE_ALT = "0800 456 789"
-export const SADAG_WHATSAPP_URL = "https://wa.me/27800121214"
+export const SADAG_WHATSAPP_URL = "https://wa.me/0871632030"
 
 /** Seven bilingual tips — index `dayOfYear % 7` (stable per calendar day). */
 export const SADAG_ROTATING_TIPS: { af: string; en: string }[] = [
