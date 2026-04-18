@@ -110,7 +110,7 @@ export async function speakGuidanceLine(
   const line = normalizeLine(text)
   if (!line) return
 
-  const language = opts?.language ?? "en-US"
+  const language = opts?.language ?? "en-ZA"
 
   await unloadCurrentSound()
   try {

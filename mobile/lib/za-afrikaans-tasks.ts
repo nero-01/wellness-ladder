@@ -51,7 +51,7 @@ const AF_LADDER_DAYS: Record<
 
 /** Expo Speech + on-screen breathing cues */
 export const SPEECH_LOCALE: Record<WellnessLocale, string> = {
-  en: "en-US",
+  en: "en-ZA",
   af: "af-ZA",
 }
 

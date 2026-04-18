@@ -11,8 +11,14 @@ const MOCK_STREAK: StreakData = {
   ...DEFAULT_STREAK_DATA,
   currentStreak: 4,
   maxStreak: 7,
+  moodStreak: 4,
+  maxMoodStreak: 7,
   lastCompletedDate: new Date().toISOString().slice(0, 10),
   totalCompleted: 12,
+  moodHistory: [
+    { date: new Date().toISOString().slice(0, 10), mood: 4 },
+    { date: new Date(Date.now() - 86400000).toISOString().slice(0, 10), mood: 5 },
+  ],
   completionHistory: [{ date: new Date().toISOString().slice(0, 10), taskId: 4 }],
 }
 

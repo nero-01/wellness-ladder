@@ -4,7 +4,7 @@ import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { wellnessSelection } from "@/lib/wellnessFeedback"
 import {
   MOOD_PICKER_ITEMS,
-  moodSvgUrlFromFamily,
+  moodNotoSvgUrlFromFamily,
 } from "@/lib/mood-picker-data"
 
 const MOOD_IMAGE_SIZE = 34
@@ -12,9 +12,15 @@ const MOOD_IMAGE_SIZE = 34
 type Props = {
   selectedMood: number | null
   onMoodSelect: (value: number) => void
+  /** When true, copy stresses mood is needed for the mood streak. */
+  requiredForStreak?: boolean
 }
 
-export function MoodPickerRow({ selectedMood, onMoodSelect }: Props) {
+export function MoodPickerRow({
+  selectedMood,
+  onMoodSelect,
+  requiredForStreak = false,
+}: Props) {
   const W = useWellnessColors()
   const selected = MOOD_PICKER_ITEMS.find((m) => m.value === selectedMood)
 
@@ -28,7 +34,9 @@ export function MoodPickerRow({ selectedMood, onMoodSelect }: Props) {
           marginBottom: 12,
         }}
       >
-        How are you feeling?
+        {requiredForStreak ?
+          "How are you feeling? (required for mood streak)"
+        : "How are you feeling?"}
       </Text>
       <View
         style={{
@@ -40,7 +48,7 @@ export function MoodPickerRow({ selectedMood, onMoodSelect }: Props) {
       >
         {MOOD_PICKER_ITEMS.map((m) => {
           const on = selectedMood === m.value
-          const uri = moodSvgUrlFromFamily(m.family)
+          const uri = moodNotoSvgUrlFromFamily(m.family)
           return (
             <Pressable
               key={m.value}

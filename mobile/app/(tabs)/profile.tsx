@@ -15,7 +15,7 @@ import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { StreakHeatMap } from "@/components/StreakHeatMap"
 import { useStreak } from "@/hooks/useStreak"
 import { emojiFamilySvgUrl } from "@/lib/mood-picker-data"
-import { MILESTONE_NOTO } from "@/lib/streak-rules"
+import { MILESTONE_NOTO, MOOD_MILESTONE_NOTO } from "@/lib/streak-rules"
 import { isWellnessPro } from "@/lib/wellness-pro"
 import { WELLNESS_TASKS } from "@/lib/wellness-data"
 
@@ -138,6 +138,11 @@ export default function ProfileScreen() {
     [streakData.completionHistory],
   )
 
+  const moodDates = useMemo(
+    () => new Set(streakData.moodHistory.map((m) => m.date)),
+    [streakData.moodHistory],
+  )
+
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <ScrollView
@@ -174,6 +179,14 @@ export default function ProfileScreen() {
                 <Text style={styles.statLabel}>Tasks completed (all time)</Text>
                 <Text style={styles.statValue}>{streakData.totalCompleted}</Text>
               </View>
+              <View style={styles.statRow}>
+                <Text style={styles.statLabel}>Mood streak</Text>
+                <Text style={styles.statValue}>{streakData.moodStreak} days</Text>
+              </View>
+              <View style={styles.statRow}>
+                <Text style={styles.statLabel}>Best mood streak</Text>
+                <Text style={styles.statValue}>{streakData.maxMoodStreak} days</Text>
+              </View>
               <View style={[styles.statRow, styles.statRowLast]}>
                 <Text style={styles.statLabel}>Last completed</Text>
                 <Text style={[styles.statValue, { fontSize: 16 }]}>
@@ -190,19 +203,56 @@ export default function ProfileScreen() {
             </View>
 
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>Activity heat map</Text>
+              <Text style={styles.cardTitle}>Task heat map</Text>
               <StreakHeatMap completionDates={completionDates} weeks={5} />
             </View>
 
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>Badge collection</Text>
+              <Text style={styles.cardTitle}>Mood check-ins</Text>
+              <StreakHeatMap
+                completionDates={moodDates}
+                weeks={5}
+                title="Check-ins"
+                hint="Green = logged a mood that day"
+                activeColor="#22c55e"
+              />
+            </View>
+
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Task badges</Text>
               {streakData.milestonesUnlocked.length === 0 ?
                 <Text style={styles.emptyText}>
-                  Hit 2, 3, and 7-day streaks to earn badges.
+                  Hit 2, 3, and 7-day task streaks to earn badges.
                 </Text>
               : <View style={styles.badgeRow}>
                   {streakData.milestonesUnlocked.map((id) => {
                     const meta = MILESTONE_NOTO[id]
+                    const uri = emojiFamilySvgUrl(meta.code, "noto")
+                    return (
+                      <View key={id} style={styles.badgeItem}>
+                        <Image
+                          source={{ uri }}
+                          style={styles.badgeImg}
+                          contentFit="contain"
+                          cachePolicy="memory-disk"
+                        />
+                        <Text style={styles.badgeLabel}>{meta.label}</Text>
+                      </View>
+                    )
+                  })}
+                </View>
+              }
+            </View>
+
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Mood check-in badges</Text>
+              {streakData.moodMilestonesUnlocked.length === 0 ?
+                <Text style={styles.emptyText}>
+                  Hit 3, 7, and 14-day mood streaks for bronze, silver, and gold.
+                </Text>
+              : <View style={styles.badgeRow}>
+                  {streakData.moodMilestonesUnlocked.map((id) => {
+                    const meta = MOOD_MILESTONE_NOTO[id]
                     const uri = emojiFamilySvgUrl(meta.code, "noto")
                     return (
                       <View key={id} style={styles.badgeItem}>
@@ -241,7 +291,7 @@ export default function ProfileScreen() {
                       <Text style={styles.listMeta}>Mood {m.mood}/5</Text>
                     </View>
                     <Text style={styles.moodEmoji} accessibilityLabel="Mood">
-                      {m.mood >= 4 ? "🙂" : m.mood >= 3 ? "😐" : "😔"}
+                      {m.mood >= 5 ? "😊" : m.mood >= 4 ? "😐" : m.mood >= 3 ? "😟" : m.mood >= 2 ? "😠" : "😢"}
                     </Text>
                   </View>
                 ))

@@ -11,15 +11,19 @@ import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { wellnessTapMedium } from "@/lib/wellnessFeedback"
 import { emojiFamilySvgUrl } from "@/lib/mood-picker-data"
-import { MILESTONE_NOTO } from "@/lib/streak-rules"
-import type { MilestoneId } from "@/lib/wellness-data"
+import { MILESTONE_NOTO, MOOD_MILESTONE_NOTO } from "@/lib/streak-rules"
+import type { MoodMilestoneId, TaskMilestoneId } from "@/lib/wellness-data"
 
 const confetti = require("@/assets/lottie/confetti.json")
 
 type Props = {
   visible: boolean
-  milestone: MilestoneId | null
+  milestone: TaskMilestoneId | MoodMilestoneId | null
   onClose: () => void
+}
+
+function isMoodMilestone(m: TaskMilestoneId | MoodMilestoneId): m is MoodMilestoneId {
+  return m.startsWith("mood-")
 }
 
 export function MilestoneModal({ visible, milestone, onClose }: Props) {
@@ -28,8 +32,16 @@ export function MilestoneModal({ visible, milestone, onClose }: Props) {
 
   if (!milestone) return null
 
-  const meta = MILESTONE_NOTO[milestone]
+  const mood = isMoodMilestone(milestone)
+  const meta = mood ? MOOD_MILESTONE_NOTO[milestone] : MILESTONE_NOTO[milestone]
   const uri = emojiFamilySvgUrl(meta.code, "noto")
+  const subText = mood
+    ? MOOD_MILESTONE_NOTO[milestone].sub
+    : milestone === "bronze-2"
+      ? "Two days strong — keep the spark alive."
+      : milestone === "silver-3"
+        ? "Three days — your rhythm is building."
+        : "A full week — legendary consistency."
 
   return (
     <Modal
@@ -49,19 +61,15 @@ export function MilestoneModal({ visible, milestone, onClose }: Props) {
             loop={false}
             style={styles.lottie}
           />
-          <Text style={styles.kicker}>Milestone</Text>
+          <Text style={styles.kicker}>{mood ? "Mood milestone" : "Milestone"}</Text>
           <Text style={styles.title}>{meta.label}</Text>
           <Image
             source={{ uri }}
-            style={styles.badgeImg}
+            style={mood ? styles.badgeImgLarge : styles.badgeImg}
             contentFit="contain"
             accessibilityLabel={meta.label}
           />
-          <Text style={styles.sub}>
-            {milestone === "bronze-2" && "Two days strong — keep the spark alive."}
-            {milestone === "silver-3" && "Three days — your rhythm is building."}
-            {milestone === "gold-7" && "A full week — legendary consistency."}
-          </Text>
+          <Text style={styles.sub}>{subText}</Text>
           <Pressable
             style={({ pressed }) => [styles.btn, pressed && { opacity: 0.92 }]}
             onPress={() => {
@@ -110,6 +118,7 @@ function createStyles(W: WellnessPalette) {
       textAlign: "center",
     },
     badgeImg: { width: 88, height: 88, marginBottom: 12 },
+    badgeImgLarge: { width: 100, height: 100, marginBottom: 12 },
     sub: {
       fontSize: 15,
       color: W.textMuted,

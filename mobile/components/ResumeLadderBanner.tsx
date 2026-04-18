@@ -24,8 +24,9 @@ export function ResumeLadderBanner({ onResume, maxStreak }: Props) {
       <View style={styles.body}>
         <Text style={styles.title}>Resume your ladder?</Text>
         <Text style={styles.sub}>
-          Your daily chain paused — no worries. Complete today’s task to start
-          fresh{maxStreak > 0 ? ` (best run: ${maxStreak} days)` : ""}.
+          Your daily chain paused — no worries. Complete today’s task + mood
+          check-in to restart. Resume bonus: +1 extra mood streak day when you
+          finish today{maxStreak > 0 ? ` (best run: ${maxStreak} days)` : ""}.
         </Text>
         <Pressable
           onPress={() => {

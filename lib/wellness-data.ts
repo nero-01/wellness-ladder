@@ -264,7 +264,11 @@ export function getBreathingPhaseLabel(
   return "Breathe out..."
 }
 
-export type MilestoneId = "bronze-2" | "silver-3" | "gold-7"
+export type TaskMilestoneId = "bronze-2" | "silver-3" | "gold-7"
+export type MoodMilestoneId = "mood-bronze-3" | "mood-silver-7" | "mood-gold-14"
+
+/** @deprecated Use TaskMilestoneId */
+export type MilestoneId = TaskMilestoneId
 
 export interface StreakData {
   currentStreak: number
@@ -273,7 +277,10 @@ export interface StreakData {
   totalCompleted: number
   moodHistory: { date: string; mood: number }[]
   completionHistory: { date: string; taskId: number }[]
-  milestonesUnlocked: MilestoneId[]
+  milestonesUnlocked: TaskMilestoneId[]
+  moodStreak: number
+  maxMoodStreak: number
+  moodMilestonesUnlocked: MoodMilestoneId[]
   pendingRecovery: boolean
 }
 
@@ -285,5 +292,8 @@ export const DEFAULT_STREAK_DATA: StreakData = {
   moodHistory: [],
   completionHistory: [],
   milestonesUnlocked: [],
+  moodStreak: 0,
+  maxMoodStreak: 0,
+  moodMilestonesUnlocked: [],
   pendingRecovery: false,
 }

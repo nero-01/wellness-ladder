@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons"
 import * as Haptics from "expo-haptics"
+import { LinearGradient } from "expo-linear-gradient"
 import { Image } from "expo-image"
 import { useRouter } from "expo-router"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
@@ -16,6 +17,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context"
 import { CircularProgress } from "@/components/CircularProgress"
 import { MoodPickerRow } from "@/components/MoodPickerRow"
+import { MoodStreakBadge } from "@/components/MoodStreakBadge"
 import { ResumeLadderBanner } from "@/components/ResumeLadderBanner"
 import { StreakFlameBadge } from "@/components/StreakFlameBadge"
 import { TaskCatalogPreview } from "@/components/TaskCatalogPreview"
@@ -89,17 +91,17 @@ function createTaskSessionStyles(W: WellnessPalette) {
       marginBottom: 20,
     },
     card: {
-      backgroundColor: W.bgElevated,
       borderRadius: 20,
       padding: 20,
-      borderWidth: 1,
-      borderColor: W.cardBorder,
       marginBottom: 20,
       shadowColor: "#000",
       shadowOpacity: 0.12,
       shadowRadius: 12,
       shadowOffset: { width: 0, height: 4 },
       elevation: 3,
+      overflow: "hidden",
+      borderWidth: 1,
+      borderColor: W.cardBorder,
     },
     cardHeader: {
       flexDirection: "row",
@@ -296,6 +298,9 @@ function sessionUi(locale: "en" | "af", displayStreak: number) {
       stopWalk: "Stop stap",
       keepGoing: "Gaan voort...",
       done: "Klaar",
+      moodRequiredTitle: "Kies eers jou bui",
+      moodRequiredBody:
+        "Jou bui word gebruik om jou stemming-streep te bereken. Kies een emoji hier onder.",
     }
   }
   return {
@@ -310,6 +315,9 @@ function sessionUi(locale: "en" | "af", displayStreak: number) {
     stopWalk: "Stop walk",
     keepGoing: "Keep going...",
     done: "Done",
+    moodRequiredTitle: "Pick your mood first",
+    moodRequiredBody:
+      "Your mood powers your mood streak. Tap one of the faces below.",
   }
 }
 
@@ -318,10 +326,12 @@ type Props = {
   displayStreak: number
   /** Consecutive days completed (before today’s finish). */
   streakCountForBadge: number
+  /** Consecutive mood check-in days (stored streak). */
+  moodStreakCount: number
   maxStreak: number
   pendingRecovery: boolean
   onDismissRecovery: () => void
-  completeTask: (taskId: number, mood?: number) => void
+  completeTask: (taskId: number, mood: number) => void
   /** Dev-only: run without saving streak; navigation returns to task list */
   previewMode?: boolean
 }
@@ -330,6 +340,7 @@ export function TaskSession({
   task,
   displayStreak,
   streakCountForBadge,
+  moodStreakCount,
   maxStreak,
   pendingRecovery,
   onDismissRecovery,
@@ -485,6 +496,11 @@ export function TaskSession({
 
   const handleComplete = useCallback(() => {
     wellnessTaskComplete()
+    const mood = selectedMood ?? (previewMode ? 4 : null)
+    if (mood === null) {
+      Alert.alert(ui.moodRequiredTitle, ui.moodRequiredBody)
+      return
+    }
     if (previewMode) {
       Alert.alert(
         "Preview complete",
@@ -500,7 +516,7 @@ export function TaskSession({
     setFlameDisplay((n) => n + 1)
     setBumpKey((k) => k + 1)
     setTimeout(() => {
-      completeTask(task.id, selectedMood ?? undefined)
+      completeTask(task.id, mood)
     }, 420)
   }, [
     completeTask,
@@ -508,6 +524,8 @@ export function TaskSession({
     previewMode,
     selectedMood,
     task.id,
+    ui.moodRequiredBody,
+    ui.moodRequiredTitle,
   ])
 
   const showStartSection =
@@ -616,7 +634,7 @@ export function TaskSession({
                 }}
               >
                 <Text style={styles.langMenuLabel}>English</Text>
-                <Text style={styles.langMenuHint}>Voice guidance: en-US</Text>
+                <Text style={styles.langMenuHint}>Voice guidance: en-ZA</Text>
               </Pressable>
               <Pressable
                 style={({ pressed }) => [
@@ -662,6 +680,8 @@ export function TaskSession({
               {ui.dayOnLadder}
             </Text>
             <StreakFlameBadge streakCount={flameDisplay} bumpKey={bumpKey} />
+            <View style={{ height: 10 }} />
+            <MoodStreakBadge moodStreak={moodStreakCount} bumpKey={bumpKey} />
           </View>
           <CircularProgress
             progress={ringProgress}
@@ -670,7 +690,12 @@ export function TaskSession({
           />
         </View>
 
-        <View style={styles.card}>
+        <LinearGradient
+          colors={[W.iconBg, W.bgElevated]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.card}
+        >
           <View style={styles.cardHeader}>
             <Text style={styles.todayLabel}>{ui.todayLabel}</Text>
             <Pressable
@@ -757,17 +782,21 @@ export function TaskSession({
           {sessionActive && !breathingPhase ? (
             <Text style={styles.keepGoing}>{ui.keepGoing}</Text>
           ) : null}
-        </View>
+        </LinearGradient>
 
         <View style={styles.actions}>
           <Pressable
             style={({ pressed }) => [
               styles.doneBtn,
-              !timerCompleted && styles.doneBtnDisabled,
-              pressed && timerCompleted && styles.doneBtnPressed,
+              (!timerCompleted || (!previewMode && selectedMood === null)) &&
+                styles.doneBtnDisabled,
+              pressed &&
+                timerCompleted &&
+                (previewMode || selectedMood !== null) &&
+                styles.doneBtnPressed,
             ]}
             onPress={handleComplete}
-            disabled={!timerCompleted}
+            disabled={!timerCompleted || (!previewMode && selectedMood === null)}
           >
             <Ionicons name="checkmark-circle" size={22} color="#fff" />
             <Text style={styles.doneBtnText}>{ui.done}</Text>
@@ -783,6 +812,7 @@ export function TaskSession({
         <MoodPickerRow
           selectedMood={selectedMood}
           onMoodSelect={setSelectedMood}
+          requiredForStreak={!previewMode}
         />
 
         <View style={styles.recorderSection}>

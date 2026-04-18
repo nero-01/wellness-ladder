@@ -11,9 +11,14 @@ import {
   type DailyLockPayload,
 } from "@/lib/daily-task-lock"
 import {
+  countConsecutiveDaysFrom,
+  moodDatesSet,
+} from "@/lib/mood-streak"
+import {
   isStreakChainBroken,
   isStreakChainIntact,
   nextMilestoneFromUnlocked,
+  nextMoodMilestoneFromUnlocked,
 } from "@/lib/streak-rules"
 import { isWellnessPro } from "@/lib/wellness-pro"
 
@@ -35,11 +40,15 @@ function isToday(dateStr: string | null): boolean {
 
 function mergeStreakData(raw: Partial<StreakData>): StreakData {
   const cs = raw.currentStreak ?? 0
+  const ms = raw.moodStreak ?? 0
   return {
     ...DEFAULT_STREAK_DATA,
     ...raw,
     maxStreak: raw.maxStreak ?? cs,
     milestonesUnlocked: raw.milestonesUnlocked ?? [],
+    moodMilestonesUnlocked: raw.moodMilestonesUnlocked ?? [],
+    moodStreak: ms,
+    maxMoodStreak: raw.maxMoodStreak ?? ms,
     pendingRecovery: raw.pendingRecovery ?? false,
   }
 }
@@ -154,9 +163,32 @@ export function useStreak() {
 
       const maxStreak = Math.max(prev.maxStreak, newStreak)
       let milestonesUnlocked = [...prev.milestonesUnlocked]
-      const hit = nextMilestoneFromUnlocked(milestonesUnlocked, newStreak)
-      if (hit) {
-        milestonesUnlocked = [...milestonesUnlocked, hit]
+      const taskHit = nextMilestoneFromUnlocked(milestonesUnlocked, newStreak)
+      if (taskHit) {
+        milestonesUnlocked = [...milestonesUnlocked, taskHit]
+      }
+
+      const newMoodHistory =
+        mood !== undefined ?
+          [...prev.moodHistory.filter((m) => m.date !== today), { date: today, mood }]
+        : prev.moodHistory
+      const dates = moodDatesSet(newMoodHistory)
+      let moodStreakCount =
+        mood !== undefined ? countConsecutiveDaysFrom(dates, today) : prev.moodStreak
+      if (mood !== undefined) {
+        moodStreakCount += prev.pendingRecovery ? 1 : 0
+      }
+      const maxMoodStreak =
+        mood !== undefined ?
+          Math.max(prev.maxMoodStreak, moodStreakCount)
+        : prev.maxMoodStreak
+      let moodMilestonesUnlocked = [...prev.moodMilestonesUnlocked]
+      if (mood !== undefined) {
+        const mh = nextMoodMilestoneFromUnlocked(
+          moodMilestonesUnlocked,
+          moodStreakCount,
+        )
+        if (mh) moodMilestonesUnlocked = [...moodMilestonesUnlocked, mh]
       }
 
       const newData: StreakData = {
@@ -165,10 +197,12 @@ export function useStreak() {
         maxStreak,
         lastCompletedDate: today,
         totalCompleted: prev.totalCompleted + 1,
-        moodHistory:
-          mood !== undefined ? [...prev.moodHistory, { date: today, mood }] : prev.moodHistory,
+        moodHistory: newMoodHistory,
         completionHistory: [...prev.completionHistory, { date: today, taskId }],
         milestonesUnlocked,
+        moodStreak: mood !== undefined ? moodStreakCount : prev.moodStreak,
+        maxMoodStreak,
+        moodMilestonesUnlocked,
         pendingRecovery: false,
       }
 

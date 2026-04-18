@@ -57,6 +57,7 @@ export default function TaskScreen() {
       task={task}
       displayStreak={displayStreak}
       streakCountForBadge={streakCountForBadge}
+      moodStreakCount={streakData.moodStreak}
       maxStreak={streakData.maxStreak}
       pendingRecovery={pendingRecovery}
       onDismissRecovery={dismissRecovery}

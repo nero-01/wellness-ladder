@@ -1,12 +1,16 @@
 import { Ionicons } from "@expo/vector-icons"
 import { Image } from "expo-image"
+import { LinearGradient } from "expo-linear-gradient"
+import * as Speech from "expo-speech"
 import { useRouter } from "expo-router"
 import LottieView from "lottie-react-native"
 import { useEffect, useMemo, useState } from "react"
 import {
   Linking,
+  Platform,
   Pressable,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   View,
@@ -15,11 +19,12 @@ import { SafeAreaView } from "react-native-safe-area-context"
 import { TaskNotoIcon } from "@/components/TaskNotoIcon"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
-import { wellnessCelebration } from "@/lib/wellnessFeedback"
+import { wellnessCelebration, wellnessTapLight } from "@/lib/wellnessFeedback"
 import { emojiFamilySvgUrl } from "@/lib/mood-picker-data"
+import { proMoodInsightLine } from "@/lib/mood-insight"
 import {
   formatSadagTipDate,
-  pickRandomSadagTip,
+  getSadagTipForDate,
   SADAG_HELPLINE_ALT,
   SADAG_HELPLINE_PRIMARY,
   SADAG_WHATSAPP_URL,
@@ -28,7 +33,7 @@ import type { StreakData } from "@/lib/wellness-data"
 import { getTodayTask } from "@/lib/wellness-data"
 import { useWellnessLocale } from "@/lib/wellness-locale"
 import { isWellnessPro } from "@/lib/wellness-pro"
-import { localizeTaskForLocale } from "@/lib/za-afrikaans-tasks"
+import { getSpeechLocaleCode, localizeTaskForLocale } from "@/lib/za-afrikaans-tasks"
 
 const confetti = require("@/assets/lottie/confetti.json")
 const STREAK_FLAME_NOTO = "1f525"
@@ -43,6 +48,8 @@ function celebrationCopy(locale: "en" | "af") {
       nextLabel: "Volgende op jou leer",
       streakLabel: (n: number) =>
         n === 1 ? "1 dag-streep" : `${n} dae-streep`,
+      moodStreakLabel: (n: number) =>
+        n === 1 ? "1 stemming-streep" : `${n} stemming-dae op ry`,
       tomorrow: "môre",
       hint: "Kom môre terug vir jou volgende tree op die leer!",
       home: "Tuis",
@@ -50,7 +57,10 @@ function celebrationCopy(locale: "en" | "af") {
       needHelp: "Hulp nodig?",
       sadagFree: "Gratis 24/7",
       whatsapp: "WhatsApp-hulplyn",
-      tipLabel: "Wenk vir jou",
+      tipLabel: "Dagwenk",
+      inspiredBy: "Geïnspireer deur SADAG — nie mediese advies nie.",
+      listenTip: "Luister",
+      shareTip: "Deel",
     }
   }
   return {
@@ -59,6 +69,8 @@ function celebrationCopy(locale: "en" | "af") {
       "You've completed today's wellness task. See you tomorrow for the next step.",
     nextLabel: "Next on your ladder",
     streakLabel: (n: number) => (n === 1 ? "1 day streak" : `${n} day streak`),
+    moodStreakLabel: (n: number) =>
+      n === 1 ? "1-day mood streak" : `${n}-day mood streak`,
     tomorrow: "tomorrow",
     hint: "Come back tomorrow for your next step up the ladder!",
     home: "Home",
@@ -66,7 +78,10 @@ function celebrationCopy(locale: "en" | "af") {
     needHelp: "Need help?",
     sadagFree: "free 24/7",
     whatsapp: "WhatsApp helpline",
-    tipLabel: "A tip for you",
+    tipLabel: "Daily tip",
+    inspiredBy: "Inspired by SADAG — not medical advice.",
+    listenTip: "Listen",
+    shareTip: "Share",
   }
 }
 
@@ -117,7 +132,9 @@ function createCelebrationStyles(W: WellnessPalette) {
       flexDirection: "row",
       alignItems: "center",
       gap: 12,
-      marginBottom: 20,
+      marginBottom: 12,
+      flexWrap: "wrap",
+      justifyContent: "center",
     },
     flame: { width: 44, height: 44 },
     streakBadge: {
@@ -198,15 +215,14 @@ function createCelebrationStyles(W: WellnessPalette) {
       backgroundColor: W.primary,
     },
     primaryBtnText: { color: "#fff", fontWeight: "700" },
-    sadagCard: {
+    sadagGradient: {
       width: "100%",
       maxWidth: 400,
       padding: 16,
       borderRadius: 16,
-      backgroundColor: W.bgElevated,
+      marginBottom: 16,
       borderWidth: 1,
       borderColor: W.cardBorder,
-      marginBottom: 16,
     },
     sadagFlagRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 10 },
     sadagFlag: { width: 28, height: 28, borderRadius: 4 },
@@ -222,6 +238,19 @@ function createCelebrationStyles(W: WellnessPalette) {
     sadagLines: { gap: 6, marginBottom: 10 },
     sadagLine: { fontSize: 14, color: W.text, lineHeight: 20 },
     sadagMuted: { fontSize: 12, color: W.textMuted },
+    sadagActions: { flexDirection: "row", gap: 10, flexWrap: "wrap", marginBottom: 10 },
+    sadagMiniBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 12,
+      backgroundColor: "rgba(255,255,255,0.08)",
+      borderWidth: 1,
+      borderColor: W.cardBorder,
+    },
+    sadagMiniText: { fontSize: 13, fontWeight: "600", color: W.text },
     sadagLinkBtn: {
       flexDirection: "row",
       alignItems: "center",
@@ -236,6 +265,12 @@ function createCelebrationStyles(W: WellnessPalette) {
       borderColor: W.cardBorder,
     },
     sadagLinkText: { fontSize: 14, fontWeight: "600", color: W.primary },
+    sadagFooter: {
+      fontSize: 11,
+      color: W.textMuted,
+      marginTop: 8,
+      lineHeight: 16,
+    },
   })
 }
 
@@ -252,8 +287,16 @@ export function TaskCompletionCelebration({ streakData }: Props) {
   const effectiveLocale = localeReady ? locale : "en"
   const copy = useMemo(() => celebrationCopy(effectiveLocale), [effectiveLocale])
 
-  const [sadagTip] = useState(() => pickRandomSadagTip())
-  const tipDateLabel = useMemo(() => formatSadagTipDate(), [])
+  const [tipAnchor] = useState(() => new Date())
+  const sadagTip = useMemo(
+    () => getSadagTipForDate(tipAnchor, effectiveLocale),
+    [tipAnchor, effectiveLocale],
+  )
+  const tipDateLabel = useMemo(() => formatSadagTipDate(tipAnchor), [tipAnchor])
+  const proInsight = useMemo(
+    () => proMoodInsightLine(streakData.moodHistory),
+    [streakData.moodHistory],
+  )
 
   const nextTask = useMemo(() => {
     const nextDay = streakData.currentStreak + 1
@@ -267,6 +310,31 @@ export function TaskCompletionCelebration({ streakData }: Props) {
   useEffect(() => {
     wellnessCelebration()
   }, [])
+
+  const speakTip = () => {
+    wellnessTapLight()
+    try {
+      Speech.stop()
+      Speech.speak(sadagTip, {
+        language: getSpeechLocaleCode(effectiveLocale),
+        rate: Platform.select({ ios: 0.9, android: 0.95, default: 0.9 }),
+        pitch: 1,
+      })
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const shareTip = async () => {
+    wellnessTapLight()
+    try {
+      await Share.share({
+        message: `${sadagTip}\n\nSADAG ${SADAG_HELPLINE_PRIMARY} / ${SADAG_HELPLINE_ALT} · ${SADAG_WHATSAPP_URL}`,
+      })
+    } catch {
+      /* ignore */
+    }
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
@@ -310,8 +378,18 @@ export function TaskCompletionCelebration({ streakData }: Props) {
             </Text>
           </View>
         </View>
+        <View style={[styles.streakRow, { marginBottom: 20 }]}>
+          <Text style={styles.streakText}>
+            {copy.moodStreakLabel(streakData.moodStreak)}
+          </Text>
+        </View>
 
-        <View style={styles.sadagCard}>
+        <LinearGradient
+          colors={[W.iconBg, W.bgElevated]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.sadagGradient}
+        >
           <View style={styles.sadagFlagRow}>
             <Image
               source={{ uri: saFlagUri }}
@@ -326,6 +404,22 @@ export function TaskCompletionCelebration({ streakData }: Props) {
           <Text style={styles.sadagDate}>
             {copy.tipLabel} · {tipDateLabel}
           </Text>
+          <View style={styles.sadagActions}>
+            <Pressable
+              style={({ pressed }) => [styles.sadagMiniBtn, pressed && { opacity: 0.9 }]}
+              onPress={speakTip}
+            >
+              <Ionicons name="volume-high" size={18} color={W.primary} />
+              <Text style={styles.sadagMiniText}>{copy.listenTip}</Text>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [styles.sadagMiniBtn, pressed && { opacity: 0.9 }]}
+              onPress={() => void shareTip()}
+            >
+              <Ionicons name="share-outline" size={18} color={W.primary} />
+              <Text style={styles.sadagMiniText}>{copy.shareTip}</Text>
+            </Pressable>
+          </View>
           <View style={styles.sadagLines}>
             <Text style={styles.sadagLine}>
               SADAG: {SADAG_HELPLINE_PRIMARY} / {SADAG_HELPLINE_ALT}
@@ -339,7 +433,8 @@ export function TaskCompletionCelebration({ streakData }: Props) {
             <Ionicons name="logo-whatsapp" size={20} color="#25D366" />
             <Text style={styles.sadagLinkText}>{copy.whatsapp}</Text>
           </Pressable>
-        </View>
+          <Text style={styles.sadagFooter}>{copy.inspiredBy}</Text>
+        </LinearGradient>
 
         <View style={styles.previewCard}>
           <Text style={styles.previewLabel}>{copy.nextLabel}</Text>
@@ -357,16 +452,21 @@ export function TaskCompletionCelebration({ streakData }: Props) {
           </View>
         </View>
 
-        {pro ? (
+        {pro && proInsight ?
+          <View style={styles.proCard}>
+            <Text style={styles.proLabel}>Pro · mood insight</Text>
+            <Text style={styles.proBody}>{proInsight}</Text>
+          </View>
+        : pro ?
           <View style={styles.proCard}>
             <Text style={styles.proLabel}>Pro bonus</Text>
             <Text style={styles.proBody}>
               {effectiveLocale === "af"
-                ? "Volledige Afrikaans vir die eerste 7 dae, ekstra welstand-wenke hier bo, en doelwitte wanneer jy wil — steeds net een taak per dag vir jou streep."
-                : "Full Afrikaans for the first seven ladder days, extra wellness tips above, and Goals anytime for another micro-win — still one task per day for your streak."}
+                ? "Volledige Afrikaans vir die eerste 7 dae, ekstra wenke in die wenkkaart, en stemming-insigte wanneer jy genoeg kere ingeteken het."
+                : "Full Afrikaans for the first seven ladder days, richer tips in the card above, and mood insights when you have enough check-ins."}
             </Text>
           </View>
-        ) : null}
+        : null}
 
         <Text style={styles.completionHint}>{copy.hint}</Text>
         <View style={styles.completionActions}>

@@ -28,6 +28,7 @@ export default function DevTaskSessionScreen() {
       task={task}
       displayStreak={task.id}
       streakCountForBadge={0}
+      moodStreakCount={0}
       maxStreak={0}
       pendingRecovery={false}
       onDismissRecovery={() => {}}

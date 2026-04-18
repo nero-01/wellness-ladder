@@ -12,21 +12,22 @@ export type MoodPickerItem = {
   family: string
 }
 
-/** Canonical list: emoji + codepoint hex for SVG paths */
+/** Canonical list: emoji + codepoint hex — Noto SVG via `emojiFamilySvgUrl(..., "noto")` */
 export const MOOD_PICKER_FAMILY_ENTRIES = [
-  "😢:1f622",
-  "😔:1f614",
-  "😐:1f610",
-  "🙂:1f642",
   "😊:1f60a",
+  "😐:1f610",
+  "😟:1f61f",
+  "😠:1f620",
+  "😢:1f622",
 ] as const
 
+/** Values 5 = most positive … 1 = lowest — matches API `mood` 1–5 scale (high = better wellbeing). */
 export const MOOD_PICKER_ITEMS: MoodPickerItem[] = [
-  { family: "😢:1f622", label: "Sad", value: 1 },
-  { family: "😔:1f614", label: "Down", value: 2 },
-  { family: "😐:1f610", label: "Okay", value: 3 },
-  { family: "🙂:1f642", label: "Good", value: 4 },
   { family: "😊:1f60a", label: "Great", value: 5 },
+  { family: "😐:1f610", label: "Neutral", value: 4 },
+  { family: "😟:1f61f", label: "Worried", value: 3 },
+  { family: "😠:1f620", label: "Angry", value: 2 },
+  { family: "😢:1f622", label: "Sad", value: 1 },
 ]
 
 export function parseMoodFamilyEntry(family: string): { code: string } {
@@ -58,6 +59,11 @@ export function moodSvgUrlFromFamily(family: string): string {
   return emojiFamilySvgUrl(parseMoodFamilyEntry(family).code)
 }
 
+/** Noto SVGs for mood row (premium, consistent look). */
+export function moodNotoSvgUrlFromFamily(family: string): string {
+  return emojiFamilySvgUrl(parseMoodFamilyEntry(family).code, "noto")
+}
+
 /** @deprecated Name refers to old Noto default — use emojiFamilySvgUrl */
 export function moodFamilyNotoSvgUrl(emojiCode: string): string {
   return emojiFamilySvgUrl(emojiCode)
@@ -65,11 +71,6 @@ export function moodFamilyNotoSvgUrl(emojiCode: string): string {
 
 /** @deprecated Use emojiFamilySvgUrl */
 export const emojiFamilyNotoSvgUrl = moodFamilyNotoSvgUrl
-
-/** @deprecated Use moodSvgUrlFromFamily */
-export function moodNotoSvgUrlFromFamily(family: string): string {
-  return moodSvgUrlFromFamily(family)
-}
 
 /** Web / legacy: shape kept for `export { moods }` consumers */
 export const moods = MOOD_PICKER_ITEMS.map((m) => ({

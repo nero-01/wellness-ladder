@@ -10,12 +10,22 @@ import {
   type DailyLockPayload,
 } from "@/lib/daily-task-lock"
 import {
+  countConsecutiveDaysFrom,
+  moodDatesSet,
+} from "@/lib/mood-streak"
+import { syncMoodToRemote } from "@/lib/mood-sync"
+import {
   isStreakChainBroken,
   isStreakChainIntact,
   nextMilestoneFromUnlocked,
+  nextMoodMilestoneFromUnlocked,
 } from "@/lib/streak-rules"
 import { syncStreakToRemote } from "@/lib/streak-sync"
-import type { MilestoneId, StreakData } from "@/lib/wellness-data"
+import type {
+  MoodMilestoneId,
+  StreakData,
+  TaskMilestoneId,
+} from "@/lib/wellness-data"
 import { DEFAULT_STREAK_DATA } from "@/lib/wellness-data"
 import { isWellnessPro } from "@/lib/wellness-pro"
 
@@ -33,11 +43,15 @@ function isTodayKey(dateStr: string | null, today: string): boolean {
 function mergeStreak(raw: Partial<StreakData> | null): StreakData {
   const b = raw ?? {}
   const cs = b.currentStreak ?? 0
+  const ms = b.moodStreak ?? 0
   return {
     ...DEFAULT_STREAK_DATA,
     ...b,
     maxStreak: b.maxStreak ?? cs,
     milestonesUnlocked: b.milestonesUnlocked ?? [],
+    moodMilestonesUnlocked: b.moodMilestonesUnlocked ?? [],
+    moodStreak: ms,
+    maxMoodStreak: b.maxMoodStreak ?? ms,
     pendingRecovery: b.pendingRecovery ?? false,
   }
 }
@@ -47,7 +61,10 @@ export function useStreak() {
   const [dailyLock, setDailyLock] = useState<DailyLockPayload | null>(null)
   const dailyLockRef = useRef<DailyLockPayload | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
-  const [milestoneHit, setMilestoneHit] = useState<MilestoneId | null>(null)
+  const [milestoneHit, setMilestoneHit] = useState<
+    TaskMilestoneId | MoodMilestoneId | null
+  >(null)
+  const milestoneQueueRef = useRef<Array<TaskMilestoneId | MoodMilestoneId>>([])
 
   useEffect(() => {
     dailyLockRef.current = dailyLock
@@ -75,7 +92,16 @@ export function useStreak() {
         }
 
         if (stored) {
-          const parsed = mergeStreak(JSON.parse(stored) as Partial<StreakData>)
+          let parsed = mergeStreak(JSON.parse(stored) as Partial<StreakData>)
+          const dates = moodDatesSet(parsed.moodHistory)
+          const derivedMood = countConsecutiveDaysFrom(dates, today)
+          if (parsed.moodHistory.length > 0) {
+            parsed = {
+              ...parsed,
+              moodStreak: derivedMood,
+              maxMoodStreak: Math.max(parsed.maxMoodStreak, derivedMood),
+            }
+          }
 
           if (
             parsed.lastCompletedDate &&
@@ -126,14 +152,16 @@ export function useStreak() {
   }, [streakData.lastCompletedDate, dailyLock])
 
   const acknowledgeMilestone = useCallback(() => {
-    setMilestoneHit(null)
+    milestoneQueueRef.current.shift()
+    const next = milestoneQueueRef.current[0]
+    setMilestoneHit(next ?? null)
   }, [])
 
   const dismissRecovery = useCallback(() => {
     setStreakData((prev) => ({ ...prev, pendingRecovery: false }))
   }, [])
 
-  const completeTask = useCallback((taskId: number, mood?: number) => {
+  const completeTask = useCallback((taskId: number, mood: number) => {
     const today = getTodayDateKey()
     const pro = isWellnessPro()
 
@@ -156,10 +184,28 @@ export function useStreak() {
 
       const maxStreak = Math.max(prev.maxStreak, newStreak)
       let milestonesUnlocked = [...prev.milestonesUnlocked]
-      const hit = nextMilestoneFromUnlocked(milestonesUnlocked, newStreak)
-      if (hit) {
-        milestonesUnlocked = [...milestonesUnlocked, hit]
-        queueMicrotask(() => setMilestoneHit(hit))
+      const taskMilestone = nextMilestoneFromUnlocked(milestonesUnlocked, newStreak)
+      if (taskMilestone) {
+        milestonesUnlocked = [...milestonesUnlocked, taskMilestone]
+      }
+
+      const newMoodHistory = [
+        ...prev.moodHistory.filter((m) => m.date !== today),
+        { date: today, mood },
+      ]
+      const dates = moodDatesSet(newMoodHistory)
+      let moodStreakCount = countConsecutiveDaysFrom(dates, today)
+      const recoveryBonus = prev.pendingRecovery ? 1 : 0
+      moodStreakCount += recoveryBonus
+
+      const maxMoodStreak = Math.max(prev.maxMoodStreak, moodStreakCount)
+      let moodMilestonesUnlocked = [...prev.moodMilestonesUnlocked]
+      const moodMilestoneHit = nextMoodMilestoneFromUnlocked(
+        moodMilestonesUnlocked,
+        moodStreakCount,
+      )
+      if (moodMilestoneHit) {
+        moodMilestonesUnlocked = [...moodMilestonesUnlocked, moodMilestoneHit]
       }
 
       const newData: StreakData = {
@@ -168,12 +214,12 @@ export function useStreak() {
         maxStreak,
         lastCompletedDate: today,
         totalCompleted: prev.totalCompleted + 1,
-        moodHistory:
-          mood !== undefined
-            ? [...prev.moodHistory, { date: today, mood }]
-            : prev.moodHistory,
+        moodHistory: newMoodHistory,
         completionHistory: [...prev.completionHistory, { date: today, taskId }],
         milestonesUnlocked,
+        moodStreak: moodStreakCount,
+        maxMoodStreak,
+        moodMilestonesUnlocked,
         pendingRecovery: false,
       }
 
@@ -187,6 +233,15 @@ export function useStreak() {
         totalCompleted: newData.totalCompleted,
         lastCompletedDate: newData.lastCompletedDate,
       })
+      void syncMoodToRemote(mood, today)
+
+      const queue: Array<TaskMilestoneId | MoodMilestoneId> = []
+      if (taskMilestone) queue.push(taskMilestone)
+      if (moodMilestoneHit) queue.push(moodMilestoneHit)
+      if (queue.length) {
+        milestoneQueueRef.current = queue
+        queueMicrotask(() => setMilestoneHit(queue[0]!))
+      }
 
       return newData
     })

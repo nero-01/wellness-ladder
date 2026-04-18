@@ -7,12 +7,22 @@ import { useWellnessColors } from "@/hooks/useWellnessColors"
 type Props = {
   completionDates: Set<string>
   weeks?: number
+  title?: string
+  hint?: string
+  /** Cell color when day is in the set (default: theme primary). */
+  activeColor?: string
 }
 
 const COLS = 7
 
 /** Simple calendar heat strip: last `weeks`×7 days, local dates. */
-export function StreakHeatMap({ completionDates, weeks = 5 }: Props) {
+export function StreakHeatMap({
+  completionDates,
+  weeks = 5,
+  title = "Activity",
+  hint,
+  activeColor,
+}: Props) {
   const W = useWellnessColors()
   const styles = createStyles(W)
 
@@ -25,10 +35,13 @@ export function StreakHeatMap({ completionDates, weeks = 5 }: Props) {
 
   const rows = Math.ceil(days.length / COLS)
 
+  const hintText =
+    hint ?? `Last ${weeks} weeks — one square per day`
+
   return (
     <View style={styles.wrap}>
-      <Text style={styles.title}>Activity</Text>
-      <Text style={styles.hint}>Last {weeks} weeks — one square per day</Text>
+      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.hint}>{hintText}</Text>
       <View style={styles.grid}>
         {Array.from({ length: rows }).map((_, ri) => (
           <View key={`r-${ri}`} style={styles.row}>
@@ -43,7 +56,11 @@ export function StreakHeatMap({ completionDates, weeks = 5 }: Props) {
                   key={key}
                   style={[
                     styles.cell,
-                    done ? styles.cellOn : styles.cellOff,
+                    done ?
+                      activeColor ?
+                        [styles.cellOff, { backgroundColor: activeColor, opacity: 0.95 }]
+                      : styles.cellOn
+                    : styles.cellOff,
                     isToday && styles.cellToday,
                   ]}
                   accessibilityLabel={
