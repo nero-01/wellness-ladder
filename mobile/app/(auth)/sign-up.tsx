@@ -1,39 +1,45 @@
 import type { ComponentProps } from "react"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
-  TextInput,
   View as RNView,
 } from "react-native"
+import * as Haptics from "expo-haptics"
 import { FontAwesome5 } from "@expo/vector-icons"
 import { Ionicons } from "@expo/vector-icons"
 import { LinearGradient } from "expo-linear-gradient"
 import { Link } from "expo-router"
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Text } from "@/components/Themed"
+import { FloatingLabelInput } from "@/components/auth/FloatingLabelInput"
 import { useColorScheme } from "@/components/useColorScheme"
-import { AUTH_PLACEHOLDER, authInputStyles } from "@/constants/authFormStyles"
 import type { OAuthProviderId } from "@/contexts/AuthContext"
 import { useAuth } from "@/contexts/AuthContext"
 import {
   clearEmailConfirmationCooldown,
   formatCooldownWait,
+  formatResendWait,
+  getResendCooldownRemainingMs,
   getSignupCooldownRemainingMs,
   getStoredPendingConfirmationEmail,
   recordEmailConfirmationSent,
+  recordResendConfirmationAttempt,
 } from "@/lib/email-signup-cooldown"
 import { isPlausibleMailbox, sanitizeAuthEmailForSupabase } from "@/lib/auth-email"
 import { WellnessColors } from "@/constants/wellnessTheme"
 
 if (__DEV__) {
   // eslint-disable-next-line no-console
-  console.log("Auth [SignUp] module loaded — Expo / Supabase (no Clerk)")
+  console.log("Auth [SignUp] — Expo + Supabase Auth (not Clerk). Verify SMTP in Supabase Dashboard.")
 }
+
+const SUPPORT_EMAIL = "support@sadag-inspired.com"
 
 type FaBrand = ComponentProps<typeof FontAwesome5>["name"]
 
@@ -54,16 +60,16 @@ function passwordStrongEnough(p: string): boolean {
 }
 
 export default function SignUpScreen() {
-  if (__DEV__) {
-    // eslint-disable-next-line no-console
-    console.log("Auth [SignUp] rendered")
-  }
-
   const colorScheme = useColorScheme()
   const isDark = colorScheme === "dark"
   const textPrimary = isDark ? "#f9fafb" : "#111827"
   const textMuted = isDark ? "#9ca3af" : "#6b7280"
-  const { signUp, signInWithOAuth } = useAuth()
+  const border = isDark ? "#4b5563" : "#d1d5db"
+  const inputBg = isDark ? "#252030" : "#ffffff"
+  const labelFloat = isDark ? "#a78bfa" : WellnessColors.primary
+  const labelInside = isDark ? "#9ca3af" : "#6b7280"
+
+  const { signUp, signInWithOAuth, resendSignupEmail } = useAuth()
 
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
@@ -72,14 +78,34 @@ export default function SignUpScreen() {
   const [showPw, setShowPw] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [infoBanner, setInfoBanner] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [oauthBusy, setOauthBusy] = useState<OAuthProviderId | null>(null)
   const [awaitingEmail, setAwaitingEmail] = useState<string | null>(null)
+  const [resendLoading, setResendLoading] = useState(false)
+  const [resendCooldownMs, setResendCooldownMs] = useState(0)
   const submitLock = useRef(false)
 
   useEffect(() => {
     void getStoredPendingConfirmationEmail().then(setAwaitingEmail)
   }, [])
+
+  const refreshResendCooldown = useCallback(async (addr: string) => {
+    const ms = await getResendCooldownRemainingMs(addr)
+    setResendCooldownMs(ms)
+  }, [])
+
+  useEffect(() => {
+    if (!awaitingEmail) {
+      setResendCooldownMs(0)
+      return
+    }
+    void refreshResendCooldown(awaitingEmail)
+    const t = setInterval(() => {
+      void refreshResendCooldown(awaitingEmail)
+    }, 1000)
+    return () => clearInterval(t)
+  }, [awaitingEmail, refreshResendCooldown])
 
   const mismatch =
     confirmPassword.length > 0 && password !== confirmPassword
@@ -88,15 +114,18 @@ export default function SignUpScreen() {
     if (submitLock.current) return
     if (mismatch) {
       setError("Passwords don't match.")
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
       return
     }
     if (!passwordStrongEnough(password)) {
       setError("Use 8+ characters with at least one letter and one number.")
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
       return
     }
     const normalized = sanitizeAuthEmailForSupabase(email)
     if (!isPlausibleMailbox(normalized)) {
       setError("Enter a valid email (check spelling, e.g. gmail.com).")
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
       return
     }
     const cooldownLeft = await getSignupCooldownRemainingMs(normalized)
@@ -104,11 +133,14 @@ export default function SignUpScreen() {
       setError(
         `Wait ${formatCooldownWait(cooldownLeft)} before another signup for this email (avoids duplicate confirmation emails).`,
       )
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
       return
     }
     submitLock.current = true
     setError(null)
+    setInfoBanner(null)
     setLoading(true)
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
     try {
       const { needsEmailConfirmation } = await signUp(
         normalized,
@@ -118,23 +150,68 @@ export default function SignUpScreen() {
       if (needsEmailConfirmation) {
         await recordEmailConfirmationSent(normalized)
         setAwaitingEmail(normalized)
+        setInfoBanner(
+          "Check your spam or promotions folder. Still stuck? Email us — we're happy to help.",
+        )
+        // eslint-disable-next-line no-console
+        console.log("Email sent")
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+        if (__DEV__) {
+          // eslint-disable-next-line no-console
+          console.log(
+            "[SignUp] Supabase requested confirmation email. Dashboard: Auth → Providers → Email / SMTP (e.g. Resend).",
+          )
+        }
         return
       }
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     } catch (e) {
       setError(e instanceof Error ? e.message : "Sign up failed")
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
     } finally {
       submitLock.current = false
       setLoading(false)
     }
   }
 
+  async function onResendConfirmation() {
+    if (!awaitingEmail || resendLoading) return
+    const left = await getResendCooldownRemainingMs(awaitingEmail)
+    if (left > 0) {
+      setError(`Wait ${formatResendWait(left)} before resending.`)
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
+      return
+    }
+    setError(null)
+    setResendLoading(true)
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    try {
+      await resendSignupEmail(awaitingEmail)
+      await recordResendConfirmationAttempt(awaitingEmail)
+      await refreshResendCooldown(awaitingEmail)
+      setInfoBanner(
+        "Another confirmation email was sent. Check spam — or write to support if it still does not arrive.",
+      )
+      // eslint-disable-next-line no-console
+      console.log("Email sent")
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not resend email")
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+    } finally {
+      setResendLoading(false)
+    }
+  }
+
   async function onOAuth(provider: OAuthProviderId) {
     setError(null)
     setOauthBusy(provider)
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     try {
       await signInWithOAuth(provider)
     } catch (e) {
       setError(e instanceof Error ? e.message : "Social sign-in failed")
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
     } finally {
       setOauthBusy(null)
     }
@@ -152,16 +229,18 @@ export default function SignUpScreen() {
           style={styles.kav}
           keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
         >
-          <ScrollView
+          <KeyboardAwareScrollView
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
+            enableOnAndroid
+            extraScrollHeight={Platform.OS === "ios" ? 24 : 48}
             contentContainerStyle={styles.scrollContent}
           >
             <Text style={[styles.hero, { color: textPrimary }]}>
               Sign up for free ladder
             </Text>
             <Text style={[styles.sub, { color: textMuted }]}>
-              Supabase email auth — fields stay visible while loading.
+              Supabase email auth — keyboard stays clear of fields (iOS & Android).
             </Text>
 
             <RNView
@@ -180,19 +259,55 @@ export default function SignUpScreen() {
                     Check your email
                   </Text>
                   <Text style={[styles.awaitBody, { color: textMuted }]}>
-                    We requested a confirmation link for {awaitingEmail}. This screen will
-                    not send another email. Check spam and your Supabase email settings if
-                    nothing arrives.
+                    We sent a confirmation link to {awaitingEmail}. Open it on this device to
+                    finish sign-up.
                   </Text>
+                  <RNView
+                    style={[
+                      styles.spamBanner,
+                      { backgroundColor: isDark ? "#252030" : "#fef3c7", borderColor: isDark ? "#4b5563" : "#fcd34d" },
+                    ]}
+                  >
+                    <Text style={[styles.spamText, { color: isDark ? "#fde68a" : "#92400e" }]}>
+                      Check spam / junk — confirmation mail often lands there.
+                    </Text>
+                  </RNView>
+                  {infoBanner ? (
+                    <Text style={[styles.info, { color: textMuted }]}>{infoBanner}</Text>
+                  ) : null}
                   <Pressable
                     style={[
                       styles.button,
-                      {
-                        backgroundColor: "transparent",
-                        borderWidth: 2,
-                        borderColor: WellnessColors.primary,
-                        marginTop: 0,
-                      },
+                      (resendLoading || resendCooldownMs > 0) && styles.buttonDisabled,
+                    ]}
+                    onPress={() => void onResendConfirmation()}
+                    disabled={resendLoading || resendCooldownMs > 0}
+                  >
+                    {resendLoading ? (
+                      <ActivityIndicator color="#fff" />
+                    ) : (
+                      <Text style={styles.buttonText}>
+                        {resendCooldownMs > 0
+                          ? `Resend email (${formatResendWait(resendCooldownMs)})`
+                          : "Resend confirmation email"}
+                      </Text>
+                    )}
+                  </Pressable>
+                  <Pressable
+                    onPress={() => void Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Wellness%20app%20signup`)}
+                    style={styles.supportLink}
+                  >
+                    <Text style={[styles.supportText, { color: WellnessColors.primary }]}>
+                      {SUPPORT_EMAIL}
+                    </Text>
+                  </Pressable>
+                  <Text style={[styles.supportHint, { color: textMuted }]}>
+                    Questions? Tap the address above to email support.
+                  </Text>
+                  <Pressable
+                    style={[
+                      styles.buttonOutline,
+                      { borderColor: WellnessColors.primary },
                     ]}
                     onPress={() => {
                       void clearEmailConfirmationCooldown()
@@ -202,173 +317,188 @@ export default function SignUpScreen() {
                       setPassword("")
                       setConfirmPassword("")
                       setError(null)
+                      setInfoBanner(null)
+                      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
                     }}
                   >
-                    <Text style={[styles.buttonText, { color: WellnessColors.primary }]}>
+                    <Text style={[styles.buttonOutlineText, { color: WellnessColors.primary }]}>
                       Use a different email
                     </Text>
                   </Pressable>
+                  {error ? <Text style={styles.error}>{error}</Text> : null}
                 </RNView>
               ) : (
                 <>
-              <TextInput
-                style={[authInputStyles.input, { marginBottom: 12 }]}
-                placeholder="Name"
-                placeholderTextColor={AUTH_PLACEHOLDER}
-                autoComplete="name"
-                value={name}
-                onChangeText={setName}
-                editable={!loading && !oauthBusy}
-              />
-
-              <TextInput
-                style={[authInputStyles.input, { marginBottom: 12 }]}
-                placeholder="Email"
-                placeholderTextColor={AUTH_PLACEHOLDER}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                autoComplete="email"
-                value={email}
-                onChangeText={setEmail}
-                editable={!loading && !oauthBusy}
-              />
-
-              <RNView style={styles.row}>
-                <TextInput
-                  style={[authInputStyles.input, styles.inputFlex]}
-                  placeholder="Password"
-                  placeholderTextColor={AUTH_PLACEHOLDER}
-                  secureTextEntry={!showPw}
-                  autoComplete="password-new"
-                  value={password}
-                  onChangeText={setPassword}
-                  editable={!loading && !oauthBusy}
-                />
-                <Pressable
-                  onPress={() => setShowPw((s) => !s)}
-                  style={styles.eyeBtn}
-                  hitSlop={12}
-                  accessibilityLabel={showPw ? "Hide password" : "Show password"}
-                >
-                  <Ionicons
-                    name={showPw ? "eye-off-outline" : "eye-outline"}
-                    size={22}
-                    color="#6b7280"
+                  <FloatingLabelInput
+                    label="Name"
+                    value={name}
+                    onChangeText={setName}
+                    autoComplete="name"
+                    editable={!loading && !oauthBusy}
+                    borderColor={border}
+                    backgroundColor={inputBg}
+                    textColor={textPrimary}
+                    labelColorFloating={labelFloat}
+                    labelColorInside={labelInside}
+                    placeholderTextColor={labelInside}
                   />
-                </Pressable>
-              </RNView>
-
-              <RNView style={[styles.row, { marginTop: 12 }]}>
-                <TextInput
-                  style={[
-                    authInputStyles.input,
-                    styles.inputFlex,
-                    mismatch ? { borderColor: "#dc2626", borderWidth: 2 } : null,
-                  ]}
-                  placeholder="Confirm password"
-                  placeholderTextColor={AUTH_PLACEHOLDER}
-                  secureTextEntry={!showConfirm}
-                  autoComplete="password-new"
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  editable={!loading && !oauthBusy}
-                />
-                <Pressable
-                  onPress={() => setShowConfirm((s) => !s)}
-                  style={styles.eyeBtn}
-                  hitSlop={12}
-                  accessibilityLabel={
-                    showConfirm ? "Hide confirm password" : "Show confirm password"
-                  }
-                >
-                  <Ionicons
-                    name={showConfirm ? "eye-off-outline" : "eye-outline"}
-                    size={22}
-                    color="#6b7280"
+                  <FloatingLabelInput
+                    label="Email"
+                    value={email}
+                    onChangeText={setEmail}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    autoComplete="email"
+                    autoFocus
+                    multiline={false}
+                    editable={!loading && !oauthBusy}
+                    borderColor={border}
+                    backgroundColor={inputBg}
+                    textColor={textPrimary}
+                    labelColorFloating={labelFloat}
+                    labelColorInside={labelInside}
+                    placeholderTextColor={labelInside}
                   />
-                </Pressable>
-              </RNView>
+                  <FloatingLabelInput
+                    label="Password"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPw}
+                    autoComplete="password-new"
+                    multiline={false}
+                    editable={!loading && !oauthBusy}
+                    borderColor={border}
+                    backgroundColor={inputBg}
+                    textColor={textPrimary}
+                    labelColorFloating={labelFloat}
+                    labelColorInside={labelInside}
+                    placeholderTextColor={labelInside}
+                    rightSlot={
+                      <Pressable
+                        onPress={() => setShowPw((s) => !s)}
+                        hitSlop={12}
+                        accessibilityLabel={showPw ? "Hide password" : "Show password"}
+                      >
+                        <Ionicons
+                          name={showPw ? "eye-off-outline" : "eye-outline"}
+                          size={22}
+                          color="#6b7280"
+                        />
+                      </Pressable>
+                    }
+                  />
+                  <FloatingLabelInput
+                    label="Confirm password"
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    secureTextEntry={!showConfirm}
+                    autoComplete="password-new"
+                    multiline={false}
+                    editable={!loading && !oauthBusy}
+                    error={mismatch}
+                    borderColor={border}
+                    backgroundColor={inputBg}
+                    textColor={textPrimary}
+                    labelColorFloating={labelFloat}
+                    labelColorInside={labelInside}
+                    placeholderTextColor={labelInside}
+                    rightSlot={
+                      <Pressable
+                        onPress={() => setShowConfirm((s) => !s)}
+                        hitSlop={12}
+                        accessibilityLabel={
+                          showConfirm ? "Hide confirm password" : "Show confirm password"
+                        }
+                      >
+                        <Ionicons
+                          name={showConfirm ? "eye-off-outline" : "eye-outline"}
+                          size={22}
+                          color="#6b7280"
+                        />
+                      </Pressable>
+                    }
+                  />
 
-              {mismatch ? (
-                <Text style={styles.mismatch}>Passwords don&apos;t match</Text>
-              ) : null}
+                  {mismatch ? (
+                    <Text style={styles.mismatch}>Passwords don&apos;t match</Text>
+                  ) : null}
 
-              {error ? <Text style={styles.error}>{error}</Text> : null}
+                  {error ? <Text style={styles.error}>{error}</Text> : null}
 
-              <Pressable
-                style={[
-                  styles.button,
-                  (loading || mismatch || oauthBusy) && styles.buttonDisabled,
-                ]}
-                onPress={() => void onSubmit()}
-                disabled={loading || !!oauthBusy || mismatch}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={styles.buttonText}>Sign up</Text>
-                )}
-              </Pressable>
-
-              <RNView style={styles.dividerRow}>
-                <RNView style={[styles.dividerLine, { backgroundColor: isDark ? "#4b5563" : "#e5e7eb" }]} />
-                <Text style={[styles.dividerText, { color: textMuted }]}>Or continue with</Text>
-                <RNView style={[styles.dividerLine, { backgroundColor: isDark ? "#4b5563" : "#e5e7eb" }]} />
-              </RNView>
-
-              <RNView style={styles.socialGrid}>
-                {SOCIAL.map((s) => (
                   <Pressable
-                    key={s.id}
-                    style={({ pressed }) => [
-                      styles.socialBtn,
-                      {
-                        backgroundColor: isDark ? "#252030" : "#fafafa",
-                        borderColor: isDark ? "#4b5563" : "#e5e7eb",
-                      },
-                      pressed && { opacity: 0.85 },
-                      oauthBusy && oauthBusy !== s.id && { opacity: 0.5 },
+                    style={[
+                      styles.button,
+                      (loading || mismatch || oauthBusy) && styles.buttonDisabled,
                     ]}
-                    onPress={() => void onOAuth(s.id)}
-                    disabled={!!oauthBusy || loading}
+                    onPress={() => void onSubmit()}
+                    disabled={loading || !!oauthBusy || mismatch}
                   >
-                    {oauthBusy === s.id ? (
-                      <ActivityIndicator />
+                    {loading ? (
+                      <ActivityIndicator color="#fff" />
                     ) : (
-                      <>
-                        <FontAwesome5 name={s.icon} size={20} color={s.color} brand />
-                        <Text style={[styles.socialLabel, { color: textPrimary }]}>
-                          {s.label}
-                        </Text>
-                      </>
+                      <Text style={styles.buttonText}>Sign up</Text>
                     )}
                   </Pressable>
-                ))}
-                {Platform.OS === "ios" ? (
-                  <Pressable
-                    style={({ pressed }) => [
-                      styles.socialBtn,
-                      {
-                        backgroundColor: isDark ? "#252030" : "#fafafa",
-                        borderColor: isDark ? "#4b5563" : "#e5e7eb",
-                      },
-                      pressed && { opacity: 0.85 },
-                      oauthBusy && oauthBusy !== "apple" && { opacity: 0.5 },
-                    ]}
-                    onPress={() => void onOAuth("apple")}
-                    disabled={!!oauthBusy || loading}
-                  >
-                    {oauthBusy === "apple" ? (
-                      <ActivityIndicator />
-                    ) : (
-                      <>
-                        <FontAwesome5 name="apple" size={22} color={textPrimary} brand />
-                        <Text style={[styles.socialLabel, { color: textPrimary }]}>Apple</Text>
-                      </>
-                    )}
-                  </Pressable>
-                ) : null}
-              </RNView>
+
+                  <RNView style={styles.dividerRow}>
+                    <RNView style={[styles.dividerLine, { backgroundColor: isDark ? "#4b5563" : "#e5e7eb" }]} />
+                    <Text style={[styles.dividerText, { color: textMuted }]}>Or continue with</Text>
+                    <RNView style={[styles.dividerLine, { backgroundColor: isDark ? "#4b5563" : "#e5e7eb" }]} />
+                  </RNView>
+
+                  <RNView style={styles.socialGrid}>
+                    {SOCIAL.map((s) => (
+                      <Pressable
+                        key={s.id}
+                        style={({ pressed }) => [
+                          styles.socialBtn,
+                          {
+                            backgroundColor: isDark ? "#252030" : "#fafafa",
+                            borderColor: isDark ? "#4b5563" : "#e5e7eb",
+                          },
+                          pressed && { opacity: 0.85 },
+                          oauthBusy && oauthBusy !== s.id && { opacity: 0.5 },
+                        ]}
+                        onPress={() => void onOAuth(s.id)}
+                        disabled={!!oauthBusy || loading}
+                      >
+                        {oauthBusy === s.id ? (
+                          <ActivityIndicator />
+                        ) : (
+                          <>
+                            <FontAwesome5 name={s.icon} size={20} color={s.color} brand />
+                            <Text style={[styles.socialLabel, { color: textPrimary }]}>
+                              {s.label}
+                            </Text>
+                          </>
+                        )}
+                      </Pressable>
+                    ))}
+                    {Platform.OS === "ios" ? (
+                      <Pressable
+                        style={({ pressed }) => [
+                          styles.socialBtn,
+                          {
+                            backgroundColor: isDark ? "#252030" : "#fafafa",
+                            borderColor: isDark ? "#4b5563" : "#e5e7eb",
+                          },
+                          pressed && { opacity: 0.85 },
+                          oauthBusy && oauthBusy !== "apple" && { opacity: 0.5 },
+                        ]}
+                        onPress={() => void onOAuth("apple")}
+                        disabled={!!oauthBusy || loading}
+                      >
+                        {oauthBusy === "apple" ? (
+                          <ActivityIndicator />
+                        ) : (
+                          <>
+                            <FontAwesome5 name="apple" size={22} color={textPrimary} brand />
+                            <Text style={[styles.socialLabel, { color: textPrimary }]}>Apple</Text>
+                          </>
+                        )}
+                      </Pressable>
+                    ) : null}
+                  </RNView>
                 </>
               )}
             </RNView>
@@ -380,7 +510,7 @@ export default function SignUpScreen() {
                 </Text>
               </Pressable>
             </Link>
-          </ScrollView>
+          </KeyboardAwareScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </LinearGradient>
@@ -394,7 +524,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 20,
-    paddingBottom: 32,
+    paddingBottom: 100,
     paddingTop: 8,
   },
   hero: {
@@ -419,23 +549,34 @@ const styles = StyleSheet.create({
   },
   awaitTitle: { fontSize: 20, fontWeight: "700" },
   awaitBody: { fontSize: 14, lineHeight: 20 },
-  row: { flexDirection: "row", alignItems: "center", gap: 8 },
-  inputFlex: { flex: 1 },
-  eyeBtn: {
-    padding: 8,
-    justifyContent: "center",
-    alignItems: "center",
+  spamBanner: {
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 12,
   },
-  mismatch: { color: "#dc2626", fontSize: 13, marginTop: 8, fontWeight: "600" },
+  spamText: { fontSize: 14, fontWeight: "600", lineHeight: 20 },
+  info: { fontSize: 13, lineHeight: 18 },
+  supportLink: { alignSelf: "center", paddingVertical: 4 },
+  supportText: { fontSize: 15, fontWeight: "700" },
+  supportHint: { fontSize: 12, textAlign: "center" },
+  mismatch: { color: "#dc2626", fontSize: 13, marginTop: 4, fontWeight: "600" },
   error: { color: "#c00", marginTop: 8, fontSize: 14 },
-  info: { color: "#2563eb", marginTop: 8, fontSize: 14 },
   button: {
     backgroundColor: "#6b4d8a",
     padding: 16,
     borderRadius: 12,
     alignItems: "center",
-    marginTop: 16,
+    marginTop: 8,
   },
+  buttonOutline: {
+    backgroundColor: "transparent",
+    padding: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    borderWidth: 2,
+    marginTop: 4,
+  },
+  buttonOutlineText: { fontWeight: "700", fontSize: 16 },
   buttonDisabled: { opacity: 0.65 },
   buttonText: { color: "#fff", fontWeight: "700", fontSize: 16 },
   dividerRow: {

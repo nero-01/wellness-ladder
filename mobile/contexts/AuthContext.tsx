@@ -39,6 +39,8 @@ interface AuthContextType {
     password: string,
     name: string,
   ) => Promise<SignUpResult>
+  /** Supabase only — resends signup confirmation (same redirect as signUp). Not Clerk. */
+  resendSignupEmail: (email: string) => Promise<void>
   signOut: () => Promise<void>
   signInWithOAuth: (provider: OAuthProviderId) => Promise<void>
 }
@@ -204,6 +206,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ...(emailRedirectTo ? { emailRedirectTo } : {}),
       },
     })
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.log("[Auth] signUp response", {
+        error: error?.message ?? null,
+        hasSession: !!data?.session,
+        userId: data?.user?.id,
+        confirmationSentAt: data?.user?.confirmation_sent_at ?? null,
+      })
+    }
     if (error) throw error
 
     if (data.session) {
@@ -212,6 +223,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     return { needsEmailConfirmation: true }
+  }, [])
+
+  const resendSignupEmail = useCallback(async (email: string) => {
+    if (!isSupabaseConfigured()) {
+      throw new Error("Resend needs Supabase (not available in mock auth).")
+    }
+    const normalizedEmail = sanitizeAuthEmailForSupabase(email)
+    const emailRedirectTo = getAuthEmailRedirectTo()
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: normalizedEmail,
+      options: emailRedirectTo ? { emailRedirectTo } : undefined,
+    })
+    if (error) throw error
   }, [])
 
   const signOut = useCallback(async () => {
@@ -242,10 +267,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isSignedIn: !!user,
       signIn,
       signUp,
+      resendSignupEmail,
       signOut,
       signInWithOAuth,
     }),
-    [user, isLoaded, signIn, signUp, signOut, signInWithOAuth],
+    [user, isLoaded, signIn, signUp, resendSignupEmail, signOut, signInWithOAuth],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
