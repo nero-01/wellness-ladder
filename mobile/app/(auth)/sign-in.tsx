@@ -40,7 +40,10 @@ export default function SignInScreen() {
     >
       <View style={styles.inner}>
         <Text style={styles.title}>Sign in</Text>
-        <Text style={styles.hint}>Supabase email + password</Text>
+        <Text style={styles.hint}>
+          Use a Supabase JWT anon key (eyJ…) and a real user, or set EXPO_PUBLIC_USE_MOCK_AUTH=true
+          for local mock login (see mobile/.env.example).
+        </Text>
         <TextInput
           style={authInputStyles.input}
           placeholder="Email"

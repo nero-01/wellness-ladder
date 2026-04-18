@@ -1,8 +1,82 @@
 # Bite-Size Wellness Ladder
 
-Daily micro-tasks, mood tracking, streaks, optional voice (Whisper), and hooks for AI personalization. This repo is a **Next.js (App Router)** web app at the root plus an **Expo** mobile app under `mobile/`, with **Supabase Auth**, **PostgreSQL** (hosted on Supabase), and **Prisma** for app data.
+Daily micro-tasks, mood tracking, streaks, optional voice (Whisper), and hooks for AI personalization.
+
+**Primary product:** **Expo (React Native)** in **`mobile/`** — run in **Expo Go** or a dev build.  
+**Backend / data:** **Next.js** API routes at the repo root (`app/api/*`), **Supabase Auth**, **PostgreSQL** on Supabase, **Prisma** for app tables.
 
 **Repository:** [github.com/nero-01/wellness-ladder](https://github.com/nero-01/wellness-ladder)
+
+---
+
+## Quick start — mobile (Expo)
+
+```bash
+cd mobile
+npm install
+cp .env.example .env          # optional: mock auth without Supabase (see below)
+npx expo start -c
+```
+
+Scan the QR code with **Expo Go** (iOS/Android) or press `i` / `a` for simulator.
+
+From the **repo root** (shortcut):
+
+```bash
+npm install
+npm run mobile:start          # expo start in mobile/
+npm run mobile:start:clear    # metro cache clear + start
+```
+
+**Important:** UI and auth for the app you open in Expo live under **`mobile/`** (`mobile/app/`, `mobile/contexts/`, …). The Next.js `app/` folder is the **web + API** layer, not the Expo UI.
+
+---
+
+## Mobile environment variables (`mobile/.env`)
+
+| Variable | Purpose |
+|----------|---------|
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Anon **JWT** from Supabase → Settings → API (starts with **`eyJ`**). Publishable keys (`sb_publishable_…`) do **not** work for password login. |
+| `EXPO_PUBLIC_API_URL` | Deployed Next.js origin (no `/`), e.g. `https://your-app.vercel.app` — used for `/api/users/bootstrap`, mood/tasks, etc. |
+| `EXPO_PUBLIC_USE_MOCK_AUTH` | Set to `true` to force **mock auth** (no Supabase calls) for local development. |
+| `EXPO_PUBLIC_MOCK_DEV_EMAIL` / `EXPO_PUBLIC_MOCK_DEV_PASSWORD` | Optional; if **both** set, mock sign-in only accepts this pair. |
+
+You can also keep a single **root** `.env` / `.env.local` with `NEXT_PUBLIC_*`; `mobile/app.config.js` maps them to `EXPO_PUBLIC_*` when the Expo-specific vars are unset.
+
+After any env change: **`cd mobile && npx expo start -c`**.
+
+---
+
+## Mock auth (Expo) — seed user & password
+
+Use mock mode while you have no Supabase user or only a publishable key:
+
+1. In **`mobile/.env`** add: `EXPO_PUBLIC_USE_MOCK_AUTH=true`
+2. Restart Metro with cache clear: `npx expo start -c`
+3. Sign in with **any email/password** (unless you set both `EXPO_PUBLIC_MOCK_DEV_*` — then only that pair works).
+
+**Where to change default mock profile** (name, id, `isPremium`, etc.):
+
+- **`mobile/contexts/AuthContext.tsx`** — constant **`MOCK_USER`**
+
+Persisted mock session is stored in **AsyncStorage** under key **`wellness-auth-user`** (same idea as the web app’s `localStorage` key).
+
+---
+
+## Next.js (web + API)
+
+Optional browser UI and required for hosted APIs Prisma talks to:
+
+```bash
+cp .env.example .env.local
+npm install
+npm run db:generate
+npm run db:migrate    # needs DATABASE_URL
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). Web auth mock lives in **`lib/auth.tsx`**; behavior mirrors mobile when `NEXT_PUBLIC_USE_MOCK_AUTH` / missing JWT key — see **`.env.example`** at the root.
 
 ---
 
@@ -10,135 +84,27 @@ Daily micro-tasks, mood tracking, streaks, optional voice (Whisper), and hooks f
 
 | Layer | Choice |
 |--------|--------|
-| Web UI | Next.js 15 (App Router), React 19, Tailwind CSS, Radix UI |
 | Mobile | Expo Router, React Native (`mobile/`) |
-| Auth | Supabase Auth (email/password); web uses `@supabase/ssr` cookies; mobile uses `@supabase/supabase-js` + AsyncStorage |
-| Database | PostgreSQL on Supabase; Prisma (`prisma/schema.prisma`) — `users.id` matches `auth.users.id` |
-| API | Next.js Route Handlers under `app/api/*` |
-| Cron | `GET /api/cron/daily-tasks` (protect with `CRON_SECRET`; see `vercel.json`) |
-| Edge | Supabase Function `personalize` (stub); Next proxies via `POST /api/ai/personalize` |
+| Web UI | Next.js 15 (App Router), React 19, Tailwind, Radix UI |
+| Auth | Supabase email/password; mobile: `@supabase/supabase-js` + AsyncStorage; web: `@supabase/ssr` cookies |
+| Database | PostgreSQL (Supabase); Prisma — `users.id` matches `auth.users.id` |
+| API | `app/api/*` — mobile calls with `Authorization: Bearer` + `EXPO_PUBLIC_API_URL` |
 
 ---
 
 ## Repository layout
 
 ```
-app/                    # Next.js routes (pages + app/api/*)
-components/             # Shared UI
-hooks/                  # React hooks
-lib/                    # Auth, Supabase clients, wellness data, utilities
-  auth.tsx              # Web auth + mock mode when Supabase env is unset
-  supabase/             # browser.ts, server.ts, middleware helpers
-mobile/                 # Expo app (separate package.json)
+mobile/                 # ★ Expo app (screens, AuthContext, Metro)
+  app/                  # Expo Router routes
+  contexts/AuthContext.tsx   # Mobile auth + mock mode
+  lib/supabase.ts       # Client + isSupabaseConfigured()
+app/                    # Next.js pages + API routes
+lib/auth.tsx            # Web auth + mock mode
 prisma/                 # Schema + migrations
-supabase/               # CLI config + Edge Functions (e.g. functions/personalize/)
-docs/context/           # Agent / architecture notes (AGENT-CONTEXT.md)
+supabase/               # Edge functions / CLI
+docs/context/AGENT-CONTEXT.md
 ```
-
-Detailed path map: see `docs/context/AGENT-CONTEXT.md`.
-
----
-
-## Prerequisites
-
-- **Node.js** (LTS recommended)
-- **npm** (lockfile: `package-lock.json`)
-- **Supabase project** (for production-like auth and DB) — optional for quick web UI-only exploration (see [Local login without Supabase](#local-login-without-supabase-web-only))
-
----
-
-## Environment variables
-
-1. Copy the root template:
-
-   ```bash
-   cp .env.example .env.local
-   ```
-
-2. Fill in at minimum:
-
-   | Variable | Purpose |
-   |----------|---------|
-   | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon (public) key |
-   | `DATABASE_URL` | Postgres connection string (Supabase → Settings → Database) |
-   | `CRON_SECRET` | Random string; Vercel Cron sends `Authorization: Bearer <CRON_SECRET>` |
-   | `OPENAI_API_KEY` | Optional; for real Whisper in `POST /api/voice/transcribe` |
-
-3. **Mobile** (`mobile/`):
-
-   ```bash
-   cp mobile/.env.example mobile/.env
-   ```
-
-   Set `EXPO_PUBLIC_SUPABASE_*` to match the web app, and `EXPO_PUBLIC_API_URL` to your deployed Next.js origin (no trailing slash) for Prisma-backed APIs.
-
-`.env.local` and `mobile/.env` are gitignored — never commit secrets.
-
----
-
-## Local development
-
-### Web (Next.js)
-
-```bash
-npm install
-npm run db:generate
-npm run db:migrate    # requires DATABASE_URL
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000).
-
-### Mobile (Expo)
-
-The Expo app lives in **`mobile/`** — it is separate from the Next.js web app. Changes under `app/` and `components/` at the repo root **do not** apply to Expo; edit files under `mobile/` (e.g. `mobile/app/(auth)/`).
-
-```bash
-cd mobile && npm install && npx expo start
-```
-
-From the repo root you can run:
-
-```bash
-npm run mobile:start
-# or clear Metro cache:
-npm run mobile:start:clear
-```
-
-Native modules used include **expo-haptics** and **expo-av**.
-
----
-
-## Local login without Supabase (web only)
-
-When **`NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are not set** (or left empty), the **web** app runs in **mock auth** mode: sign-in does not call Supabase; it stores a fake user in the browser.
-
-### Where to customize the seed profile
-
-| What | Where |
-|------|--------|
-| Default mock user fields (`id`, `email`, `name`, `isPremium`, etc.) | **`lib/auth.tsx`** — constant **`MOCK_USER`** |
-| Sign-in behavior (how email/password map to the stored user) | **`lib/auth.tsx`** — `signIn` / `signUp` when `!isSupabaseConfigured()` |
-| Persisted session key in `localStorage` | **`lib/auth.tsx`** — **`AUTH_STORAGE_KEY`** (default `"wellness-auth-user"`) |
-
-To “pre-seed” a session without signing in, you can set **`localStorage`** in DevTools to a JSON string matching the `User` shape from `lib/auth.tsx` under key **`wellness-auth-user`**, then reload.
-
-**Supabase detection** is implemented in **`lib/supabase/browser.ts`** (`isSupabaseConfigured()`). To use mock mode, omit or clear the `NEXT_PUBLIC_SUPABASE_*` variables in `.env.local` and restart `npm run dev`.
-
-### Mobile
-
-The Expo app **`mobile/contexts/AuthContext.tsx`** expects Supabase to be configured (`EXPO_PUBLIC_SUPABASE_URL` + `EXPO_PUBLIC_SUPABASE_ANON_KEY`). There is no mock sign-in path on native; configure Supabase (or extend the mobile auth context) for device login.
-
----
-
-## Database
-
-- **Schema:** `prisma/schema.prisma` (`User`, `MoodLog`, `UserTask`, …)
-- **Migrations:** `prisma/migrations/`
-- **Bootstrap:** authenticated users get a `public.users` row via `POST /api/users/bootstrap`
-
-There is no checked-in Prisma **seed** script today; for repeatable DB seed data, add a `prisma/seed.ts` and wire `"prisma": { "seed": "..." }` in `package.json` if you want `npx prisma db seed` (coordinated with production merge policy).
 
 ---
 
@@ -146,21 +112,18 @@ There is no checked-in Prisma **seed** script today; for repeatable DB seed data
 
 | Route | Role |
 |-------|------|
-| `POST /api/users/bootstrap` | Ensures a `users` row for the current Supabase user |
-| `GET/POST` … `/api/mood`, `/api/tasks` | Mood and task data (authenticated) |
-| `GET /api/cron/daily-tasks` | Cron; requires secret header |
-| `POST /api/voice/transcribe` | Voice → text (optional OpenAI) |
-| `POST /api/ai/personalize` | Proxies to Supabase Edge Function |
+| `POST /api/users/bootstrap` | `public.users` row for current Supabase user |
+| `/api/mood`, `/api/tasks` | Mood and tasks (authenticated) |
 
-Server-side auth resolution: **`lib/api-auth.ts`** (`requireUser`) — cookies (web) or `Authorization: Bearer <JWT>` (mobile).
+Server auth: **`lib/api-auth.ts`** — cookies (web) or `Authorization: Bearer` (mobile).
 
 ---
 
 ## Production notes
 
-- Deploy Next.js (e.g. Vercel); set env vars in the host dashboard.
-- Configure Supabase **Authentication → URL configuration** for your production (and dev) origins.
-- Treat this repo as a **development build** that merges with production: prefer additive DB changes and backward-compatible APIs (`docs/context/AGENT-CONTEXT.md`).
+- Deploy Next.js (e.g. Vercel); set env in the host dashboard. Point **`EXPO_PUBLIC_API_URL`** at that URL for production mobile builds.
+- Supabase **Authentication → URL configuration** for your deployed origins.
+- Prefer additive DB migrations when merging with production (`docs/context/AGENT-CONTEXT.md`).
 
 ---
 

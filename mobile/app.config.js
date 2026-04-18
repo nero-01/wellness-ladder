@@ -18,11 +18,20 @@ if (!process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY && process.env.NEXT_PUBLIC_SUPABA
 if (!process.env.EXPO_PUBLIC_API_URL && process.env.NEXT_PUBLIC_API_URL) {
   process.env.EXPO_PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL
 }
+if (!process.env.EXPO_PUBLIC_USE_MOCK_AUTH && process.env.NEXT_PUBLIC_USE_MOCK_AUTH) {
+  process.env.EXPO_PUBLIC_USE_MOCK_AUTH = process.env.NEXT_PUBLIC_USE_MOCK_AUTH
+}
+if (!process.env.EXPO_PUBLIC_MOCK_DEV_EMAIL && process.env.NEXT_PUBLIC_MOCK_DEV_EMAIL) {
+  process.env.EXPO_PUBLIC_MOCK_DEV_EMAIL = process.env.NEXT_PUBLIC_MOCK_DEV_EMAIL
+}
+if (!process.env.EXPO_PUBLIC_MOCK_DEV_PASSWORD && process.env.NEXT_PUBLIC_MOCK_DEV_PASSWORD) {
+  process.env.EXPO_PUBLIC_MOCK_DEV_PASSWORD = process.env.NEXT_PUBLIC_MOCK_DEV_PASSWORD
+}
 
 module.exports = {
   expo: {
-    name: "mobile",
-    slug: "mobile",
+    name: "Wellness Ladder",
+    slug: "wellness-ladder",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
