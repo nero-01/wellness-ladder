@@ -1,5 +1,5 @@
 import type { ComponentProps } from "react"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -20,6 +20,13 @@ import { useColorScheme } from "@/components/useColorScheme"
 import { AUTH_PLACEHOLDER, authInputStyles } from "@/constants/authFormStyles"
 import type { OAuthProviderId } from "@/contexts/AuthContext"
 import { useAuth } from "@/contexts/AuthContext"
+import {
+  clearEmailConfirmationCooldown,
+  formatCooldownWait,
+  getSignupCooldownRemainingMs,
+  getStoredPendingConfirmationEmail,
+  recordEmailConfirmationSent,
+} from "@/lib/email-signup-cooldown"
 import { isPlausibleMailbox, sanitizeAuthEmailForSupabase } from "@/lib/auth-email"
 import { WellnessColors } from "@/constants/wellnessTheme"
 
@@ -65,10 +72,14 @@ export default function SignUpScreen() {
   const [showPw, setShowPw] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [info, setInfo] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [oauthBusy, setOauthBusy] = useState<OAuthProviderId | null>(null)
+  const [awaitingEmail, setAwaitingEmail] = useState<string | null>(null)
   const submitLock = useRef(false)
+
+  useEffect(() => {
+    void getStoredPendingConfirmationEmail().then(setAwaitingEmail)
+  }, [])
 
   const mismatch =
     confirmPassword.length > 0 && password !== confirmPassword
@@ -88,9 +99,15 @@ export default function SignUpScreen() {
       setError("Enter a valid email (check spelling, e.g. gmail.com).")
       return
     }
+    const cooldownLeft = await getSignupCooldownRemainingMs(normalized)
+    if (cooldownLeft > 0) {
+      setError(
+        `Wait ${formatCooldownWait(cooldownLeft)} before another signup for this email (avoids duplicate confirmation emails).`,
+      )
+      return
+    }
     submitLock.current = true
     setError(null)
-    setInfo(null)
     setLoading(true)
     try {
       const { needsEmailConfirmation } = await signUp(
@@ -99,9 +116,8 @@ export default function SignUpScreen() {
         name.trim() || normalized.split("@")[0] || "User",
       )
       if (needsEmailConfirmation) {
-        setInfo(
-          "Check your email — open the confirmation link to finish onboarding.",
-        )
+        await recordEmailConfirmationSent(normalized)
+        setAwaitingEmail(normalized)
         return
       }
     } catch (e) {
@@ -158,6 +174,43 @@ export default function SignUpScreen() {
                 },
               ]}
             >
+              {awaitingEmail ? (
+                <RNView style={{ gap: 14 }}>
+                  <Text style={[styles.awaitTitle, { color: textPrimary }]}>
+                    Check your email
+                  </Text>
+                  <Text style={[styles.awaitBody, { color: textMuted }]}>
+                    We requested a confirmation link for {awaitingEmail}. This screen will
+                    not send another email. Check spam and your Supabase email settings if
+                    nothing arrives.
+                  </Text>
+                  <Pressable
+                    style={[
+                      styles.button,
+                      {
+                        backgroundColor: "transparent",
+                        borderWidth: 2,
+                        borderColor: WellnessColors.primary,
+                        marginTop: 0,
+                      },
+                    ]}
+                    onPress={() => {
+                      void clearEmailConfirmationCooldown()
+                      setAwaitingEmail(null)
+                      setName("")
+                      setEmail("")
+                      setPassword("")
+                      setConfirmPassword("")
+                      setError(null)
+                    }}
+                  >
+                    <Text style={[styles.buttonText, { color: WellnessColors.primary }]}>
+                      Use a different email
+                    </Text>
+                  </Pressable>
+                </RNView>
+              ) : (
+                <>
               <TextInput
                 style={[authInputStyles.input, { marginBottom: 12 }]}
                 placeholder="Name"
@@ -240,7 +293,6 @@ export default function SignUpScreen() {
                 <Text style={styles.mismatch}>Passwords don&apos;t match</Text>
               ) : null}
 
-              {info ? <Text style={styles.info}>{info}</Text> : null}
               {error ? <Text style={styles.error}>{error}</Text> : null}
 
               <Pressable
@@ -317,6 +369,8 @@ export default function SignUpScreen() {
                   </Pressable>
                 ) : null}
               </RNView>
+                </>
+              )}
             </RNView>
 
             <Link href="/(auth)/sign-in" asChild>
@@ -363,6 +417,8 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 4,
   },
+  awaitTitle: { fontSize: 20, fontWeight: "700" },
+  awaitBody: { fontSize: 14, lineHeight: 20 },
   row: { flexDirection: "row", alignItems: "center", gap: 8 },
   inputFlex: { flex: 1 },
   eyeBtn: {

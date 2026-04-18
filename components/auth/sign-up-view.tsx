@@ -30,6 +30,13 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
+import {
+  clearEmailConfirmationCooldown,
+  formatCooldownWait,
+  getSignupCooldownRemainingMs,
+  getStoredPendingConfirmationEmail,
+  recordEmailConfirmationSent,
+} from "@/lib/email-signup-cooldown"
 import { isPlausibleMailbox, sanitizeAuthEmailForSupabase } from "@/lib/auth-email"
 import { cn } from "@/lib/utils"
 
@@ -94,6 +101,11 @@ export function SignUpView() {
   const [showAppleOauth, setShowAppleOauth] = useState(false)
   const prevMismatch = useRef(false)
   const submitInFlight = useRef(false)
+  const [awaitingEmail, setAwaitingEmail] = useState<string | null>(null)
+
+  useEffect(() => {
+    setAwaitingEmail(getStoredPendingConfirmationEmail())
+  }, [])
 
   useEffect(() => {
     setShowAppleOauth(
@@ -150,6 +162,15 @@ export function SignUpView() {
 
   async function onValid(values: SignUpFormValues) {
     if (submitInFlight.current) return
+    const normalizedEmail = sanitizeAuthEmailForSupabase(values.email)
+    const cooldownLeft = getSignupCooldownRemainingMs(normalizedEmail)
+    if (cooldownLeft > 0) {
+      toast.error(
+        `A confirmation was already requested for this address. Wait ${formatCooldownWait(cooldownLeft)} before trying again (avoids duplicate emails).`,
+        { duration: 8000 },
+      )
+      return
+    }
     submitInFlight.current = true
     setLoading(true)
     try {
@@ -159,10 +180,8 @@ export function SignUpView() {
         values.name || values.email.split("@")[0] || "User",
       )
       if (needsEmailConfirmation) {
-        toast.success(
-          "Check your email — we sent a confirmation link to finish onboarding.",
-          { duration: 6000 },
-        )
+        recordEmailConfirmationSent(normalizedEmail)
+        setAwaitingEmail(normalizedEmail)
         return
       }
       toast.success("Welcome! You're on the ladder.")
@@ -216,12 +235,50 @@ export function SignUpView() {
 
           <Card className="border-border/60 shadow-lg shadow-primary/5 backdrop-blur-sm bg-card/95">
             <CardHeader className="space-y-1 pb-4">
-              <CardTitle className="text-xl">Create account</CardTitle>
+              <CardTitle className="text-xl">
+                {awaitingEmail ? "Check your email" : "Create account"}
+              </CardTitle>
               <CardDescription>
-                Email and password, or continue with a provider below.
+                {awaitingEmail
+                  ? "Confirmation link sent — this screen will not send another email."
+                  : "Email and password, or continue with a provider below."}
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {awaitingEmail ? (
+                <div className="space-y-4 text-sm text-muted-foreground">
+                  <p>
+                    We requested a confirmation link for{" "}
+                    <span className="font-medium text-foreground">{awaitingEmail}</span>.
+                    Open it to finish signing up. If you don&apos;t see it within a few
+                    minutes, check spam and that the address is correct.
+                  </p>
+                  <p className="text-xs border-l-2 border-primary/40 pl-3">
+                    Still nothing? In Supabase Dashboard → Authentication → Providers →
+                    Email, ensure &quot;Confirm email&quot; is enabled and your SMTP /
+                    redirect URLs are configured. This app does not send mail itself.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      clearEmailConfirmationCooldown()
+                      setAwaitingEmail(null)
+                      form.reset()
+                    }}
+                  >
+                    Use a different email
+                  </Button>
+                  <p className="text-[11px] text-center">
+                    Waiting avoids repeat sign-up taps, which trigger more confirmation
+                    emails from Supabase.
+                  </p>
+                </div>
+              ) : null}
+
+              {!awaitingEmail ? (
+              <>
               <Form {...form}>
                 <form
                   onSubmit={form.handleSubmit(onValid, onInvalid)}
@@ -446,6 +503,8 @@ export function SignUpView() {
                 <p className="mt-3 text-center text-[11px] text-muted-foreground">
                   Apple sign-in is available on iPhone and iPad.
                 </p>
+              ) : null}
+              </>
               ) : null}
             </CardContent>
           </Card>
