@@ -29,6 +29,8 @@ export function useTimer({
     if (!isActive) return
     const id = setInterval(() => {
       setTimeLeft((prev) => {
+        // Guard: avoid re-firing onComplete every tick after 0 (fixes call stack / update loop)
+        if (prev <= 0) return 0
         if (prev <= 1) {
           setIsActive(false)
           setIsCompleted(true)

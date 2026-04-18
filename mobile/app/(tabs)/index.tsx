@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons"
 import { useRouter } from "expo-router"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   Appearance,
   Pressable,
@@ -10,7 +10,10 @@ import {
   View,
 } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
+import { TaskCatalogPreview } from "@/components/TaskCatalogPreview"
 import { WellnessColors as W } from "@/constants/wellnessTheme"
+import { useStreak } from "@/hooks/useStreak"
+import { getTodayTask } from "@/lib/wellness-data"
 
 const FEATURES = [
   {
@@ -37,6 +40,11 @@ const FEATURES = [
 
 export default function HomeScreen() {
   const router = useRouter()
+  const { displayStreak, isLoaded: streakLoaded } = useStreak()
+  const todayTask = useMemo(
+    () => getTodayTask(displayStreak),
+    [displayStreak],
+  )
   const [colorScheme, setColorScheme] = useState<"light" | "dark" | null>(
     () => Appearance.getColorScheme() ?? "dark",
   )
@@ -101,6 +109,12 @@ export default function HomeScreen() {
           </Pressable>
         </View>
 
+        {streakLoaded ? (
+          <View style={styles.ladderSection}>
+            <TaskCatalogPreview todayTaskId={todayTask.id} />
+          </View>
+        ) : null}
+
         {/* Feature grid — 2 columns, stacks on narrow phones naturally via flex */}
         <View style={styles.grid}>
           {FEATURES.map((f) => (
@@ -114,22 +128,29 @@ export default function HomeScreen() {
           ))}
         </View>
 
-        {/* Mini preview — echoes web “Day 3” card */}
-        <View style={styles.preview}>
-          <View style={styles.previewTopRow}>
-            <View style={styles.previewLeft}>
-              <View style={styles.dayPill}>
-                <Text style={styles.dayPillText}>Day 3</Text>
+        {/* Today’s focus — matches streak + scheduled task */}
+        {streakLoaded ? (
+          <View style={styles.preview}>
+            <View style={styles.previewTopRow}>
+              <View style={styles.previewLeft}>
+                <View style={styles.dayPill}>
+                  <Text style={styles.dayPillText}>Day {displayStreak}</Text>
+                </View>
+                <Text style={styles.previewTitle}>Your Progress</Text>
               </View>
-              <Text style={styles.previewTitle}>Your Progress</Text>
+              <Text style={styles.previewEmoji} accessibilityLabel="Task icon">
+                {todayTask.icon}
+              </Text>
             </View>
-            <View style={styles.spinnerRing} />
+            <View style={styles.previewTaskBox}>
+              <Text style={styles.previewHint}>{"Today's focus"}</Text>
+              <Text style={styles.previewTask}>{todayTask.title}</Text>
+              <Text style={styles.previewMeta}>
+                ~{todayTask.duration}s · tap Start Your Ladder to begin
+              </Text>
+            </View>
           </View>
-          <View style={styles.previewTaskBox}>
-            <Text style={styles.previewHint}>{"Today's Task"}</Text>
-            <Text style={styles.previewTask}>Take 3 deep breaths</Text>
-          </View>
-        </View>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   )
@@ -222,6 +243,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
   },
+  ladderSection: {
+    paddingHorizontal: 20,
+    marginTop: 8,
+  },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -299,13 +324,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
   },
-  spinnerRing: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 3,
-    borderColor: W.primary,
-    borderTopColor: "transparent",
+  previewEmoji: {
+    fontSize: 36,
   },
   previewTaskBox: {
     backgroundColor: "rgba(255,255,255,0.05)",
@@ -322,5 +342,13 @@ const styles = StyleSheet.create({
     color: W.text,
     fontSize: 16,
     fontWeight: "600",
+    textAlign: "center",
+  },
+  previewMeta: {
+    color: W.textMuted,
+    fontSize: 12,
+    marginTop: 10,
+    textAlign: "center",
+    lineHeight: 16,
   },
 })
