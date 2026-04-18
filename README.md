@@ -92,6 +92,17 @@ Open [http://localhost:3000](http://localhost:3000). Web auth mock lives in **`l
 
 ---
 
+## Mobile navigation & auth flow
+
+1. **`app/index.tsx`** — Waits for `AuthProvider` (`isLoaded`), then **redirects** to `/(auth)/sign-in` or **`/(tabs)`**. Shows a spinner while the session is restored (Supabase AsyncStorage or mock AsyncStorage).
+2. **`app/_layout.tsx`** — `useProtectedRoute()` uses **`usePathname()`** so unauthenticated users cannot stay on tab screens (e.g. deep links), and signed-in users are moved out of auth screens after login.
+3. **`(auth)/`** — Sign-in / sign-up stacks.
+4. **`(tabs)/`** — Home, Task, Profile after authentication.
+
+Mock and real sessions share the same navigation rules; sign-in/sign-up rely on the layout effect to navigate to tabs (no duplicate `router.replace` in forms).
+
+---
+
 ## Repository layout
 
 ```

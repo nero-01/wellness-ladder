@@ -7,14 +7,13 @@ import {
   StyleSheet,
   TextInput,
 } from "react-native"
-import { Link, useRouter } from "expo-router"
+import { Link } from "expo-router"
 import { Text, View } from "@/components/Themed"
 import { AUTH_PLACEHOLDER, authInputStyles } from "@/constants/authFormStyles"
 import { useAuth } from "@/contexts/AuthContext"
 
 export default function SignInScreen() {
   const { signIn } = useAuth()
-  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -25,7 +24,7 @@ export default function SignInScreen() {
     setLoading(true)
     try {
       await signIn(email.trim(), password)
-      router.replace("/(tabs)")
+      // Navigation: `useProtectedRoute` in app/_layout.tsx sends authed users to /(tabs)
     } catch (e) {
       setError(e instanceof Error ? e.message : "Sign in failed")
     } finally {

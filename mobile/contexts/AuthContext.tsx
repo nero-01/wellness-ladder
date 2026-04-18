@@ -31,9 +31,9 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-/** Default profile when using mock auth — edit here for seed data. */
+/** Default profile when using mock auth — edit here for seed data. Id is UUID-shaped for Prisma/API compatibility. */
 const MOCK_USER: User = {
-  id: "user_demo",
+  id: "00000000-0000-4000-8000-000000000001",
   email: "demo@wellness.app",
   name: "Wellness User",
   isPremium: false,

@@ -44,4 +44,5 @@ Native modules in use: **`expo-haptics`**, **`expo-av`** (playback + mic recordi
 | Supabase (mobile) | `mobile/lib/supabase.ts`, `mobile/contexts/AuthContext.tsx` |
 | Auth UI (web)    | `lib/auth.tsx`, `app/sign-in`, `app/sign-up` |
 | Auth UI (native) | `mobile/app/(auth)/` |
+| Mobile navigation | `mobile/app/index.tsx` (auth gate), `mobile/app/_layout.tsx` (`useProtectedRoute`) |
 | Edge fn    | `supabase/functions/personalize/` |

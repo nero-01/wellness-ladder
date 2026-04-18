@@ -7,14 +7,13 @@ import {
   StyleSheet,
   TextInput,
 } from "react-native"
-import { Link, useRouter } from "expo-router"
+import { Link } from "expo-router"
 import { Text, View } from "@/components/Themed"
 import { AUTH_PLACEHOLDER, authInputStyles } from "@/constants/authFormStyles"
 import { useAuth } from "@/contexts/AuthContext"
 
 export default function SignUpScreen() {
   const { signUp } = useAuth()
-  const router = useRouter()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -26,7 +25,6 @@ export default function SignUpScreen() {
     setLoading(true)
     try {
       await signUp(email.trim(), password, name.trim() || email.split("@")[0] || "User")
-      router.replace("/(tabs)")
     } catch (e) {
       setError(e instanceof Error ? e.message : "Sign up failed")
     } finally {
