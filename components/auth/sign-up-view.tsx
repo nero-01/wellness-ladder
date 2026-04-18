@@ -30,12 +30,23 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
+import { isPlausibleMailbox, sanitizeAuthEmailForSupabase } from "@/lib/auth-email"
 import { cn } from "@/lib/utils"
 
 const signUpSchema = z
   .object({
     name: z.string().trim().min(1, "Enter your name"),
-    email: z.string().trim().email("Enter a valid email"),
+    email: z.preprocess(
+      (v) => (typeof v === "string" ? sanitizeAuthEmailForSupabase(v) : ""),
+      z
+        .string()
+        .min(3, "Enter your email")
+        .email("Enter a valid email")
+        .refine(isPlausibleMailbox, {
+          message:
+            "That email looks incomplete. Check the domain (e.g. gmail.com).",
+        }),
+    ),
     password: z.string().min(8, "Use at least 8 characters"),
     confirmPassword: z.string(),
   })
@@ -77,6 +88,7 @@ export function SignUpView() {
   const [shakeKey, setShakeKey] = useState(0)
   const [showAppleOauth, setShowAppleOauth] = useState(false)
   const prevMismatch = useRef(false)
+  const submitInFlight = useRef(false)
 
   useEffect(() => {
     setShowAppleOauth(
@@ -132,6 +144,8 @@ export function SignUpView() {
   }
 
   async function onValid(values: SignUpFormValues) {
+    if (submitInFlight.current) return
+    submitInFlight.current = true
     setLoading(true)
     try {
       const { needsEmailConfirmation } = await signUp(
@@ -157,6 +171,7 @@ export function SignUpView() {
         toast.error(msg)
       }
     } finally {
+      submitInFlight.current = false
       setLoading(false)
     }
   }

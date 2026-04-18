@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -13,6 +13,7 @@ import { useColorScheme } from "@/components/useColorScheme"
 import { AUTH_PLACEHOLDER, authInputStyles } from "@/constants/authFormStyles"
 import { WellnessColors, WellnessColorsLight } from "@/constants/wellnessTheme"
 import { useAuth } from "@/contexts/AuthContext"
+import { isPlausibleMailbox, sanitizeAuthEmailForSupabase } from "@/lib/auth-email"
 
 export default function SignUpScreen() {
   const colorScheme = useColorScheme()
@@ -25,16 +26,24 @@ export default function SignUpScreen() {
   const [error, setError] = useState<string | null>(null)
   const [info, setInfo] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const submitLock = useRef(false)
 
   async function onSubmit() {
+    if (submitLock.current) return
+    const normalized = sanitizeAuthEmailForSupabase(email)
+    if (!isPlausibleMailbox(normalized)) {
+      setError("Enter a valid email (check spelling, e.g. gmail.com).")
+      return
+    }
+    submitLock.current = true
     setError(null)
     setInfo(null)
     setLoading(true)
     try {
       const { needsEmailConfirmation } = await signUp(
-        email.trim(),
+        normalized,
         password,
-        name.trim() || email.split("@")[0] || "User",
+        name.trim() || normalized.split("@")[0] || "User",
       )
       if (needsEmailConfirmation) {
         setInfo(
@@ -45,6 +54,7 @@ export default function SignUpScreen() {
     } catch (e) {
       setError(e instanceof Error ? e.message : "Sign up failed")
     } finally {
+      submitLock.current = false
       setLoading(false)
     }
   }

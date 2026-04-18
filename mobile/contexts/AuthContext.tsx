@@ -10,6 +10,7 @@ import React, {
   useState,
   type ReactNode,
 } from "react"
+import { sanitizeAuthEmailForSupabase } from "@/lib/auth-email"
 import { bootstrapUserProfile } from "@/lib/api"
 import { isSupabaseConfigured, supabase } from "@/lib/supabase"
 
@@ -157,7 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const { error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
+      email: sanitizeAuthEmailForSupabase(email),
       password,
     })
     if (error) {
@@ -189,8 +190,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const emailRedirectTo = getAuthEmailRedirectTo()
+    const normalizedEmail = sanitizeAuthEmailForSupabase(email)
     const { data, error } = await supabase.auth.signUp({
-      email: email.trim(),
+      email: normalizedEmail,
       password,
       options: {
         data: { name: name.trim() },

@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react"
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js"
+import { sanitizeAuthEmailForSupabase } from "@/lib/auth-email"
 import { getBrowserSupabase, isSupabaseConfigured } from "@/lib/supabase/browser"
 
 export interface User {
@@ -143,10 +144,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!isSupabaseConfigured()) {
       await new Promise((resolve) => setTimeout(resolve, 500))
       assertMockSignIn(email, password)
+      const em = sanitizeAuthEmailForSupabase(email)
       const newUser: User = {
         ...MOCK_USER,
-        email: email.trim(),
-        name: email.trim().split("@")[0] ?? "User",
+        email: em,
+        name: em.split("@")[0] ?? "User",
       }
       setUser(newUser)
       localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(newUser))
@@ -157,7 +159,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!supabase) throw new Error("Supabase client unavailable")
 
     const { error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
+      email: sanitizeAuthEmailForSupabase(email),
       password,
     })
     if (error) {
@@ -175,9 +177,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = useCallback(async (email: string, password: string, name: string) => {
     if (!isSupabaseConfigured()) {
       await new Promise((resolve) => setTimeout(resolve, 500))
+      const em = sanitizeAuthEmailForSupabase(email)
       const newUser: User = {
         id: `user_${Date.now()}`,
-        email,
+        email: em,
         name,
         isPremium: false,
       }
@@ -190,8 +193,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!supabase) throw new Error("Supabase client unavailable")
 
     const emailRedirectTo = getAuthCallbackUrl()
+    const normalizedEmail = sanitizeAuthEmailForSupabase(email)
     const { data, error } = await supabase.auth.signUp({
-      email: email.trim(),
+      email: normalizedEmail,
       password,
       options: {
         data: { name },
