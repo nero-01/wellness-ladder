@@ -1,4 +1,5 @@
 /** Dark wellness landing palette — aligned with web `app/page.tsx` + globals dark theme */
+/** Layout rhythm (insets, radii, padding): `mobile/constants/layoutTokens.ts` */
 
 import {
   moodPastelsDark,

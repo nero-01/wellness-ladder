@@ -10,6 +10,7 @@ import {
   type ViewStyle,
 } from "react-native"
 import { previewCardShadow } from "@/constants/homeCard"
+import { radiusInner, radiusMd, radiusSm } from "@/constants/layoutTokens"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import type { Task } from "@/lib/wellness-data"
@@ -23,7 +24,7 @@ function createStyles(W: WellnessPalette, variant: CardVariant) {
     root: {
       width: 156,
       minHeight: 200,
-      borderRadius: 18,
+      borderRadius: radiusMd,
       padding: 16,
       backgroundColor: isToday ? W.iconBg : W.bgElevated,
       borderWidth: 1,
@@ -45,7 +46,7 @@ function createStyles(W: WellnessPalette, variant: CardVariant) {
     iconWell: {
       width: 48,
       height: 48,
-      borderRadius: 14,
+      borderRadius: radiusInner,
       backgroundColor: W.bgElevated,
       alignItems: "center",
       justifyContent: "center",
@@ -75,7 +76,7 @@ function createStyles(W: WellnessPalette, variant: CardVariant) {
       backgroundColor: W.primary,
       paddingHorizontal: 9,
       paddingVertical: 4,
-      borderRadius: 8,
+      borderRadius: radiusSm,
     },
     todayTagText: {
       fontSize: 10,

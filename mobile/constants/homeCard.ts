@@ -1,7 +1,8 @@
 import { Platform, type ViewStyle } from "react-native"
 
 /**
- * Shared elevation for home / ladder preview tiles — one subtle system, not variant-heavy.
+ * Shared elevation for cards, catalog tiles, and primary surfaces.
+ * Use everywhere a raised-but-minimal frame is needed (avoid mixed shadow strengths).
  */
 export const previewCardShadow: ViewStyle = {
   ...Platform.select({

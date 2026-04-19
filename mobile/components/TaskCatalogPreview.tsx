@@ -2,6 +2,7 @@ import { useRouter } from "expo-router"
 import { useMemo } from "react"
 import { ScrollView, StyleSheet, Text, View } from "react-native"
 import { TaskStepCatalogCard } from "@/components/TaskStepCard"
+import { gapSection, inset } from "@/constants/layoutTokens"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import type { Task } from "@/lib/wellness-data"
@@ -9,7 +10,7 @@ import { WELLNESS_TASKS } from "@/lib/wellness-data"
 
 function createCatalogStyles(W: WellnessPalette) {
   return StyleSheet.create({
-    wrap: { marginTop: 8, marginBottom: 8 },
+    wrap: { marginTop: gapSection / 2, marginBottom: gapSection / 2 },
     sectionTitle: {
       fontSize: 17,
       fontWeight: "700",
@@ -20,12 +21,12 @@ function createCatalogStyles(W: WellnessPalette) {
       fontSize: 13,
       color: W.textMuted,
       lineHeight: 18,
-      marginBottom: 14,
+      marginBottom: 12,
     },
     row: {
       gap: 12,
-      paddingRight: 8,
-      paddingBottom: 4,
+      paddingRight: inset,
+      paddingBottom: 2,
     },
   })
 }

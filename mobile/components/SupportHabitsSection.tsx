@@ -10,6 +10,8 @@ import {
   View,
 } from "react-native"
 import { useRecurringHabitsContext } from "@/contexts/RecurringHabitsContext"
+import { previewCardShadow } from "@/constants/homeCard"
+import { gapSection, padCard, radiusMd, radiusSm } from "@/constants/layoutTokens"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { wellnessTapLight } from "@/lib/wellnessFeedback"
@@ -19,13 +21,14 @@ import { format } from "date-fns"
 function createStyles(W: WellnessPalette) {
   return StyleSheet.create({
     wrap: {
-      marginBottom: 16,
-      paddingVertical: 14,
-      paddingHorizontal: 14,
-      borderRadius: 16,
+      marginBottom: gapSection,
+      paddingVertical: 12,
+      paddingHorizontal: padCard,
+      borderRadius: radiusMd,
       borderWidth: 1,
       borderColor: W.cardBorder,
       backgroundColor: W.surfaceMuted,
+      ...previewCardShadow,
     },
     headerRow: {
       flexDirection: "row",
@@ -67,14 +70,14 @@ function createStyles(W: WellnessPalette) {
       marginTop: 6,
       paddingHorizontal: 8,
       paddingVertical: 3,
-      borderRadius: 8,
+      borderRadius: radiusSm,
       backgroundColor: W.iconBg,
     },
     streakText: { fontSize: 11, fontWeight: "700", color: W.primary },
     doneBtn: {
       paddingVertical: 8,
       paddingHorizontal: 12,
-      borderRadius: 12,
+      borderRadius: radiusSm,
       borderWidth: 1,
       borderColor: W.cardBorder,
       backgroundColor: W.bgElevated,

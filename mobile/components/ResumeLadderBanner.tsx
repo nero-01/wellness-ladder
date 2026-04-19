@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native"
 import { Mascot } from "@/components/Mascot"
+import { gapSection, padCard, radiusMd, radiusSm } from "@/constants/layoutTokens"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { wellnessTapLight } from "@/lib/wellnessFeedback"
@@ -49,17 +50,17 @@ function createStyles(W: WellnessPalette) {
     banner: {
       flexDirection: "row",
       gap: 12,
-      padding: 14,
-      borderRadius: 16,
+      padding: padCard,
+      borderRadius: radiusMd,
       backgroundColor: W.iconBg,
       borderWidth: 1,
       borderColor: W.primary,
-      marginBottom: 16,
+      marginBottom: gapSection,
     },
     iconWrap: {
       width: 64,
       height: 64,
-      borderRadius: 16,
+      borderRadius: radiusMd,
       backgroundColor: W.surfaceMuted,
       alignItems: "center",
       justifyContent: "center",
@@ -78,7 +79,7 @@ function createStyles(W: WellnessPalette) {
       backgroundColor: W.primary,
       paddingHorizontal: 16,
       paddingVertical: 10,
-      borderRadius: 12,
+      borderRadius: radiusSm,
     },
     btnText: { color: "#fff", fontWeight: "700", fontSize: 14 },
   })

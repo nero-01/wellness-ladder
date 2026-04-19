@@ -32,6 +32,17 @@ import { TaskStepIconWell } from "@/components/TaskStepCard"
 import { TaskTimerBar } from "@/components/TaskTimerBar"
 import { VoiceRecorder } from "@/components/VoiceRecorder"
 import { VoiceWaveformLottie } from "@/components/VoiceWaveformLottie"
+import { previewCardShadow } from "@/constants/homeCard"
+import {
+  gapItem,
+  gapSection,
+  inset,
+  padCard,
+  padSection,
+  radiusInner,
+  radiusMd,
+  radiusSm,
+} from "@/constants/layoutTokens"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useTaskSessionTimer } from "@/hooks/useTaskSessionTimer"
 import { useTaskVoiceGuidance } from "@/hooks/useTaskVoiceGuidance"
@@ -53,7 +64,7 @@ import { speakTask, stopTaskSpeech } from "@/utils/elevenlabs"
 function createTaskSessionStyles(W: WellnessPalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: W.bg },
-    scroll: { paddingHorizontal: 20, paddingBottom: 100 },
+    scroll: { paddingHorizontal: inset, paddingBottom: 100 },
     pressDim: { opacity: 0.85 },
     topBar: {
       flexDirection: "row",
@@ -66,10 +77,10 @@ function createTaskSessionStyles(W: WellnessPalette) {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      marginBottom: 16,
+      marginBottom: gapSection,
       paddingVertical: 12,
-      paddingHorizontal: 14,
-      borderRadius: 14,
+      paddingHorizontal: padCard,
+      borderRadius: radiusMd,
       borderWidth: 1,
       borderColor: W.cardBorder,
       backgroundColor: W.bgElevated,
@@ -98,20 +109,16 @@ function createTaskSessionStyles(W: WellnessPalette) {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "flex-start",
-      marginBottom: 20,
+      marginBottom: gapSection,
     },
     card: {
-      borderRadius: 20,
-      padding: 20,
-      marginBottom: 20,
-      shadowColor: "#000",
-      shadowOpacity: 0.12,
-      shadowRadius: 12,
-      shadowOffset: { width: 0, height: 4 },
-      elevation: 3,
+      borderRadius: radiusMd,
+      padding: padSection,
+      marginBottom: gapSection,
       overflow: "hidden",
       borderWidth: 1,
       borderColor: W.cardBorder,
+      ...previewCardShadow,
     },
     cardHeader: {
       flexDirection: "row",
@@ -157,8 +164,8 @@ function createTaskSessionStyles(W: WellnessPalette) {
       alignSelf: "center",
       marginTop: 12,
       paddingVertical: 10,
-      paddingHorizontal: 16,
-      borderRadius: 14,
+      paddingHorizontal: padCard,
+      borderRadius: radiusInner,
       borderWidth: 1,
       borderColor: W.cardBorder,
       backgroundColor: W.surfaceMuted,
@@ -179,7 +186,7 @@ function createTaskSessionStyles(W: WellnessPalette) {
     startCta: {
       backgroundColor: W.primary,
       paddingVertical: 16,
-      borderRadius: 18,
+      borderRadius: radiusMd,
       alignItems: "center",
       shadowColor: W.primary,
       shadowOpacity: 0.35,
@@ -195,7 +202,7 @@ function createTaskSessionStyles(W: WellnessPalette) {
     stopWalkBtn: {
       marginTop: 14,
       paddingVertical: 14,
-      borderRadius: 16,
+      borderRadius: radiusInner,
       borderWidth: 1,
       borderColor: W.cardBorder,
       backgroundColor: W.surfaceMuted,
@@ -211,8 +218,8 @@ function createTaskSessionStyles(W: WellnessPalette) {
     },
     actions: {
       flexDirection: "row",
-      gap: 12,
-      marginBottom: 20,
+      gap: gapItem,
+      marginBottom: gapSection,
       alignItems: "center",
     },
     doneBtn: {
@@ -223,7 +230,7 @@ function createTaskSessionStyles(W: WellnessPalette) {
       gap: 8,
       backgroundColor: W.primary,
       paddingVertical: 16,
-      borderRadius: 18,
+      borderRadius: radiusMd,
       opacity: 1,
     },
     doneBtnDisabled: { opacity: 0.45 },
@@ -232,7 +239,7 @@ function createTaskSessionStyles(W: WellnessPalette) {
     skipBtn: {
       width: 52,
       height: 52,
-      borderRadius: 16,
+      borderRadius: radiusInner,
       borderWidth: 1,
       borderColor: W.cardBorder,
       alignItems: "center",
@@ -249,8 +256,8 @@ function createTaskSessionStyles(W: WellnessPalette) {
     devBanner: {
       marginBottom: 12,
       paddingVertical: 10,
-      paddingHorizontal: 12,
-      borderRadius: 12,
+      paddingHorizontal: padCard,
+      borderRadius: radiusSm,
       backgroundColor: W.iconBg,
       borderWidth: 1,
       borderColor: W.cardBorder,
@@ -274,7 +281,7 @@ function createTaskSessionStyles(W: WellnessPalette) {
       gap: 4,
       paddingVertical: 6,
       paddingHorizontal: 8,
-      borderRadius: 12,
+      borderRadius: radiusSm,
       borderWidth: 1,
       borderColor: W.cardBorder,
       backgroundColor: W.surfaceMuted,
@@ -285,11 +292,11 @@ function createTaskSessionStyles(W: WellnessPalette) {
       backgroundColor: "rgba(0,0,0,0.4)",
       justifyContent: "flex-start",
       paddingTop: 56,
-      paddingHorizontal: 20,
+      paddingHorizontal: inset,
       position: "relative",
     },
     langMenu: {
-      borderRadius: 14,
+      borderRadius: radiusMd,
       borderWidth: 1,
       borderColor: W.cardBorder,
       backgroundColor: W.bgElevated,
@@ -305,10 +312,10 @@ function createTaskSessionStyles(W: WellnessPalette) {
     langMenuLabel: { fontSize: 16, fontWeight: "600", color: W.text },
     langMenuHint: { fontSize: 12, color: W.textMuted, marginTop: 2 },
     moodStrip: {
-      marginBottom: 16,
-      paddingVertical: 14,
-      paddingHorizontal: 14,
-      borderRadius: 16,
+      marginBottom: gapSection,
+      paddingVertical: 12,
+      paddingHorizontal: padCard,
+      borderRadius: radiusMd,
       borderWidth: 1,
       borderColor: W.cardBorder,
       backgroundColor: W.bgElevated,
@@ -322,7 +329,7 @@ function createTaskSessionStyles(W: WellnessPalette) {
       alignItems: "center",
       marginTop: 4,
       marginBottom: 12,
-      paddingHorizontal: 8,
+      paddingHorizontal: 0,
     },
   })
 }

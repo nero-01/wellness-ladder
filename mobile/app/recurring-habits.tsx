@@ -15,6 +15,13 @@ import {
 } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { useRecurringHabitsContext } from "@/contexts/RecurringHabitsContext"
+import { previewCardShadow } from "@/constants/homeCard"
+import {
+  gapSection,
+  inset,
+  padCard,
+  radiusMd,
+} from "@/constants/layoutTokens"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { ensureNotificationPermissions } from "@/lib/recurring-habit-notifications"
@@ -29,20 +36,21 @@ import { wellnessTapLight } from "@/lib/wellnessFeedback"
 function createStyles(W: WellnessPalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: W.bg },
-    scroll: { paddingBottom: 48, paddingHorizontal: 20 },
+    scroll: { paddingBottom: 48, paddingHorizontal: inset },
     lead: {
       fontSize: 15,
       color: W.textMuted,
       lineHeight: 22,
-      marginBottom: 16,
+      marginBottom: gapSection,
     },
     card: {
       backgroundColor: W.bgElevated,
-      borderRadius: 18,
+      borderRadius: radiusMd,
       borderWidth: 1,
       borderColor: W.cardBorder,
-      padding: 16,
-      marginBottom: 12,
+      padding: padCard,
+      marginBottom: gapSection,
+      ...previewCardShadow,
     },
     rowBetween: {
       flexDirection: "row",

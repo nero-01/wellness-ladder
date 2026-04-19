@@ -9,6 +9,7 @@ import {
   useWindowDimensions,
   View,
 } from "react-native"
+import { inset, padCard, radiusMd } from "@/constants/layoutTokens"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { getMiloMoodItem, MILO_MOOD_ITEMS } from "@/lib/milo-mood"
 import { moodPastelAccent } from "@/lib/mood-pastels"
@@ -37,8 +38,11 @@ export function MoodPickerRow({
   const { width: screenW } = useWindowDimensions()
   const styles = useMemo(() => createStyles(W), [W])
 
-  const cellOuter =
-    Math.min(84, Math.max(72, (screenW - 40 - CELL_GAP * 3) / 4))
+  const hPad = inset * 2 + padCard * 2
+  const cellOuter = Math.min(
+    84,
+    Math.max(72, (screenW - hPad - CELL_GAP * 3) / 4),
+  )
 
   const selected = selectedMood !== null ? getMiloMoodItem(selectedMood) : undefined
   const selectedAccent = selected
@@ -183,16 +187,16 @@ function createStyles(W: WellnessPalette) {
       color: W.textMuted,
       textAlign: "center",
       lineHeight: 17,
-      marginBottom: 14,
-      paddingHorizontal: 4,
+      marginBottom: 12,
+      paddingHorizontal: 0,
     },
-    gridWrap: { marginHorizontal: -4 },
+    gridWrap: { marginHorizontal: 0 },
     emojiRow: {
       flexGrow: 1,
       justifyContent: "center",
       alignItems: "flex-start",
-      paddingVertical: 4,
-      paddingHorizontal: 4,
+      paddingVertical: 2,
+      paddingHorizontal: 0,
     },
     /** Layout only — mood color comes from accent tokens */
     cellBase: {
@@ -200,7 +204,7 @@ function createStyles(W: WellnessPalette) {
       justifyContent: "flex-start",
       paddingVertical: 10,
       paddingHorizontal: 6,
-      borderRadius: 18,
+      borderRadius: radiusMd,
     },
     cellPressed: { opacity: 0.92 },
     emojiWell: {
@@ -217,8 +221,8 @@ function createStyles(W: WellnessPalette) {
       textAlign: "center",
     },
     confirm: {
-      marginTop: 14,
-      paddingHorizontal: 4,
+      marginTop: 12,
+      paddingHorizontal: 0,
     },
     confirmMain: {
       fontSize: 14,

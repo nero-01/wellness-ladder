@@ -10,6 +10,15 @@ import {
 } from "react-native"
 import { Link } from "expo-router"
 import { SafeAreaView } from "react-native-safe-area-context"
+import { previewCardShadow } from "@/constants/homeCard"
+import {
+  gapSection,
+  inset,
+  padSection,
+  radiusLg,
+  radiusMd,
+  radiusSm,
+} from "@/constants/layoutTokens"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { IS_DEV_BYPASS } from "@/constants/devBypass"
 import { useAuth } from "@/contexts/AuthContext"
@@ -49,17 +58,22 @@ function createStyles(W: WellnessPalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: W.bg },
     scroll: { paddingBottom: 40 },
-    headerBlock: { paddingHorizontal: 20, paddingTop: 8, marginBottom: 8 },
+    headerBlock: {
+      paddingHorizontal: inset,
+      paddingTop: 8,
+      marginBottom: gapSection / 2,
+    },
     title: { fontSize: 28, fontWeight: "800", color: W.text },
     subtitle: { fontSize: 15, color: W.textMuted, marginTop: 6, lineHeight: 22 },
     card: {
-      marginHorizontal: 20,
-      marginTop: 16,
+      marginHorizontal: inset,
+      marginTop: gapSection,
       backgroundColor: W.bgElevated,
-      borderRadius: 20,
-      padding: 20,
+      borderRadius: radiusLg,
+      padding: padSection,
       borderWidth: 1,
       borderColor: W.cardBorder,
+      ...previewCardShadow,
     },
     cardTitle: {
       fontSize: 13,
@@ -115,7 +129,7 @@ function createStyles(W: WellnessPalette) {
       borderWidth: 1,
       borderColor: W.cardBorder,
       paddingVertical: 14,
-      borderRadius: 16,
+      borderRadius: radiusMd,
       alignItems: "center",
       backgroundColor: W.surfaceMuted,
     },
@@ -125,7 +139,7 @@ function createStyles(W: WellnessPalette) {
       marginTop: 10,
       paddingHorizontal: 10,
       paddingVertical: 6,
-      borderRadius: 8,
+      borderRadius: radiusSm,
       backgroundColor: W.surfaceMuted,
       borderWidth: 1,
       borderColor: W.primary,
@@ -203,29 +217,35 @@ export default function ProfileScreen() {
             style={({ pressed }) => [
               styles.card,
               {
-                marginTop: 4,
-                borderLeftWidth: 4,
-                borderLeftColor: habitsAccent.border,
+                marginTop: gapSection / 2,
+                padding: 0,
+                flexDirection: "row",
+                overflow: "hidden",
               },
               pressed && { opacity: 0.92 },
             ]}
             accessibilityRole="button"
             accessibilityLabel="Recurring habits"
           >
-            <View style={styles.habitsRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.cardTitle}>Recurring habits</Text>
-                <Text style={styles.habitsLead}>
-                  Small optional reminders — not your main daily task.
-                </Text>
+            <View
+              style={{ width: 4, backgroundColor: habitsAccent.border }}
+            />
+            <View style={{ flex: 1, padding: padSection }}>
+              <View style={styles.habitsRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.cardTitle}>Recurring habits</Text>
+                  <Text style={styles.habitsLead}>
+                    Small optional reminders — not your main daily task.
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={22} color={W.textMuted} />
               </View>
-              <Ionicons name="chevron-forward" size={22} color={W.textMuted} />
             </View>
           </Pressable>
         </Link>
 
         {!isLoaded ? (
-          <View style={[styles.card, { marginTop: 20 }]}>
+          <View style={[styles.card, { marginTop: gapSection }]}>
             <Text style={styles.emptyText}>Loading…</Text>
           </View>
         ) : (

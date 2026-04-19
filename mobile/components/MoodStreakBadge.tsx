@@ -1,6 +1,7 @@
 import { Image } from "expo-image"
 import { useEffect, useRef } from "react"
 import { Animated, StyleSheet, Text, View } from "react-native"
+import { radiusMd } from "@/constants/layoutTokens"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { emojiFamilySvgUrl } from "@/lib/mood-picker-data"
@@ -21,7 +22,7 @@ function createStyles(W: WellnessPalette) {
       gap: 10,
       paddingHorizontal: 14,
       paddingVertical: 10,
-      borderRadius: 16,
+      borderRadius: radiusMd,
       backgroundColor: W.iconBg,
       borderWidth: 1,
       borderColor: W.cardBorder,

@@ -16,6 +16,16 @@ import { Mascot } from "@/components/Mascot"
 import { TaskCatalogPreview } from "@/components/TaskCatalogPreview"
 import { TaskStepIconWell } from "@/components/TaskStepCard"
 import { previewCardShadow } from "@/constants/homeCard"
+import {
+  gapItem,
+  gapSection,
+  inset,
+  padCard,
+  padSection,
+  radiusInner,
+  radiusLg,
+  radiusMd,
+} from "@/constants/layoutTokens"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useStreak } from "@/hooks/useStreak"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
@@ -72,7 +82,7 @@ function createHomeStyles(W: WellnessPalette) {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      paddingHorizontal: 20,
+      paddingHorizontal: inset,
       paddingVertical: 12,
     },
     brandRow: {
@@ -104,7 +114,7 @@ function createHomeStyles(W: WellnessPalette) {
       fontWeight: "600",
     },
     hero: {
-      paddingHorizontal: 24,
+      paddingHorizontal: inset,
       paddingTop: 4,
       alignItems: "center",
     },
@@ -133,7 +143,7 @@ function createHomeStyles(W: WellnessPalette) {
       backgroundColor: W.primary,
       paddingVertical: 16,
       paddingHorizontal: 40,
-      borderRadius: 18,
+      borderRadius: radiusMd,
       minWidth: 280,
       maxWidth: "100%",
       alignItems: "center",
@@ -153,12 +163,12 @@ function createHomeStyles(W: WellnessPalette) {
       fontWeight: "700",
     },
     ladderSection: {
-      paddingHorizontal: 20,
-      marginTop: 8,
+      paddingHorizontal: inset,
+      marginTop: gapSection / 2,
     },
     devLinkWrap: {
-      paddingHorizontal: 20,
-      marginTop: 16,
+      paddingHorizontal: inset,
+      marginTop: gapSection,
     },
     devLink: {
       alignSelf: "flex-start",
@@ -177,18 +187,18 @@ function createHomeStyles(W: WellnessPalette) {
     grid: {
       flexDirection: "row",
       flexWrap: "wrap",
-      paddingHorizontal: 20,
-      marginTop: 36,
-      gap: 12,
+      paddingHorizontal: inset,
+      marginTop: 32,
+      gap: gapItem,
       justifyContent: "space-between",
       alignItems: "stretch",
     },
     card: {
       width: "48%",
       minHeight: 172,
-      borderRadius: 18,
+      borderRadius: radiusMd,
       borderWidth: 1,
-      padding: 16,
+      padding: padCard,
       alignItems: "center",
       justifyContent: "flex-start",
       marginBottom: 0,
@@ -197,7 +207,7 @@ function createHomeStyles(W: WellnessPalette) {
     iconCircle: {
       width: 52,
       height: 52,
-      borderRadius: 18,
+      borderRadius: radiusMd,
       alignItems: "center",
       justifyContent: "center",
       marginBottom: 12,
@@ -216,9 +226,9 @@ function createHomeStyles(W: WellnessPalette) {
       lineHeight: 16,
     },
     preview: {
-      marginHorizontal: 20,
-      marginTop: 28,
-      borderRadius: 20,
+      marginHorizontal: inset,
+      marginTop: 24,
+      borderRadius: radiusLg,
       borderWidth: 1,
       borderColor: W.cardBorder,
       overflow: "hidden",
@@ -232,13 +242,13 @@ function createHomeStyles(W: WellnessPalette) {
     },
     previewBody: {
       flex: 1,
-      padding: 20,
+      padding: padSection,
     },
     previewTopRow: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      marginBottom: 16,
+      marginBottom: gapSection,
     },
     previewLeft: {
       flexDirection: "row",
@@ -266,10 +276,10 @@ function createHomeStyles(W: WellnessPalette) {
     },
     previewTaskBox: {
       backgroundColor: W.surfaceMuted,
-      borderRadius: 14,
+      borderRadius: radiusInner,
       borderWidth: 1,
       borderColor: W.cardBorder,
-      padding: 16,
+      padding: padCard,
       alignItems: "center",
     },
     previewHint: {
