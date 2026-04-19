@@ -8,6 +8,7 @@ import {
   DefaultTheme as NavigationDefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native"
+import { Image } from "expo-image"
 import { ActivityIndicator, Platform, View } from "react-native"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 import { useFonts } from "expo-font"
@@ -23,8 +24,10 @@ import { RecurringHabitsProvider } from "@/contexts/RecurringHabitsContext"
 import { initRecurringNotificationHandler } from "@/lib/recurring-habit-notifications"
 import { WellnessColors, WellnessColorsLight } from "@/constants/wellnessTheme"
 
-/** Match native splash — solid only so we never stack a raster mascot under the vector `Mascot` on `index`. */
+/** Match native splash background; mascot PNG matches `Mascot` (`companion-official.png`). */
 const SPLASH_BG = "#151118"
+
+const SPLASH_MASCOT = require("../assets/mascot/companion-official.png")
 
 const WellnessDarkTheme = {
   ...NavigationDarkTheme,
@@ -185,9 +188,18 @@ export default function RootLayout() {
           backgroundColor: SPLASH_BG,
           justifyContent: "center",
           alignItems: "center",
+          gap: 20,
         }}
         accessibilityLabel="Loading app"
       >
+        <Image
+          source={SPLASH_MASCOT}
+          style={{ width: 160, height: 160 }}
+          contentFit="contain"
+          cachePolicy="memory-disk"
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        />
         <ActivityIndicator size="large" color={WellnessColors.primary} />
       </View>
     )

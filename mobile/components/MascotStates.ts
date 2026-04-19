@@ -1,6 +1,6 @@
 /**
  * Wellness companion mascot — expression states (minimal set).
- * Keep in sync with `Mascot.tsx` face/body rendering.
+ * Motion/a11y labels; raster art is `assets/mascot/companion-official.png`.
  */
 export type MascotState =
   | "idle"

@@ -47,11 +47,9 @@ module.exports = {
     scheme: "mobile",
     userInterfaceStyle: "dark",
     newArchEnabled: true,
-    /**
-     * Solid only — avoids cached native splash bitmaps. The vector mascot lives in `Mascot.tsx`
-     * (e.g. app index loading) — do not stack a separate splash PNG on top of it.
-     */
+    /** Same asset as `Mascot` (`companion-official.png`). Rebuild native app after changing. */
     splash: {
+      image: "./assets/mascot/companion-official.png",
       resizeMode: "contain",
       backgroundColor: "#151118",
     },
