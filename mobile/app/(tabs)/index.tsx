@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Mascot } from "@/components/Mascot"
 import { TaskCatalogPreview } from "@/components/TaskCatalogPreview"
-import { TaskNotoIcon } from "@/components/TaskNotoIcon"
+import { TaskStepIconWell } from "@/components/TaskStepCard"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useStreak } from "@/hooks/useStreak"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
@@ -234,9 +234,9 @@ function createHomeStyles(W: WellnessPalette) {
       fontSize: 15,
       fontWeight: "600",
     },
-    previewEmojiWrap: {
-      width: 40,
-      height: 40,
+    previewGlyphWrap: {
+      alignItems: "center",
+      justifyContent: "center",
     },
     previewTaskBox: {
       backgroundColor: W.surfaceMuted,
@@ -401,12 +401,14 @@ export default function HomeScreen() {
                 </View>
                 <Text style={styles.previewTitle}>Your Progress</Text>
               </View>
-              <TaskNotoIcon
-                iconCode={todayTask.iconCode}
-                size={40}
-                accessibilityLabel={`Task icon: ${todayTask.title}`}
-                style={styles.previewEmojiWrap}
-              />
+              <View style={styles.previewGlyphWrap}>
+                <TaskStepIconWell
+                  taskId={todayTask.id}
+                  size={52}
+                  accent
+                  accessibilityLabel={`Today’s task: ${todayTask.title}`}
+                />
+              </View>
             </View>
             <View style={styles.previewTaskBox}>
               <Text style={styles.previewHint}>{"Today's focus"}</Text>

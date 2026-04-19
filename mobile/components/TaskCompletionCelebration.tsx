@@ -17,7 +17,7 @@ import {
 } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Mascot } from "@/components/Mascot"
-import { TaskNotoIcon } from "@/components/TaskNotoIcon"
+import { TaskStepIconWell } from "@/components/TaskStepCard"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { wellnessCelebration, wellnessTapLight } from "@/lib/wellnessFeedback"
@@ -463,7 +463,12 @@ export function TaskCompletionCelebration({ streakData }: Props) {
         <View style={styles.previewCard}>
           <Text style={styles.previewLabel}>{copy.nextLabel}</Text>
           <View style={styles.previewRow}>
-            <TaskNotoIcon iconCode={nextTask.iconCode} size={48} />
+            <TaskStepIconWell
+              taskId={nextTask.id}
+              size={56}
+              accent
+              accessibilityLabel={`Next task: ${nextTask.title}`}
+            />
             <View style={{ flex: 1 }}>
               <Text style={styles.previewTitle}>{nextTask.title}</Text>
               <Text style={styles.previewBody} numberOfLines={4}>

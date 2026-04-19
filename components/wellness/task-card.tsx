@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { VoiceMic } from "./voice-mic"
 import { TimerDisplay } from "./timer"
-import { TaskNotoIcon } from "./task-noto-icon"
+import { TaskStepIcon } from "./task-step-icon"
 import { getBreathingPhaseLabel } from "@/lib/wellness-data"
 import type { Task } from "@/lib/wellness-data"
 
@@ -39,7 +39,9 @@ export function TaskCard({
 
         <div className="text-center mb-6">
           <span className="mb-4 flex justify-center">
-            <TaskNotoIcon iconCode={task.iconCode} size={56} />
+            <span className="inline-flex rounded-2xl border border-primary/25 bg-primary/10 p-4 shadow-lg shadow-primary/10">
+              <TaskStepIcon taskId={task.id} size={56} />
+            </span>
           </span>
           <h2 className="text-xl font-semibold text-foreground leading-relaxed">
             {task.title}

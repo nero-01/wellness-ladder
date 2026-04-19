@@ -17,7 +17,7 @@ import {
   ManualWalkTimerDisplay,
 } from "@/components/wellness"
 import { TaskCompletionCelebration } from "@/components/wellness/task-completion-celebration"
-import { TaskNotoIcon } from "@/components/wellness/task-noto-icon"
+import { TaskStepIcon } from "@/components/wellness/task-step-icon"
 import { useStreak } from "@/hooks/use-streak"
 import { useTaskSessionTimer } from "@/hooks/use-task-session-timer"
 import {
@@ -198,7 +198,9 @@ export default function TaskPage() {
 
             <div className="text-center mb-6">
               <span className="mb-4 flex justify-center">
-                <TaskNotoIcon iconCode={task.iconCode} size={56} />
+                <span className="inline-flex rounded-2xl border border-primary/25 bg-primary/10 p-4 shadow-lg shadow-primary/10">
+                  <TaskStepIcon taskId={task.id} size={56} />
+                </span>
               </span>
               <h2 className="text-xl font-semibold text-foreground leading-relaxed">
                 {task.title}

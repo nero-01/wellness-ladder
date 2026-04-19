@@ -1,10 +1,11 @@
+import { useRouter } from "expo-router"
 import { useMemo } from "react"
 import { ScrollView, StyleSheet, Text, View } from "react-native"
+import { TaskStepCatalogCard } from "@/components/TaskStepCard"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import type { Task } from "@/lib/wellness-data"
 import { WELLNESS_TASKS } from "@/lib/wellness-data"
-import { TaskNotoIcon } from "@/components/TaskNotoIcon"
 
 function createCatalogStyles(W: WellnessPalette) {
   return StyleSheet.create({
@@ -26,52 +27,6 @@ function createCatalogStyles(W: WellnessPalette) {
       paddingRight: 8,
       paddingBottom: 4,
     },
-    pill: {
-      width: 132,
-      padding: 12,
-      borderRadius: 16,
-      backgroundColor: W.surfaceMuted,
-      borderWidth: 1,
-      borderColor: W.cardBorder,
-    },
-    pillToday: {
-      borderColor: W.primary,
-      backgroundColor: W.iconBg,
-    },
-    pillStep: {
-      fontSize: 11,
-      fontWeight: "600",
-      color: W.textMuted,
-      marginBottom: 6,
-      textTransform: "uppercase",
-      letterSpacing: 0.5,
-    },
-    pillIconWrap: { alignItems: "center", marginBottom: 6 },
-    pillTitle: {
-      fontSize: 13,
-      fontWeight: "600",
-      color: W.text,
-      minHeight: 34,
-    },
-    pillTitleToday: { color: W.primary },
-    pillMeta: {
-      fontSize: 11,
-      color: W.textMuted,
-      marginTop: 6,
-    },
-    todayTag: {
-      marginTop: 8,
-      alignSelf: "flex-start",
-      backgroundColor: W.primary,
-      paddingHorizontal: 8,
-      paddingVertical: 3,
-      borderRadius: 8,
-    },
-    todayTagText: {
-      fontSize: 10,
-      fontWeight: "700",
-      color: "#fff",
-    },
   })
 }
 
@@ -83,12 +38,18 @@ type Props = {
 export function TaskCatalogPreview({ todayTaskId }: Props) {
   const W = useWellnessColors()
   const styles = useMemo(() => createCatalogStyles(W), [W])
+  const router = useRouter()
+
+  const goToTask = () => {
+    router.push("/(tabs)/task")
+  }
 
   return (
     <View style={styles.wrap}>
       <Text style={styles.sectionTitle}>Ladder preview</Text>
       <Text style={styles.sectionSub}>
-        One task unlocks per day along the ladder. Today’s step is highlighted.
+        One task unlocks per day along the ladder. Today’s step is highlighted — tap any card to
+        open your task.
       </Text>
       <ScrollView
         horizontal
@@ -99,31 +60,13 @@ export function TaskCatalogPreview({ todayTaskId }: Props) {
         {WELLNESS_TASKS.map((t: Task, index: number) => {
           const isToday = t.id === todayTaskId
           return (
-            <View
+            <TaskStepCatalogCard
               key={t.id}
-              style={[styles.pill, isToday && styles.pillToday]}
-            >
-              <Text style={styles.pillStep}>Step {index + 1}</Text>
-              <View style={styles.pillIconWrap}>
-                <TaskNotoIcon
-                  iconCode={t.iconCode}
-                  size={30}
-                  accessibilityLabel={`Step ${index + 1}: ${t.title}`}
-                />
-              </View>
-              <Text
-                style={[styles.pillTitle, isToday && styles.pillTitleToday]}
-                numberOfLines={2}
-              >
-                {t.title}
-              </Text>
-              <Text style={styles.pillMeta}>~{t.duration}s</Text>
-              {isToday ?
-                <View style={styles.todayTag}>
-                  <Text style={styles.todayTagText}>Today</Text>
-                </View>
-              : null}
-            </View>
+              task={t}
+              stepNumber={index + 1}
+              variant={isToday ? "today" : "muted"}
+              onPress={goToTask}
+            />
           )
         })}
       </ScrollView>

@@ -5,7 +5,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
-import { TaskNotoIcon } from "@/components/TaskNotoIcon"
+import { TaskStepIconWell } from "@/components/TaskStepCard"
 import { WELLNESS_TASKS } from "@/lib/wellness-data"
 
 function createStyles(W: WellnessPalette) {
@@ -64,7 +64,7 @@ function createStyles(W: WellnessPalette) {
       alignItems: "center",
       gap: 14,
     },
-    rowIcon: { width: 44, height: 44 },
+    rowIcon: { alignItems: "center", justifyContent: "center" },
     rowBody: { flex: 1 },
     rowTitle: { fontSize: 16, fontWeight: "700", color: W.text },
     rowMeta: { fontSize: 13, color: W.textMuted, marginTop: 4 },
@@ -133,12 +133,9 @@ export default function DevTaskPreviewScreen() {
                 router.push(`/dev-task-session?taskId=${String(task.id)}`)
               }
             >
-              <TaskNotoIcon
-                iconCode={task.iconCode}
-                size={40}
-                accessibilityLabel={task.title}
-                style={styles.rowIcon}
-              />
+              <View style={styles.rowIcon}>
+                <TaskStepIconWell taskId={task.id} size={48} accessibilityLabel={task.title} />
+              </View>
               <View style={styles.rowBody}>
                 <Text style={styles.rowTitle}>{task.title}</Text>
                 <Text style={styles.rowMeta}>~{task.duration}s</Text>

@@ -28,7 +28,7 @@ import {
   BREATHING_TASK_ID,
 } from "@/components/TaskScreen"
 import { TaskCatalogPreview } from "@/components/TaskCatalogPreview"
-import { TaskNotoIcon } from "@/components/TaskNotoIcon"
+import { TaskStepIconWell } from "@/components/TaskStepCard"
 import { TaskTimerBar } from "@/components/TaskTimerBar"
 import { VoiceRecorder } from "@/components/VoiceRecorder"
 import { VoiceWaveformLottie } from "@/components/VoiceWaveformLottie"
@@ -756,12 +756,14 @@ export function TaskSession({
             </Pressable>
           </View>
 
-          <TaskNotoIcon
-            iconCode={task.iconCode}
-            size={52}
-            accessibilityLabel={`Task icon: ${task.title}`}
-            style={styles.taskIconWrap}
-          />
+          <View style={styles.taskIconWrap}>
+            <TaskStepIconWell
+              taskId={task.id}
+              size={64}
+              accent
+              accessibilityLabel={`Task: ${task.title}`}
+            />
+          </View>
           <Text style={styles.taskTitle}>{task.title}</Text>
           <Text style={styles.taskInstruction}>{task.instruction}</Text>
 

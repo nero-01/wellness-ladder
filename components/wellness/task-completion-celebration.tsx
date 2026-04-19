@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { StreakBadge } from "@/components/wellness/streak-badge"
-import { TaskNotoIcon } from "@/components/wellness/task-noto-icon"
+import { TaskStepIcon } from "@/components/wellness/task-step-icon"
 import { wellnessWebTap } from "@/lib/wellness-feedback"
 import { emojiFamilySvgUrl } from "@/lib/mood-picker-data"
 import { getTodayTask } from "@/lib/wellness-data"
@@ -106,11 +106,9 @@ export function TaskCompletionCelebration({ streakData, mounted }: Props) {
               Next on your ladder
             </p>
             <div className="flex gap-4 items-start">
-              <TaskNotoIcon
-                iconCode={nextTask.iconCode}
-                size={48}
-                className="shrink-0"
-              />
+              <span className="inline-flex shrink-0 rounded-2xl border border-primary/25 bg-primary/10 p-3 shadow-md shadow-primary/10">
+                <TaskStepIcon taskId={nextTask.id} size={44} />
+              </span>
               <div className="min-w-0">
                 <p className="font-semibold text-foreground leading-snug">
                   {nextTask.title}
