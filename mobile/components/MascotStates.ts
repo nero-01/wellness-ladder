@@ -1,6 +1,6 @@
 /**
  * Wellness companion mascot — expression states (minimal set).
- * Raster art: `assets/mascot/companion-official.png`. Motion is driven in `Mascot.tsx`
+ * Raster art: `assets/mascot/wellness-splash-companion.png`. Motion is driven in `Mascot.tsx`
  * (float, blink, nod, celebrate, proud pulse, optional `attentionKey` / `rewardKey`).
  */
 export type MascotState =

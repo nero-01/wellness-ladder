@@ -47,9 +47,9 @@ module.exports = {
     scheme: "mobile",
     userInterfaceStyle: "dark",
     newArchEnabled: true,
-    /** Same asset as `Mascot` (`companion-official.png`). Rebuild native app after changing. */
+    /** Same asset as `Mascot` (`wellness-splash-companion.png`). Rebuild native app after changing. */
     splash: {
-      image: "./assets/mascot/companion-official.png",
+      image: "./assets/mascot/wellness-splash-companion.png",
       resizeMode: "contain",
       backgroundColor: "#151118",
     },

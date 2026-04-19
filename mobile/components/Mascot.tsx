@@ -1,5 +1,6 @@
+import { Image } from "expo-image"
 import { memo, useEffect, useMemo, useRef } from "react"
-import { Image, StyleSheet, View } from "react-native"
+import { Platform, StyleSheet, View } from "react-native"
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -37,14 +38,12 @@ type Props = {
   rewardKey?: number
 }
 
-const COMPANION_ASSET = require("../assets/mascot/companion-official.png")
+/** Full-resolution PNG (RGB canvas). Avoids JPEG ringing/halos that read as a black edge around the blob. */
+const COMPANION_ASSET = require("../assets/mascot/wellness-splash-companion.png")
 
-/**
- * Source dimensions of `companion-official` (landscape). The file is JPEG data; using a square
- * `width`×`height` with `contain` letterboxed bands that often render as black — layout uses this aspect.
- */
-const MASCOT_SRC_W = 1024
-const MASCOT_SRC_H = 571
+/** Pixel dimensions of `wellness-splash-companion.png` — layout matches aspect so nothing letterboxes. */
+const MASCOT_SRC_W = 1376
+const MASCOT_SRC_H = 768
 const MASCOT_ASPECT = MASCOT_SRC_W / MASCOT_SRC_H
 
 const AnimatedView = Animated.createAnimatedComponent(View)
@@ -63,7 +62,7 @@ export const Mascot = memo(function Mascot({
 }: Props) {
   const presetSize = useMascotSize(preset ?? "hero")
   /** Logical width of the mascot; height derived from asset aspect (no square letterboxing). */
-  const size = sizeProp ?? (preset !== undefined ? presetSize : 160)
+  const size = sizeProp ?? (preset !== undefined ? presetSize : 172)
   const imgW = Math.round(size)
   const imgH = Math.round(size / MASCOT_ASPECT)
   const layoutMax = Math.max(imgW, imgH)
@@ -235,9 +234,9 @@ export const Mascot = memo(function Mascot({
     )
   }, [animated, rewardKey, rewardScale])
 
-  /** Minimal room for float/scale; keep tight so mascot + titles read as one unit. */
-  const padV = layoutMax * 0.045
-  const padH = layoutMax * 0.035
+  /** Minimal room for float/scale — no extra box around the bitmap. */
+  const padV = layoutMax * 0.04
+  const padH = layoutMax * 0.03
 
   const bodyStyle = useAnimatedStyle(() => ({
     transform: [
@@ -273,8 +272,6 @@ export const Mascot = memo(function Mascot({
           minHeight: imgH + padV * 2,
           paddingVertical: padV,
           paddingHorizontal: padH,
-          backgroundColor: "transparent",
-          borderWidth: 0,
         },
         style,
       ]}
@@ -283,18 +280,20 @@ export const Mascot = memo(function Mascot({
       testID={testID}
     >
       <View style={styles.stage} pointerEvents="none">
-        <AnimatedView style={[styles.lift, bodyStyle]}>
-          <AnimatedView style={[blinkStyle, styles.imgFrame]}>
+        <AnimatedView style={[styles.lift, bodyStyle]} collapsable={false}>
+          <AnimatedView style={[blinkStyle, styles.imgFrame]} collapsable={false}>
             <Image
               source={COMPANION_ASSET}
-              style={{
-                width: imgW,
-                height: imgH,
-                backgroundColor: "transparent",
-                borderWidth: 0,
-                borderColor: "transparent",
-              }}
-              resizeMode="contain"
+              style={[
+                styles.raster,
+                {
+                  width: imgW,
+                  height: imgH,
+                },
+              ]}
+              contentFit="contain"
+              cachePolicy="memory-disk"
+              transition={0}
               accessibilityElementsHidden
               importantForAccessibility="no-hide-descendants"
             />
@@ -310,7 +309,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     alignSelf: "center",
+    backgroundColor: "transparent",
     borderWidth: 0,
+    borderColor: "transparent",
+    elevation: 0,
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    shadowOffset: { width: 0, height: 0 },
   },
   stage: {
     alignItems: "center",
@@ -328,5 +333,17 @@ const styles = StyleSheet.create({
   imgFrame: {
     backgroundColor: "transparent",
     borderWidth: 0,
+    overflow: "visible",
+  },
+  raster: {
+    backgroundColor: "transparent",
+    borderWidth: 0,
+    borderColor: "transparent",
+    ...(Platform.OS === "android" ?
+      {
+        elevation: 0,
+        renderToHardwareTextureAndroid: false,
+      }
+    : {}),
   },
 })
