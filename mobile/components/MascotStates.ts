@@ -13,21 +13,21 @@ export type MascotState =
 export type MascotLocale = "en" | "af"
 
 const LABELS_EN: Record<MascotState, string> = {
-  idle: "Wellness companion, calm",
-  encouraging: "Wellness companion, encouraging you",
-  celebrating: "Wellness companion, celebrating with you",
-  sleepy: "Wellness companion, gentle reminder",
-  proud: "Wellness companion, proud of your streak",
-  supportive: "Wellness companion, here to support you",
+  idle: "Calm wellness companion",
+  encouraging: "Friendly wellness companion, cheering you on gently",
+  celebrating: "Wellness companion, sharing a quiet moment of joy with you",
+  sleepy: "Wellness companion, resting — a soft reminder for later",
+  proud: "Wellness companion, gently happy with your progress",
+  supportive: "Wellness companion, here with you",
 }
 
 const LABELS_AF: Record<MascotState, string> = {
-  idle: "Welstand-metgesel, kalm",
-  encouraging: "Welstand-metgesel moedig jou aan",
-  celebrating: "Welstand-metgesel vier saam met jou",
-  sleepy: "Welstand-metgesel, sagte herinnering",
-  proud: "Welstand-metgesel, trots op jou streep",
-  supportive: "Welstand-metgesel, hier om jou te ondersteun",
+  idle: "Kalm welstand-metgesel",
+  encouraging: "Vriendelike welstand-metgesel moedig jou sag aan",
+  celebrating: "Welstand-metgesel deel stil vreugde met jou",
+  sleepy: "Welstand-metgesel rus — sagte herinnering vir later",
+  proud: "Welstand-metgesel is sag gelukkig met jou vordering",
+  supportive: "Welstand-metgesel is hier by jou",
 }
 
 export function mascotAccessibilityLabel(
@@ -37,12 +37,12 @@ export function mascotAccessibilityLabel(
   return locale === "af" ? LABELS_AF[state] : LABELS_EN[state]
 }
 
-/** Motion intensity multipliers — used by `Mascot` for subtle variation */
+/** Motion intensity — keep low for calm, approachable motion */
 export const MASCOT_MOTION = {
   idle: { float: 1, blink: 1 },
-  encouraging: { float: 1.15, blink: 1 },
-  celebrating: { float: 0.6, blink: 0.5 },
-  sleepy: { float: 0.5, blink: 0.3 },
-  proud: { float: 0.85, blink: 0.8 },
-  supportive: { float: 0.9, blink: 1 },
+  encouraging: { float: 1.05, blink: 1 },
+  celebrating: { float: 0.75, blink: 0.65 },
+  sleepy: { float: 0.55, blink: 0.35 },
+  proud: { float: 0.9, blink: 0.85 },
+  supportive: { float: 0.88, blink: 1 },
 } as const
