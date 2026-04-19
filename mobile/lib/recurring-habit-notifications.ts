@@ -2,33 +2,37 @@ import Constants from "expo-constants"
 import type { RepeatType } from "@/lib/recurring-habit-streak"
 import type { RecurringHabit } from "@/lib/recurring-habits-types"
 
-type NotificationsModule = typeof import("expo-notifications")
+/** Native module handle — typed loosely so we never static-import `expo-notifications`. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type NotificationsNative = any
+
+type ScheduledNotifRow = { identifier?: string }
 
 /**
  * Push / scheduled notifications are not available in Expo Go (SDK 53+). Loading the native
- * module throws — never `import` or `require` it until we know we're not in StoreClient.
+ * module throws — never static-import it; lazy-require only when safe, else return null.
  */
-let cachedModule: NotificationsModule | null | undefined
+let cachedModule: NotificationsNative | null | undefined
 
-function getNotifications(): NotificationsModule | null {
+function getNotifications(): NotificationsNative | null {
   if (cachedModule !== undefined) return cachedModule
-  /**
-   * Expo Go (SDK 53+), especially Android: requiring `expo-notifications` throws before any API
-   * call. Skip loading the native module entirely in the Expo Go client.
-   * @see https://docs.expo.dev/develop/development-builds/introduction/
-   */
-  if (Constants.appOwnership === "expo") {
-    cachedModule = null
-    return null
-  }
-  if (Constants.executionEnvironment === "storeClient") {
-    cachedModule = null
-    return null
-  }
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    cachedModule = require("expo-notifications") as NotificationsModule
-    return cachedModule
+    /**
+     * Expo Go: skip require entirely (Android SDK 53+ throws on load).
+     * `appOwnership === "expo"` is the reliable Expo Go signal; `storeClient` is a fallback.
+     */
+    if (Constants.appOwnership === "expo") {
+      cachedModule = null
+      return null
+    }
+    if (Constants.executionEnvironment === "storeClient") {
+      cachedModule = null
+      return null
+    }
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+    const mod = require("expo-notifications") as NotificationsNative
+    cachedModule = mod
+    return mod
   } catch {
     cachedModule = null
     return null
@@ -78,102 +82,116 @@ function expoWeekdayFromJs(jsDow: number): number {
 }
 
 async function cancelHabitIdentifiers(
-  Notifications: NotificationsModule,
+  Notifications: NotificationsNative,
   habitId: string,
 ): Promise<void> {
   const prefix = `wellness-rh-${habitId}-`
-  const all = await Notifications.getAllScheduledNotificationsAsync()
+  const all = (await Notifications.getAllScheduledNotificationsAsync()) as ScheduledNotifRow[]
   await Promise.all(
     all
-      .filter((n) => (n.identifier ?? "").startsWith(prefix))
-      .map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier)),
+      .filter((n: ScheduledNotifRow) => (n.identifier ?? "").startsWith(prefix))
+      .map((n: ScheduledNotifRow) =>
+        Notifications.cancelScheduledNotificationAsync(n.identifier),
+      ),
   )
 }
 
 export async function rescheduleHabitNotifications(habit: RecurringHabit): Promise<void> {
-  const Notifications = getNotifications()
-  if (!Notifications) return
+  try {
+    const Notifications = getNotifications()
+    if (!Notifications) return
 
-  initRecurringNotificationHandler()
-  const { SchedulableTriggerInputTypes } = Notifications
-  await cancelHabitIdentifiers(Notifications, habit.id)
+    initRecurringNotificationHandler()
+    const { SchedulableTriggerInputTypes } = Notifications
+    await cancelHabitIdentifiers(Notifications, habit.id)
 
-  if (!habit.enabled || !habit.reminderTime) return
+    if (!habit.enabled || !habit.reminderTime) return
 
-  const hm = parseHm(habit.reminderTime)
-  if (!hm) return
+    const hm = parseHm(habit.reminderTime)
+    if (!hm) return
 
-  const granted = await ensureNotificationPermissions()
-  if (!granted) return
+    const granted = await ensureNotificationPermissions()
+    if (!granted) return
 
-  const { hour, minute } = hm
-  const title = habit.title
-  const body =
-    habit.description?.trim() || "A small support habit — when it feels right."
+    const { hour, minute } = hm
+    const title = habit.title
+    const body =
+      habit.description?.trim() || "A small support habit — when it feels right."
 
-  const scheduleWeekly = async (expoWeekday: number, key: string) => {
-    await Notifications.scheduleNotificationAsync({
-      identifier: `wellness-rh-${habit.id}-w${key}`,
-      content: { title, body },
-      trigger: {
-        type: SchedulableTriggerInputTypes.WEEKLY,
-        weekday: expoWeekday,
-        hour,
-        minute,
-      },
-    })
-  }
-
-  const rt = habit.repeatType as RepeatType
-  const days = habit.repeatDays
-
-  if (rt === "daily") {
-    await Notifications.scheduleNotificationAsync({
-      identifier: `wellness-rh-${habit.id}-daily`,
-      content: { title, body },
-      trigger: {
-        type: SchedulableTriggerInputTypes.DAILY,
-        hour,
-        minute,
-      },
-    })
-    return
-  }
-
-  if (rt === "weekdays") {
-    for (let d = 1; d <= 5; d++) {
-      await scheduleWeekly(d + 1, `wd${d}`)
+    const scheduleWeekly = async (expoWeekday: number, key: string) => {
+      await Notifications.scheduleNotificationAsync({
+        identifier: `wellness-rh-${habit.id}-w${key}`,
+        content: { title, body },
+        trigger: {
+          type: SchedulableTriggerInputTypes.WEEKLY,
+          weekday: expoWeekday,
+          hour,
+          minute,
+        },
+      })
     }
-    return
-  }
 
-  if (rt === "custom" && days && days.length > 0) {
-    for (const raw of days) {
-      const jsDow = Number(raw)
-      if (!Number.isInteger(jsDow) || jsDow < 0 || jsDow > 6) continue
-      const expoWd = expoWeekdayFromJs(jsDow)
-      if (expoWd < 1 || expoWd > 7) continue
-      await scheduleWeekly(expoWd, `c${jsDow}`)
+    const rt = habit.repeatType as RepeatType
+    const days = habit.repeatDays
+
+    if (rt === "daily") {
+      await Notifications.scheduleNotificationAsync({
+        identifier: `wellness-rh-${habit.id}-daily`,
+        content: { title, body },
+        trigger: {
+          type: SchedulableTriggerInputTypes.DAILY,
+          hour,
+          minute,
+        },
+      })
+      return
     }
+
+    if (rt === "weekdays") {
+      for (let d = 1; d <= 5; d++) {
+        await scheduleWeekly(d + 1, `wd${d}`)
+      }
+      return
+    }
+
+    if (rt === "custom" && days && days.length > 0) {
+      for (const raw of days) {
+        const jsDow = Number(raw)
+        if (!Number.isInteger(jsDow) || jsDow < 0 || jsDow > 6) continue
+        const expoWd = expoWeekdayFromJs(jsDow)
+        if (expoWd < 1 || expoWd > 7) continue
+        await scheduleWeekly(expoWd, `c${jsDow}`)
+      }
+    }
+  } catch {
+    /* Scheduling is best-effort */
   }
 }
 
 export async function rescheduleAllHabitNotifications(
   habits: RecurringHabit[],
 ): Promise<void> {
-  const Notifications = getNotifications()
-  if (!Notifications) return
+  try {
+    const Notifications = getNotifications()
+    if (!Notifications) return
 
-  const all = await Notifications.getAllScheduledNotificationsAsync()
-  await Promise.all(
-    all
-      .filter((n) => (n.identifier ?? "").startsWith("wellness-rh-"))
-      .map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier)),
-  )
-  for (const h of habits) {
-    if (h.enabled && h.reminderTime) {
-      await rescheduleHabitNotifications(h)
+    const all = (await Notifications.getAllScheduledNotificationsAsync()) as ScheduledNotifRow[]
+    await Promise.all(
+      all
+        .filter((n: ScheduledNotifRow) =>
+          (n.identifier ?? "").startsWith("wellness-rh-"),
+        )
+        .map((n: ScheduledNotifRow) =>
+          Notifications.cancelScheduledNotificationAsync(n.identifier),
+        ),
+    )
+    for (const h of habits) {
+      if (h.enabled && h.reminderTime) {
+        await rescheduleHabitNotifications(h)
+      }
     }
+  } catch {
+    /* Native scheduling unavailable or module failed — habits still load in UI */
   }
 }
 

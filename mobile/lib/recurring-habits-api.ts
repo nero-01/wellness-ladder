@@ -7,11 +7,25 @@ function mapHabitFromApi(json: Record<string, unknown>): RecurringHabit | null {
   return normalizeRecurringHabitRecord(json)
 }
 
+function friendlyHabitHttpError(status: number, body: string): string {
+  if (status === 401) {
+    return "Sign in again to load support habits."
+  }
+  if (status === 404) {
+    return "Support habits are unavailable on this server."
+  }
+  const trimmed = body.trim()
+  if (trimmed.length > 0 && trimmed.length < 200 && !trimmed.startsWith("<")) {
+    return trimmed
+  }
+  return `Could not load habits (${status}).`
+}
+
 export async function fetchRecurringHabits(): Promise<RecurringHabit[]> {
   const res = await apiFetch("/api/recurring-habits")
   if (!res.ok) {
     const t = await res.text()
-    throw new Error(t || `Failed to load habits (${res.status})`)
+    throw new Error(friendlyHabitHttpError(res.status, t))
   }
   let parsed: unknown
   try {

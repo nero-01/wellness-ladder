@@ -20,6 +20,10 @@ function normalizeRepeatDays(raw: unknown): number[] | null {
       return null
     }
   }
+  /** Prisma / JSON occasionally deserializes to plain objects instead of arrays */
+  if (v != null && typeof v === "object" && !Array.isArray(v)) {
+    v = Object.values(v as Record<string, unknown>)
+  }
   if (!Array.isArray(v)) return null
   const nums = v
     .map((x) => Number(x))
