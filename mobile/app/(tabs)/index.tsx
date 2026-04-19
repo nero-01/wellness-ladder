@@ -16,7 +16,11 @@ import { SafeAreaView } from "react-native-safe-area-context"
 import { Mascot } from "@/components/Mascot"
 import { TaskCatalogPreview } from "@/components/TaskCatalogPreview"
 import { TaskStepIconWell } from "@/components/TaskStepCard"
-import { wellnessCardShadow } from "@/constants/homeCard"
+import {
+  wellnessCardInner,
+  wellnessCardOuter,
+  wellnessCardShadow,
+} from "@/constants/wellnessSurface"
 import {
   gapItem,
   gapSection,
@@ -192,16 +196,18 @@ function createHomeStyles(W: WellnessPalette) {
       justifyContent: "space-between",
       alignItems: "stretch",
     },
-    card: {
+    featureCardOuter: {
       width: "48%",
       minHeight: 158,
-      borderRadius: radiusMd,
-      borderWidth: 1,
+      marginBottom: 0,
+      ...wellnessCardOuter(radiusMd),
+    },
+    featureCardInner: {
+      flex: 1,
+      minHeight: 158,
       padding: padCard,
       alignItems: "center",
       justifyContent: "flex-start",
-      marginBottom: 0,
-      ...wellnessCardShadow,
     },
     iconCircle: {
       width: 52,
@@ -227,16 +233,12 @@ function createHomeStyles(W: WellnessPalette) {
     previewShell: {
       marginHorizontal: inset,
       marginTop: 16,
-      borderRadius: radiusLg,
-      ...wellnessCardShadow,
+      ...wellnessCardOuter(radiusLg),
     },
     preview: {
-      borderRadius: radiusLg,
-      borderWidth: 1,
-      borderColor: W.cardBorder,
-      overflow: "hidden",
       flexDirection: "row",
       alignItems: "stretch",
+      ...wellnessCardInner(W, radiusLg),
     },
     previewAccentBar: {
       width: 4,
@@ -467,30 +469,31 @@ export default function HomeScreen() {
           {FEATURES.map((f) => {
             const a = moodPastelAccent(W.moodPastels, f.pastelKey)
             return (
-              <View
-                key={f.title}
-                style={[
-                  styles.card,
-                  {
-                    backgroundColor: a.idleFill,
-                    borderColor: a.idleBorder,
-                  },
-                ]}
-              >
+              <View key={f.title} style={styles.featureCardOuter}>
                 <View
                   style={[
-                    styles.iconCircle,
-                    {
-                      backgroundColor: a.fill,
-                      borderWidth: 1,
-                      borderColor: a.border,
-                    },
+                    wellnessCardInner(W, radiusMd, {
+                      backgroundColor: a.idleFill,
+                      borderColor: a.idleBorder,
+                    }),
+                    styles.featureCardInner,
                   ]}
                 >
-                  <Ionicons name={f.icon} size={26} color={a.navIcon} />
+                  <View
+                    style={[
+                      styles.iconCircle,
+                      {
+                        backgroundColor: a.fill,
+                        borderWidth: 1,
+                        borderColor: a.border,
+                      },
+                    ]}
+                  >
+                    <Ionicons name={f.icon} size={26} color={a.navIcon} />
+                  </View>
+                  <Text style={styles.cardTitle}>{f.title}</Text>
+                  <Text style={styles.cardDesc}>{f.description}</Text>
                 </View>
-                <Text style={styles.cardTitle}>{f.title}</Text>
-                <Text style={styles.cardDesc}>{f.description}</Text>
               </View>
             )
           })}
@@ -499,14 +502,7 @@ export default function HomeScreen() {
         {/* Today’s focus — matches streak + scheduled task */}
         {streakLoaded ? (
           <View style={styles.previewShell}>
-          <View
-            style={[
-              styles.preview,
-              {
-                backgroundColor: W.bgElevated,
-              },
-            ]}
-          >
+          <View style={[styles.preview, { backgroundColor: W.bgElevated }]}>
             <View
               style={[
                 styles.previewAccentBar,

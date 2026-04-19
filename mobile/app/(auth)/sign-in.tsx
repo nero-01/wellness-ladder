@@ -20,8 +20,12 @@ import { Mascot } from "@/components/Mascot"
 import { FloatingLabelInput } from "@/components/auth/FloatingLabelInput"
 import { useColorScheme } from "@/components/useColorScheme"
 import { IS_DEV_BYPASS } from "@/constants/devBypass"
-import { wellnessCardShadow } from "@/constants/homeCard"
-import { WellnessColors } from "@/constants/wellnessTheme"
+import { radiusLg } from "@/constants/layoutTokens"
+import {
+  wellnessCardInner,
+  wellnessCardOuter,
+} from "@/constants/wellnessSurface"
+import { WellnessColors, WellnessColorsLight } from "@/constants/wellnessTheme"
 import { useAuth } from "@/contexts/AuthContext"
 
 export default function SignInScreen() {
@@ -34,6 +38,7 @@ export default function SignInScreen() {
   const inputBg = isDark ? "#252030" : "#ffffff"
   const labelFloat = isDark ? "#a78bfa" : WellnessColors.primary
   const labelInside = isDark ? "#9ca3af" : "#6b7280"
+  const W = isDark ? WellnessColors : WellnessColorsLight
 
   const { signIn, signInWithDevBypass } = useAuth()
   const [email, setEmail] = useState("")
@@ -109,16 +114,16 @@ export default function SignInScreen() {
               Fields stay above the keyboard on iOS and Android.
             </Text>
 
-            <RNView
-              style={[
-                styles.card,
-                {
-                  backgroundColor: isDark ? "#1a1520" : "#ffffff",
-                  borderWidth: isDark ? 1 : 0,
-                  borderColor: isDark ? "#374151" : "transparent",
-                },
-              ]}
-            >
+            <RNView style={[wellnessCardOuter(radiusLg), { alignSelf: "stretch" }]}>
+              <RNView
+                style={[
+                  wellnessCardInner(W, radiusLg, {
+                    backgroundColor: isDark ? "#1a1520" : "#ffffff",
+                    borderColor: isDark ? "#374151" : W.cardBorder,
+                  }),
+                  { padding: 20 },
+                ]}
+              >
               <FloatingLabelInput
                 label="Email"
                 value={email}
@@ -210,6 +215,7 @@ export default function SignInScreen() {
                   )}
                 </Pressable>
               ) : null}
+              </RNView>
             </RNView>
 
             <Link href="/(auth)/sign-up" asChild>
@@ -246,11 +252,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: "center",
     marginBottom: 20,
-  },
-  card: {
-    borderRadius: 16,
-    padding: 20,
-    ...wellnessCardShadow,
   },
   hint: { fontSize: 13, lineHeight: 18, marginTop: 4 },
   error: { color: "#c00", marginTop: 8, fontSize: 14 },

@@ -32,7 +32,11 @@ import { TaskStepIconWell } from "@/components/TaskStepCard"
 import { TaskTimerBar } from "@/components/TaskTimerBar"
 import { VoiceRecorder } from "@/components/VoiceRecorder"
 import { VoiceWaveformLottie } from "@/components/VoiceWaveformLottie"
-import { wellnessCardShadow } from "@/constants/homeCard"
+import {
+  wellnessCardInner,
+  wellnessCardOuter,
+  wellnessCardShadow,
+} from "@/constants/wellnessSurface"
 import {
   gapItem,
   gapSection,
@@ -114,15 +118,11 @@ function createTaskSessionStyles(W: WellnessPalette) {
     /** Shadow only — inner gradient clips content so iOS shadow isn’t cut off */
     cardOuter: {
       marginBottom: gapSection,
-      borderRadius: radiusMd,
-      ...wellnessCardShadow,
+      ...wellnessCardOuter(radiusMd),
     },
     card: {
-      borderRadius: radiusMd,
       padding: padSection,
-      overflow: "hidden",
-      borderWidth: 1,
-      borderColor: W.cardBorder,
+      ...wellnessCardInner(W, radiusMd),
     },
     cardHeader: {
       flexDirection: "row",

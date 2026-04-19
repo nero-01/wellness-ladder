@@ -9,7 +9,10 @@ import {
   type StyleProp,
   type ViewStyle,
 } from "react-native"
-import { wellnessCardShadow } from "@/constants/homeCard"
+import {
+  wellnessCardInner,
+  wellnessCardOuter,
+} from "@/constants/wellnessSurface"
 import { radiusInner, radiusMd, radiusSm } from "@/constants/layoutTokens"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
@@ -21,15 +24,19 @@ type CardVariant = "today" | "muted"
 function createStyles(W: WellnessPalette, variant: CardVariant) {
   const isToday = variant === "today"
   return StyleSheet.create({
-    root: {
+    rootOuter: {
       width: 156,
       minHeight: 200,
-      borderRadius: radiusMd,
+      ...wellnessCardOuter(radiusMd),
+    },
+    rootInner: {
+      flex: 1,
+      minHeight: 200,
       padding: 16,
-      backgroundColor: isToday ? W.iconBg : W.bgElevated,
-      borderWidth: 1,
-      borderColor: isToday ? "rgba(139, 92, 246, 0.42)" : W.cardBorder,
-      ...wellnessCardShadow,
+      ...wellnessCardInner(W, radiusMd, {
+        backgroundColor: isToday ? W.iconBg : W.bgElevated,
+        borderColor: isToday ? "rgba(139, 92, 246, 0.42)" : W.cardBorder,
+      }),
     },
     rootPressed: {
       opacity: 0.92,
@@ -131,7 +138,11 @@ export function TaskStepCatalogCard({
   if (onPress) {
     return (
       <Pressable
-        style={({ pressed }) => [styles.root, pressed && styles.rootPressed, style]}
+        style={({ pressed }) => [
+          styles.rootOuter,
+          pressed && styles.rootPressed,
+          style,
+        ]}
         onPress={() => {
           void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
           onPress()
@@ -139,12 +150,16 @@ export function TaskStepCatalogCard({
         accessibilityRole="button"
         accessibilityLabel={`Step ${stepNumber}: ${task.title}. ${variant === "today" ? "Today’s step." : "Preview."}`}
       >
-        {inner}
+        <View style={styles.rootInner}>{inner}</View>
       </Pressable>
     )
   }
 
-  return <View style={[styles.root, style]}>{inner}</View>
+  return (
+    <View style={[styles.rootOuter, style]}>
+      <View style={styles.rootInner}>{inner}</View>
+    </View>
+  )
 }
 
 const wellStyles = (W: WellnessPalette, size: number) =>

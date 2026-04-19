@@ -15,7 +15,10 @@ import {
 } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { useRecurringHabitsContext } from "@/contexts/RecurringHabitsContext"
-import { wellnessCardShadow } from "@/constants/homeCard"
+import {
+  wellnessCardInner,
+  wellnessCardOuter,
+} from "@/constants/wellnessSurface"
 import {
   gapSection,
   inset,
@@ -43,14 +46,13 @@ function createStyles(W: WellnessPalette) {
       lineHeight: 22,
       marginBottom: gapSection,
     },
-    card: {
-      backgroundColor: W.bgElevated,
-      borderRadius: radiusMd,
-      borderWidth: 1,
-      borderColor: W.cardBorder,
-      padding: padCard,
+    cardOuter: {
       marginBottom: gapSection,
-      ...wellnessCardShadow,
+      ...wellnessCardOuter(radiusMd),
+    },
+    cardInner: {
+      padding: padCard,
+      ...wellnessCardInner(W, radiusMd),
     },
     rowBetween: {
       flexDirection: "row",
@@ -422,7 +424,8 @@ export default function RecurringHabitsScreen() {
         : null}
 
         {safeHabits.map((h) => (
-          <View key={h.id} style={styles.card}>
+          <View key={h.id} style={styles.cardOuter}>
+            <View style={styles.cardInner}>
             <View style={styles.rowBetween}>
               <Text style={styles.habitTitle}>{h.title}</Text>
               <Switch
@@ -472,6 +475,7 @@ export default function RecurringHabitsScreen() {
               >
                 <Ionicons name="trash-outline" size={20} color="#b91c1c" />
               </Pressable>
+            </View>
             </View>
           </View>
         ))}

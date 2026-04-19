@@ -36,8 +36,12 @@ import {
 } from "@/lib/email-signup-cooldown"
 import { isPlausibleMailbox, sanitizeAuthEmailForSupabase } from "@/lib/auth-email"
 import { IS_DEV_BYPASS } from "@/constants/devBypass"
-import { wellnessCardShadow } from "@/constants/homeCard"
-import { WellnessColors } from "@/constants/wellnessTheme"
+import { radiusLg } from "@/constants/layoutTokens"
+import {
+  wellnessCardInner,
+  wellnessCardOuter,
+} from "@/constants/wellnessSurface"
+import { WellnessColors, WellnessColorsLight } from "@/constants/wellnessTheme"
 import { isAuthRateLimitError } from "@/utils/auth-errors"
 
 if (__DEV__) {
@@ -75,6 +79,7 @@ export default function SignUpScreen() {
   const inputBg = isDark ? "#252030" : "#ffffff"
   const labelFloat = isDark ? "#a78bfa" : WellnessColors.primary
   const labelInside = isDark ? "#9ca3af" : "#6b7280"
+  const W = isDark ? WellnessColors : WellnessColorsLight
 
   const { signUp, signInWithOAuth, resendSignupEmail, signInWithDevBypass } =
     useAuth()
@@ -306,16 +311,16 @@ export default function SignUpScreen() {
               Supabase email auth — keyboard stays clear of fields (iOS & Android).
             </Text>
 
-            <RNView
-              style={[
-                styles.card,
-                {
-                  backgroundColor: isDark ? "#1a1520" : "#ffffff",
-                  borderWidth: isDark ? 1 : 0,
-                  borderColor: isDark ? "#374151" : "transparent",
-                },
-              ]}
-            >
+            <RNView style={[wellnessCardOuter(radiusLg), { alignSelf: "stretch" }]}>
+              <RNView
+                style={[
+                  wellnessCardInner(W, radiusLg, {
+                    backgroundColor: isDark ? "#1a1520" : "#ffffff",
+                    borderColor: isDark ? "#374151" : W.cardBorder,
+                  }),
+                  { padding: 20 },
+                ]}
+              >
               {awaitingEmail ? (
                 <RNView style={{ gap: 14 }}>
                   <Text style={[styles.awaitTitle, { color: textPrimary }]}>
@@ -589,6 +594,7 @@ export default function SignUpScreen() {
                   </RNView>
                 </>
               )}
+              </RNView>
             </RNView>
 
             <Link href="/(auth)/sign-in" asChild>
@@ -625,11 +631,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: "center",
     marginBottom: 20,
-  },
-  card: {
-    borderRadius: 16,
-    padding: 20,
-    ...wellnessCardShadow,
   },
   awaitTitle: { fontSize: 20, fontWeight: "700" },
   awaitBody: { fontSize: 14, lineHeight: 20 },

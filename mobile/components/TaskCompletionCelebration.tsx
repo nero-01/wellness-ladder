@@ -18,7 +18,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Mascot } from "@/components/Mascot"
 import { TaskStepIconWell } from "@/components/TaskStepCard"
-import { wellnessCardShadow } from "@/constants/homeCard"
+import { radiusMd } from "@/constants/layoutTokens"
+import {
+  wellnessCardInner,
+  wellnessCardOuter,
+} from "@/constants/wellnessSurface"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { wellnessCelebration, wellnessTapLight } from "@/lib/wellnessFeedback"
@@ -115,18 +119,21 @@ function createCelebrationStyles(W: WellnessPalette) {
       position: "relative",
       overflow: "visible",
     },
-    checkBadge: {
+    checkBadgeOuter: {
       position: "absolute",
       bottom: 10,
       right: 6,
       width: 44,
       height: 44,
+      ...wellnessCardOuter(22),
+    },
+    checkBadgeInner: {
+      flex: 1,
       borderRadius: 22,
       alignItems: "center",
       justifyContent: "center",
       borderWidth: 2,
       borderColor: W.bg,
-      ...wellnessCardShadow,
     },
     completionTitle: {
       fontSize: 26,
@@ -159,16 +166,15 @@ function createCelebrationStyles(W: WellnessPalette) {
       backgroundColor: W.iconBg,
     },
     streakText: { fontWeight: "700", fontSize: 17, color: W.text },
-    previewCard: {
+    previewCardOuter: {
       width: "100%",
       maxWidth: 400,
-      padding: 18,
-      borderRadius: 16,
-      backgroundColor: W.bgElevated,
-      borderWidth: 1,
-      borderColor: W.cardBorder,
       marginBottom: 16,
-      ...wellnessCardShadow,
+      ...wellnessCardOuter(radiusMd),
+    },
+    previewCardInner: {
+      padding: 18,
+      ...wellnessCardInner(W, radiusMd),
     },
     previewLabel: {
       fontSize: 11,
@@ -187,16 +193,18 @@ function createCelebrationStyles(W: WellnessPalette) {
     },
     previewBody: { fontSize: 13, color: W.textMuted, marginTop: 6, lineHeight: 18 },
     previewMeta: { fontSize: 12, color: W.primary, marginTop: 8 },
-    proCard: {
+    proCardOuter: {
       width: "100%",
       maxWidth: 400,
-      padding: 16,
-      borderRadius: 16,
-      borderWidth: 1,
-      borderColor: W.primary,
-      backgroundColor: W.iconBg,
       marginBottom: 20,
-      ...wellnessCardShadow,
+      ...wellnessCardOuter(radiusMd),
+    },
+    proCardInner: {
+      padding: 16,
+      ...wellnessCardInner(W, radiusMd, {
+        borderColor: W.primary,
+        backgroundColor: W.iconBg,
+      }),
     },
     proLabel: {
       fontSize: 11,
@@ -229,15 +237,19 @@ function createCelebrationStyles(W: WellnessPalette) {
       backgroundColor: W.primary,
     },
     primaryBtnText: { color: "#fff", fontWeight: "700" },
-    sadagGradient: {
+    sadagCardOuter: {
       width: "100%",
       maxWidth: 400,
-      padding: 16,
-      borderRadius: 16,
       marginBottom: 16,
-      borderWidth: 1,
-      borderColor: W.cardBorder,
-      ...wellnessCardShadow,
+      ...wellnessCardOuter(radiusMd),
+    },
+    sadagCardInner: {
+      padding: 0,
+      overflow: "hidden",
+      ...wellnessCardInner(W, radiusMd),
+    },
+    sadagGradient: {
+      padding: 16,
     },
     sadagFlagRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 10 },
     sadagFlag: { width: 28, height: 28, borderRadius: 4 },
@@ -383,8 +395,10 @@ export function TaskCompletionCelebration({ streakData }: Props) {
             animated
             locale={effectiveLocale === "af" ? "af" : "en"}
           />
-          <View style={[styles.checkBadge, { backgroundColor: W.primary }]}>
-            <Ionicons name="checkmark" size={28} color="#fff" />
+          <View style={styles.checkBadgeOuter}>
+            <View style={[styles.checkBadgeInner, { backgroundColor: W.primary }]}>
+              <Ionicons name="checkmark" size={28} color="#fff" />
+            </View>
           </View>
         </View>
         <Text style={styles.completionTitle}>{copy.title}</Text>
@@ -409,12 +423,14 @@ export function TaskCompletionCelebration({ streakData }: Props) {
           </Text>
         </View>
 
-        <LinearGradient
-          colors={[W.iconBg, W.bgElevated]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.sadagGradient}
-        >
+        <View style={styles.sadagCardOuter}>
+          <View style={styles.sadagCardInner}>
+            <LinearGradient
+              colors={[W.iconBg, W.bgElevated]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.sadagGradient}
+            >
           <View style={styles.sadagFlagRow}>
             <Image
               source={{ uri: saFlagUri }}
@@ -459,9 +475,12 @@ export function TaskCompletionCelebration({ streakData }: Props) {
             <Text style={styles.sadagLinkText}>{copy.whatsapp}</Text>
           </Pressable>
           <Text style={styles.sadagFooter}>{copy.inspiredBy}</Text>
-        </LinearGradient>
+            </LinearGradient>
+          </View>
+        </View>
 
-        <View style={styles.previewCard}>
+        <View style={styles.previewCardOuter}>
+          <View style={styles.previewCardInner}>
           <Text style={styles.previewLabel}>{copy.nextLabel}</Text>
           <View style={styles.previewRow}>
             <TaskStepIconWell
@@ -480,21 +499,26 @@ export function TaskCompletionCelebration({ streakData }: Props) {
               </Text>
             </View>
           </View>
+          </View>
         </View>
 
         {pro && proInsight ?
-          <View style={styles.proCard}>
-            <Text style={styles.proLabel}>Pro · mood insight</Text>
-            <Text style={styles.proBody}>{proInsight}</Text>
+          <View style={styles.proCardOuter}>
+            <View style={styles.proCardInner}>
+              <Text style={styles.proLabel}>Pro · mood insight</Text>
+              <Text style={styles.proBody}>{proInsight}</Text>
+            </View>
           </View>
         : pro ?
-          <View style={styles.proCard}>
-            <Text style={styles.proLabel}>Pro bonus</Text>
-            <Text style={styles.proBody}>
-              {effectiveLocale === "af"
-                ? "Volledige Afrikaans vir die eerste 7 dae, ekstra wenke in die wenkkaart, en stemming-insigte wanneer jy genoeg kere ingeteken het."
-                : "Full Afrikaans for the first seven ladder days, richer tips in the card above, and mood insights when you have enough check-ins."}
-            </Text>
+          <View style={styles.proCardOuter}>
+            <View style={styles.proCardInner}>
+              <Text style={styles.proLabel}>Pro bonus</Text>
+              <Text style={styles.proBody}>
+                {effectiveLocale === "af"
+                  ? "Volledige Afrikaans vir die eerste 7 dae, ekstra wenke in die wenkkaart, en stemming-insigte wanneer jy genoeg kere ingeteken het."
+                  : "Full Afrikaans for the first seven ladder days, richer tips in the card above, and mood insights when you have enough check-ins."}
+              </Text>
+            </View>
           </View>
         : null}
 

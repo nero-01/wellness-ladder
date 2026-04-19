@@ -10,7 +10,11 @@ import {
 } from "react-native"
 import { Link } from "expo-router"
 import { SafeAreaView } from "react-native-safe-area-context"
-import { wellnessCardShadow } from "@/constants/homeCard"
+import { WellnessCardFrame } from "@/components/WellnessCardFrame"
+import {
+  wellnessCardInner,
+  wellnessCardOuter,
+} from "@/constants/wellnessSurface"
 import {
   gapSection,
   inset,
@@ -65,15 +69,20 @@ function createStyles(W: WellnessPalette) {
     },
     title: { fontSize: 28, fontWeight: "800", color: W.text },
     subtitle: { fontSize: 15, color: W.textMuted, marginTop: 6, lineHeight: 22 },
-    card: {
+    cardOuter: {
       marginHorizontal: inset,
       marginTop: gapSection,
-      backgroundColor: W.bgElevated,
-      borderRadius: radiusLg,
+    },
+    cardOuterFirst: {
+      marginHorizontal: inset,
+      marginTop: gapSection / 2,
+    },
+    cardInnerPad: {
       padding: padSection,
-      borderWidth: 1,
-      borderColor: W.cardBorder,
-      ...wellnessCardShadow,
+    },
+    accountCardOuter: {
+      marginHorizontal: inset,
+      marginTop: 8,
     },
     cardTitle: {
       fontSize: 13,
@@ -121,7 +130,6 @@ function createStyles(W: WellnessPalette) {
       maxWidth: 160,
       textAlign: "right",
     },
-    accountBlock: { marginTop: 8 },
     accountName: { fontSize: 18, fontWeight: "600", color: W.text },
     accountEmail: { fontSize: 14, color: W.textMuted, marginTop: 4 },
     signOut: {
@@ -215,42 +223,52 @@ export default function ProfileScreen() {
         <Link href="/recurring-habits" asChild>
           <Pressable
             style={({ pressed }) => [
-              styles.card,
-              {
-                marginTop: gapSection / 2,
-                padding: 0,
-                flexDirection: "row",
-                overflow: "hidden",
-              },
+              wellnessCardOuter(radiusLg),
+              styles.cardOuterFirst,
               pressed && { opacity: 0.92 },
             ]}
             accessibilityRole="button"
             accessibilityLabel="Recurring habits"
           >
             <View
-              style={{ width: 4, backgroundColor: habitsAccent.border }}
-            />
-            <View style={{ flex: 1, padding: padSection }}>
-              <View style={styles.habitsRow}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.cardTitle}>Recurring habits</Text>
-                  <Text style={styles.habitsLead}>
-                    Small optional reminders — not your main daily task.
-                  </Text>
+              style={[
+                wellnessCardInner(W, radiusLg),
+                { padding: 0, flexDirection: "row" },
+              ]}
+            >
+              <View
+                style={{ width: 4, backgroundColor: habitsAccent.border }}
+              />
+              <View style={{ flex: 1, padding: padSection }}>
+                <View style={styles.habitsRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.cardTitle}>Recurring habits</Text>
+                    <Text style={styles.habitsLead}>
+                      Small optional reminders — not your main daily task.
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={22} color={W.textMuted} />
                 </View>
-                <Ionicons name="chevron-forward" size={22} color={W.textMuted} />
               </View>
             </View>
           </Pressable>
         </Link>
 
         {!isLoaded ? (
-          <View style={[styles.card, { marginTop: gapSection }]}>
+          <WellnessCardFrame
+            W={W}
+            outerStyle={[styles.cardOuter, { marginTop: gapSection }]}
+            innerStyle={styles.cardInnerPad}
+          >
             <Text style={styles.emptyText}>Loading…</Text>
-          </View>
+          </WellnessCardFrame>
         ) : (
           <>
-            <View style={styles.card}>
+            <WellnessCardFrame
+              W={W}
+              outerStyle={styles.cardOuter}
+              innerStyle={styles.cardInnerPad}
+            >
               <Text style={styles.cardTitle}>Streak & totals</Text>
               <View style={styles.statRow}>
                 <Text style={styles.statLabel}>Current streak</Text>
@@ -287,14 +305,22 @@ export default function ProfileScreen() {
                   Pro: longer streak grace (extra days before your chain resets).
                 </Text>
               : null}
-            </View>
+            </WellnessCardFrame>
 
-            <View style={styles.card}>
+            <WellnessCardFrame
+              W={W}
+              outerStyle={styles.cardOuter}
+              innerStyle={styles.cardInnerPad}
+            >
               <Text style={styles.cardTitle}>Task heat map</Text>
               <StreakHeatMap completionDates={completionDates} weeks={5} />
-            </View>
+            </WellnessCardFrame>
 
-            <View style={styles.card}>
+            <WellnessCardFrame
+              W={W}
+              outerStyle={styles.cardOuter}
+              innerStyle={styles.cardInnerPad}
+            >
               <Text style={styles.cardTitle}>Mood check-ins</Text>
               <StreakHeatMap
                 completionDates={moodDates}
@@ -303,9 +329,13 @@ export default function ProfileScreen() {
                 hint="Green = logged a mood that day"
                 activeColor="#22c55e"
               />
-            </View>
+            </WellnessCardFrame>
 
-            <View style={styles.card}>
+            <WellnessCardFrame
+              W={W}
+              outerStyle={styles.cardOuter}
+              innerStyle={styles.cardInnerPad}
+            >
               <Text style={styles.cardTitle}>Task badges</Text>
               {streakData.milestonesUnlocked.length === 0 ?
                 <Text style={styles.emptyText}>
@@ -329,9 +359,13 @@ export default function ProfileScreen() {
                   })}
                 </View>
               }
-            </View>
+            </WellnessCardFrame>
 
-            <View style={styles.card}>
+            <WellnessCardFrame
+              W={W}
+              outerStyle={styles.cardOuter}
+              innerStyle={styles.cardInnerPad}
+            >
               <Text style={styles.cardTitle}>Mood check-in badges</Text>
               {streakData.moodMilestonesUnlocked.length === 0 ?
                 <Text style={styles.emptyText}>
@@ -355,9 +389,13 @@ export default function ProfileScreen() {
                   })}
                 </View>
               }
-            </View>
+            </WellnessCardFrame>
 
-            <View style={styles.card}>
+            <WellnessCardFrame
+              W={W}
+              outerStyle={styles.cardOuter}
+              innerStyle={styles.cardInnerPad}
+            >
               <Text style={styles.cardTitle}>Recent moods</Text>
               {moods.length === 0 ?
                 <Text style={styles.emptyText}>
@@ -407,9 +445,13 @@ export default function ProfileScreen() {
                   )
                 })
               }
-            </View>
+            </WellnessCardFrame>
 
-            <View style={styles.card}>
+            <WellnessCardFrame
+              W={W}
+              outerStyle={styles.cardOuter}
+              innerStyle={styles.cardInnerPad}
+            >
               <Text style={styles.cardTitle}>Recent completions</Text>
               {completions.length === 0 ?
                 <View style={{ alignItems: "center", paddingVertical: 8 }}>
@@ -434,11 +476,15 @@ export default function ProfileScreen() {
                   </View>
                 ))
               }
-            </View>
+            </WellnessCardFrame>
           </>
         )}
 
-        <View style={[styles.card, styles.accountBlock]}>
+        <WellnessCardFrame
+          W={W}
+          outerStyle={styles.accountCardOuter}
+          innerStyle={styles.cardInnerPad}
+        >
           <Text style={styles.cardTitle}>Account</Text>
           {IS_DEV_BYPASS ? (
             <View style={styles.devBadge} accessibilityLabel="Development mode">
@@ -458,7 +504,7 @@ export default function ProfileScreen() {
               </Pressable>
             </>
           : <Text style={styles.emptyText}>Not signed in</Text>}
-        </View>
+        </WellnessCardFrame>
       </ScrollView>
     </SafeAreaView>
   )

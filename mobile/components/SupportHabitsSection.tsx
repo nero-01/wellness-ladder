@@ -10,7 +10,10 @@ import {
   View,
 } from "react-native"
 import { useRecurringHabitsContext } from "@/contexts/RecurringHabitsContext"
-import { wellnessCardShadow } from "@/constants/homeCard"
+import {
+  wellnessCardInner,
+  wellnessCardOuter,
+} from "@/constants/wellnessSurface"
 import { gapSection, padCard, radiusMd, radiusSm } from "@/constants/layoutTokens"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
@@ -20,15 +23,16 @@ import { format } from "date-fns"
 
 function createStyles(W: WellnessPalette) {
   return StyleSheet.create({
-    wrap: {
+    wrapOuter: {
       marginBottom: gapSection,
+      ...wellnessCardOuter(radiusMd),
+    },
+    wrapInner: {
       paddingVertical: 12,
       paddingHorizontal: padCard,
-      borderRadius: radiusMd,
-      borderWidth: 1,
-      borderColor: W.cardBorder,
-      backgroundColor: W.surfaceMuted,
-      ...wellnessCardShadow,
+      ...wellnessCardInner(W, radiusMd, {
+        backgroundColor: W.surfaceMuted,
+      }),
     },
     headerRow: {
       flexDirection: "row",
@@ -119,9 +123,11 @@ export function SupportHabitsSection({ previewMode }: Props) {
   if (previewMode) return null
   if (loading && enabledHabits.length === 0) {
     return (
-      <View style={styles.wrap}>
-        <View style={styles.loading}>
-          <ActivityIndicator color={W.primary} />
+      <View style={styles.wrapOuter}>
+        <View style={styles.wrapInner}>
+          <View style={styles.loading}>
+            <ActivityIndicator color={W.primary} />
+          </View>
         </View>
       </View>
     )
@@ -129,7 +135,8 @@ export function SupportHabitsSection({ previewMode }: Props) {
   if (enabledHabits.length === 0) return null
 
   return (
-    <View style={styles.wrap} accessibilityLabel="Support habits">
+    <View style={styles.wrapOuter} accessibilityLabel="Support habits">
+      <View style={styles.wrapInner}>
       <View style={styles.headerRow}>
         <Text style={styles.title}>Support habits</Text>
         <Pressable
@@ -190,6 +197,7 @@ export function SupportHabitsSection({ previewMode }: Props) {
           </View>
         )
       })}
+      </View>
     </View>
   )
 }
