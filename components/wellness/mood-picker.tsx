@@ -1,8 +1,11 @@
 "use client"
 
-import Image from "next/image"
 import { wellnessWebTap } from "@/lib/wellness-feedback"
-import { MILO_MOOD_ITEMS, getMiloMoodItem } from "@/lib/mood-picker-data"
+import {
+  getMiloMoodItem,
+  MILO_MOOD_ITEMS,
+  moodNotoSvgUrlFromFamily,
+} from "@/lib/mood-picker-data"
 
 interface MoodPickerProps {
   selectedMood: number | null
@@ -16,49 +19,59 @@ export function MoodPicker({ selectedMood, onMoodSelect, showLabel = true }: Moo
   return (
     <div>
       {showLabel ?
-        <p className="text-sm text-muted-foreground text-center mb-4">
-          How are you feeling?
-        </p>
+        <div className="text-center mb-2">
+          <p className="text-sm font-semibold text-foreground">How are you feeling?</p>
+          <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
+            Tap the face that fits best — we’ll save it for your mood streak.
+          </p>
+        </div>
       : null}
 
-      <div className="flex flex-col items-center gap-4 mb-2">
-        <div className="relative h-[120px] w-[220px] shrink-0">
-          <Image
-            src="/mascot/mascot-transparent.png"
-            alt=""
-            fill
-            className="object-contain object-center pointer-events-none select-none"
-            sizes="220px"
-            priority={false}
-          />
-        </div>
-      </div>
-
-      <div className="flex flex-wrap items-center justify-center gap-2 max-w-md mx-auto">
-        {MILO_MOOD_ITEMS.map((mood) => (
-          <button
-            key={mood.id}
-            type="button"
-            onClick={() => {
-              wellnessWebTap()
-              onMoodSelect(mood.id)
-            }}
-            className={`min-h-11 px-3.5 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
-              selectedMood === mood.id ?
-                "bg-primary/20 ring-2 ring-primary text-primary scale-[1.02]"
-              : "bg-secondary hover:bg-secondary/80 text-foreground"
-            }`}
-            aria-pressed={selectedMood === mood.id}
-            aria-label={mood.label}
-          >
-            {mood.label}
-          </button>
-        ))}
+      <div className="grid grid-cols-4 gap-2 sm:gap-3 max-w-md mx-auto justify-items-stretch">
+        {MILO_MOOD_ITEMS.map((mood) => {
+          const on = selectedMood === mood.id
+          const src = moodNotoSvgUrlFromFamily(mood.emojiFamily)
+          return (
+            <button
+              key={mood.id}
+              type="button"
+              onClick={() => {
+                wellnessWebTap()
+                onMoodSelect(mood.id)
+              }}
+              className={`flex flex-col items-center rounded-2xl border px-1.5 py-2.5 transition-all duration-200 min-h-[92px] ${
+                on ?
+                  "bg-primary/15 border-primary ring-2 ring-primary/40 shadow-md shadow-primary/10 scale-[1.02]"
+                : "bg-secondary/80 border-border/80 hover:bg-secondary hover:border-border"
+              }`}
+              aria-pressed={selectedMood === mood.id}
+              aria-label={mood.label}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element -- remote Noto mood asset */}
+              <img
+                src={src}
+                alt=""
+                width={40}
+                height={40}
+                className="pointer-events-none select-none drop-shadow-sm mb-1"
+                loading="lazy"
+                decoding="async"
+              />
+              <span
+                className={`text-[10px] font-bold leading-tight text-center px-0.5 ${
+                  on ? "text-primary" : "text-muted-foreground"
+                }`}
+              >
+                {mood.label}
+              </span>
+            </button>
+          )
+        })}
       </div>
 
       {selected ?
-        <div className="mt-3 text-center space-y-1 animate-in fade-in duration-300">
-          <p className="text-sm text-primary">
+        <div className="mt-4 text-center space-y-1 animate-in fade-in duration-300">
+          <p className="text-sm font-medium text-primary">
             {"You're"} feeling {selected.label.toLowerCase()}
           </p>
           <p className="text-xs text-muted-foreground leading-relaxed max-w-sm mx-auto">

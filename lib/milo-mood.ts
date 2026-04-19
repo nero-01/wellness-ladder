@@ -26,6 +26,11 @@ export type MiloMoodItem = {
   hint: string
   hintAf: string
   mascot: MiloMascotDrive
+  /**
+   * `grapheme:hex` for emoji.family SVG — used in mood check-in (Noto/Fluent).
+   * @see https://www.emoji.family/developers
+   */
+  emojiFamily: string
 }
 
 export const MILO_MOOD_ITEMS: readonly MiloMoodItem[] = [
@@ -36,6 +41,7 @@ export const MILO_MOOD_ITEMS: readonly MiloMoodItem[] = [
     hint: "Light, uplifted",
     hintAf: "Lig, opgewek",
     mascot: "celebrating",
+    emojiFamily: "😊:1f60a",
   },
   {
     id: 2,
@@ -44,6 +50,7 @@ export const MILO_MOOD_ITEMS: readonly MiloMoodItem[] = [
     hint: "Settled and steady",
     hintAf: "Bedarend en bestendig",
     mascot: "idle",
+    emojiFamily: "😌:1f60c",
   },
   {
     id: 3,
@@ -52,6 +59,7 @@ export const MILO_MOOD_ITEMS: readonly MiloMoodItem[] = [
     hint: "Even and open",
     hintAf: "Ewe en oop",
     mascot: "idle",
+    emojiFamily: "😐:1f610",
   },
   {
     id: 4,
@@ -60,6 +68,7 @@ export const MILO_MOOD_ITEMS: readonly MiloMoodItem[] = [
     hint: "Low energy",
     hintAf: "Lae energie",
     mascot: "sleepy",
+    emojiFamily: "😴:1f634",
   },
   {
     id: 5,
@@ -68,6 +77,7 @@ export const MILO_MOOD_ITEMS: readonly MiloMoodItem[] = [
     hint: "Tight or overloaded",
     hintAf: "Opgespanne of oorlaai",
     mascot: "stressed",
+    emojiFamily: "😟:1f61f",
   },
   {
     id: 6,
@@ -76,6 +86,7 @@ export const MILO_MOOD_ITEMS: readonly MiloMoodItem[] = [
     hint: "Accomplished",
     hintAf: "Bereik",
     mascot: "proud",
+    emojiFamily: "🙌:1f64c",
   },
   {
     id: 7,
@@ -84,6 +95,7 @@ export const MILO_MOOD_ITEMS: readonly MiloMoodItem[] = [
     hint: "Looking forward",
     hintAf: "Sien uit",
     mascot: "encouraging",
+    emojiFamily: "🌟:1f31f",
   },
   {
     id: 8,
@@ -92,6 +104,7 @@ export const MILO_MOOD_ITEMS: readonly MiloMoodItem[] = [
     hint: "Thoughtful pause",
     hintAf: "Peinsende oomblik",
     mascot: "reflective",
+    emojiFamily: "🤔:1f914",
   },
 ] as const
 

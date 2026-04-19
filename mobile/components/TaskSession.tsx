@@ -344,7 +344,7 @@ function sessionUi(locale: "en" | "af", displayStreak: number) {
       done: "Klaar",
       moodRequiredTitle: "Kies eers jou bui",
       moodRequiredBody:
-        "Jou bui word gebruik om jou stemming-streep te bereken. Kies ’n stemming vir Milo hier onder.",
+        "Jou bui word gebruik om jou stemming-streep te bereken. Kies ’n emoji hier onder.",
       voiceGuide: "Stemgids",
       voiceGuideSpeaking: "Besig om te praat…",
     }
@@ -363,7 +363,7 @@ function sessionUi(locale: "en" | "af", displayStreak: number) {
     done: "Done",
     moodRequiredTitle: "Pick your mood first",
     moodRequiredBody:
-      "Your mood powers your mood streak. Choose how you feel — Milo will match your energy.",
+      "Your mood powers your mood streak. Tap a mood below to continue.",
     voiceGuide: "Voice guide",
     voiceGuideSpeaking: "Speaking…",
   }
