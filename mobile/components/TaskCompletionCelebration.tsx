@@ -106,12 +106,13 @@ function createCelebrationStyles(W: WellnessPalette) {
     backBtn: { alignSelf: "flex-start", marginBottom: 16 },
     mascotCelebrationWrap: {
       alignSelf: "center",
-      width: 150,
-      height: 150,
+      minWidth: 228,
+      minHeight: 210,
       alignItems: "center",
       justifyContent: "center",
       marginBottom: 12,
       position: "relative",
+      overflow: "visible",
     },
     checkBadge: {
       position: "absolute",
@@ -375,7 +376,8 @@ export function TaskCompletionCelebration({ streakData }: Props) {
         <View style={styles.mascotCelebrationWrap}>
           <Mascot
             state="celebrating"
-            size={120}
+            preset="celebration"
+            rewardKey={1}
             animated
             locale={effectiveLocale === "af" ? "af" : "en"}
           />

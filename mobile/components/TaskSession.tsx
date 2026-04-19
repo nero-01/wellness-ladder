@@ -316,6 +316,12 @@ function createTaskSessionStyles(W: WellnessPalette) {
       marginBottom: 14,
       opacity: 0.95,
     },
+    sessionCompanion: {
+      alignItems: "center",
+      marginTop: 4,
+      marginBottom: 12,
+      paddingHorizontal: 8,
+    },
   })
 }
 
@@ -407,6 +413,7 @@ export function TaskSession({
 
   const [flameDisplay, setFlameDisplay] = useState(streakCountForBadge)
   const [bumpKey, setBumpKey] = useState(0)
+  const [mascotAttentionKey, setMascotAttentionKey] = useState(0)
 
   useEffect(() => {
     setFlameDisplay(streakCountForBadge)
@@ -496,6 +503,7 @@ export function TaskSession({
 
   const handleStart = useCallback(() => {
     wellnessTapMedium()
+    setMascotAttentionKey((k) => k + 1)
     if (timer.mode === "manual") {
       if (timer.walkPhase === "stopped") timer.resumeWalk()
       else timer.startWalk()
@@ -807,7 +815,8 @@ export function TaskSession({
               <View style={styles.mascotCue}>
                 <Mascot
                   state="encouraging"
-                  size={72}
+                  preset="taskCue"
+                  attentionKey={mascotAttentionKey}
                   animated
                   locale={localeReady && locale === "af" ? "af" : "en"}
                 />
@@ -846,10 +855,20 @@ export function TaskSession({
             />
           ) : null}
 
-          {sessionActive && task.id !== BREATHING_TASK_ID ? (
-            <Text style={styles.keepGoing}>{ui.keepGoing}</Text>
-          ) : null}
         </LinearGradient>
+
+        {sessionActive && task.id !== BREATHING_TASK_ID ? (
+          <View style={styles.sessionCompanion}>
+            <Mascot
+              state="idle"
+              preset="taskSession"
+              motionProfile="calm"
+              animated
+              locale={localeReady && locale === "af" ? "af" : "en"}
+            />
+            <Text style={styles.keepGoing}>{ui.keepGoing}</Text>
+          </View>
+        ) : null}
 
         <View style={styles.moodStrip}>
           <MoodPickerRow

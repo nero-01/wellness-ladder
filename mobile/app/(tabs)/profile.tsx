@@ -350,7 +350,7 @@ export default function ProfileScreen() {
               <Text style={styles.cardTitle}>Recent completions</Text>
               {completions.length === 0 ?
                 <View style={{ alignItems: "center", paddingVertical: 8 }}>
-                  <Mascot state="sleepy" size={80} animated />
+                  <Mascot state="sleepy" preset="profile" animated />
                   <Text style={[styles.emptyText, { marginTop: 12, textAlign: "center" }]}>
                     Finish today’s task to build your history here.
                   </Text>

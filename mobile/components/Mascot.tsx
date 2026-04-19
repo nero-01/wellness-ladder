@@ -1,14 +1,18 @@
 import { Image } from "expo-image"
-import { memo, useEffect, useMemo } from "react"
+import { memo, useEffect, useMemo, useRef } from "react"
 import { StyleSheet, View } from "react-native"
 import Animated, {
   Easing,
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
   withRepeat,
   withSequence,
   withTiming,
 } from "react-native-reanimated"
+import type { MascotSizePreset } from "@/hooks/useMascotSize"
+import { useMascotSize } from "@/hooks/useMascotSize"
+import { useWellnessColors } from "@/hooks/useWellnessColors"
 import {
   MASCOT_MOTION,
   type MascotLocale,
@@ -16,90 +20,244 @@ import {
   mascotAccessibilityLabel,
 } from "@/components/MascotStates"
 
+type MotionProfile = "default" | "calm"
+
 type Props = {
   state: MascotState
+  /** Explicit pixel size (wins over `preset`). */
   size?: number
+  /** Responsive size when `size` is omitted. */
+  preset?: MascotSizePreset
   animated?: boolean
   locale?: MascotLocale
   style?: object
   testID?: string
+  /** Slower, softer motion (splash / loading / in-task companion). */
+  motionProfile?: MotionProfile
+  /** Increment to fire a one-shot gentle attention motion (e.g. task start). */
+  attentionKey?: number
+  /** Increment to fire a soft celebratory pop + glow (e.g. milestone, emphasis). */
+  rewardKey?: number
 }
 
-/** Official wellness companion art (single source of truth for in-app mascot). */
 const COMPANION_ASSET = require("../assets/mascot/companion-official.png")
 
 const AnimatedView = Animated.createAnimatedComponent(View)
 
 export const Mascot = memo(function Mascot({
   state,
-  size = 112,
+  size: sizeProp,
+  preset,
   animated = true,
   locale = "en",
   style,
   testID,
+  motionProfile = "default",
+  attentionKey,
+  rewardKey,
 }: Props) {
+  const W = useWellnessColors()
+  const presetSize = useMascotSize(preset ?? "hero")
+  const size = sizeProp ?? (preset !== undefined ? presetSize : 112)
+
   const motion = MASCOT_MOTION[state]
+  const calm = motionProfile === "calm"
 
   const floatY = useSharedValue(0)
   const sway = useSharedValue(0)
   const celebrate = useSharedValue(1)
   const sleepyDim = useSharedValue(1)
+  const breathe = useSharedValue(1)
+  const blinkY = useSharedValue(1)
+  const nodY = useSharedValue(0)
+  const proudPulse = useSharedValue(1)
+  const attentionScale = useSharedValue(1)
+  const attentionY = useSharedValue(0)
+  const rewardScale = useSharedValue(1)
+  const glowOpacity = useSharedValue(0)
 
-  const amp = size * 0.022 * motion.float
+  const prevAttention = useRef<number | undefined>(undefined)
+  const prevReward = useRef<number | undefined>(undefined)
+
+  const amp = size * (calm ? 0.018 : 0.024) * motion.float
+  const floatDuration = calm ? 4400 : 3600
 
   useEffect(() => {
     if (!animated) return
     floatY.value = withRepeat(
       withSequence(
-        withTiming(-amp, { duration: 3600, easing: Easing.inOut(Easing.quad) }),
-        withTiming(amp * 0.35, { duration: 3600, easing: Easing.inOut(Easing.quad) }),
+        withTiming(-amp, { duration: floatDuration, easing: Easing.inOut(Easing.quad) }),
+        withTiming(amp * 0.38, { duration: floatDuration, easing: Easing.inOut(Easing.quad) }),
       ),
       -1,
       true,
     )
-  }, [animated, amp, floatY])
+  }, [animated, amp, floatDuration, floatY])
 
   useEffect(() => {
     if (!animated) return
     const w =
       state === "encouraging" ? 0.014
       : state === "supportive" ? 0.01
-      : state === "celebrating" ? 0.018
+      : state === "celebrating" ? 0.016
+      : calm ? 0.006
       : 0.008
+    const dur = calm ? 3000 : 2600
     sway.value = withRepeat(
       withSequence(
-        withTiming(-w, { duration: 2600, easing: Easing.inOut(Easing.sin) }),
-        withTiming(w, { duration: 2600, easing: Easing.inOut(Easing.sin) }),
+        withTiming(-w, { duration: dur, easing: Easing.inOut(Easing.sin) }),
+        withTiming(w, { duration: dur, easing: Easing.inOut(Easing.sin) }),
       ),
       -1,
       true,
     )
-  }, [animated, state, sway])
+  }, [animated, calm, state, sway])
 
   useEffect(() => {
     if (!animated) return
     if (state === "celebrating") {
-      celebrate.value = withSequence(
-        withTiming(1.06, { duration: 420, easing: Easing.out(Easing.quad) }),
-        withTiming(1, { duration: 520, easing: Easing.inOut(Easing.quad) }),
+      celebrate.value = withRepeat(
+        withSequence(
+          withTiming(1.065, { duration: 780, easing: Easing.inOut(Easing.quad) }),
+          withTiming(1, { duration: 920, easing: Easing.inOut(Easing.quad) }),
+        ),
+        -1,
+        true,
       )
     } else {
-      celebrate.value = withTiming(1, { duration: 280 })
+      celebrate.value = withTiming(1, { duration: 300 })
     }
   }, [animated, celebrate, state])
 
   useEffect(() => {
     if (!animated) return
-    sleepyDim.value = withTiming(state === "sleepy" ? 0.82 : 1, { duration: 380 })
+    sleepyDim.value = withTiming(state === "sleepy" ? 0.84 : 1, { duration: 420 })
   }, [animated, sleepyDim, state])
+
+  useEffect(() => {
+    if (!animated) return
+    const br =
+      state === "sleepy" ? 1.004
+      : state === "celebrating" ? 1.008
+      : 1.012
+    const dur = state === "celebrating" ? 2600 : 2800
+    breathe.value = withRepeat(
+      withSequence(
+        withTiming(br, { duration: dur, easing: Easing.inOut(Easing.sin) }),
+        withTiming(1, { duration: dur, easing: Easing.inOut(Easing.sin) }),
+      ),
+      -1,
+      true,
+    )
+  }, [animated, breathe, state])
+
+  useEffect(() => {
+    if (!animated || state === "sleepy") {
+      blinkY.value = 1
+      return
+    }
+    const gap = calm ? 5200 : 3800 / Math.max(0.45, motion.blink)
+    blinkY.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: gap, easing: Easing.linear }),
+        withTiming(0.91, { duration: 70, easing: Easing.out(Easing.quad) }),
+        withTiming(1, { duration: 130, easing: Easing.inOut(Easing.quad) }),
+      ),
+      -1,
+      false,
+    )
+  }, [animated, blinkY, calm, motion.blink, state])
+
+  useEffect(() => {
+    if (!animated) return
+    if (state === "encouraging") {
+      nodY.value = withRepeat(
+        withSequence(
+          withTiming(0, { duration: 2400, easing: Easing.inOut(Easing.quad) }),
+          withTiming(-size * 0.035, { duration: 420, easing: Easing.out(Easing.quad) }),
+          withTiming(0, { duration: 480, easing: Easing.inOut(Easing.quad) }),
+        ),
+        -1,
+        false,
+      )
+    } else {
+      nodY.value = withTiming(0, { duration: 280 })
+    }
+  }, [animated, nodY, size, state])
+
+  useEffect(() => {
+    if (!animated) return
+    if (state === "proud") {
+      proudPulse.value = withRepeat(
+        withSequence(
+          withTiming(1, { duration: 2600, easing: Easing.inOut(Easing.quad) }),
+          withTiming(1.07, { duration: 420, easing: Easing.out(Easing.cubic) }),
+          withTiming(1, { duration: 520, easing: Easing.inOut(Easing.quad) }),
+        ),
+        -1,
+        false,
+      )
+    } else {
+      proudPulse.value = withTiming(1, { duration: 240 })
+    }
+  }, [animated, proudPulse, state])
+
+  useEffect(() => {
+    if (attentionKey === undefined || attentionKey < 1) return
+    if (prevAttention.current === attentionKey) return
+    prevAttention.current = attentionKey
+    if (!animated) return
+    attentionScale.value = withSequence(
+      withTiming(1.042, { duration: 240, easing: Easing.out(Easing.quad) }),
+      withTiming(1, { duration: 380, easing: Easing.inOut(Easing.quad) }),
+    )
+    attentionY.value = withSequence(
+      withTiming(-size * 0.022, { duration: 240, easing: Easing.out(Easing.quad) }),
+      withTiming(0, { duration: 380, easing: Easing.inOut(Easing.quad) }),
+    )
+  }, [animated, attentionKey, attentionScale, attentionY, size])
+
+  useEffect(() => {
+    if (rewardKey === undefined || rewardKey < 1) return
+    if (prevReward.current === rewardKey) return
+    prevReward.current = rewardKey
+    if (!animated) return
+    rewardScale.value = withSequence(
+      withTiming(1.06, { duration: 280, easing: Easing.out(Easing.cubic) }),
+      withTiming(1, { duration: 520, easing: Easing.inOut(Easing.quad) }),
+    )
+    glowOpacity.value = withSequence(
+      withTiming(0.22, { duration: 180, easing: Easing.out(Easing.quad) }),
+      withDelay(120, withTiming(0, { duration: 520, easing: Easing.inOut(Easing.quad) })),
+    )
+  }, [animated, glowOpacity, rewardKey, rewardScale])
+
+  const padV = size * 0.16
+  const padH = size * 0.12
+  const glowSize = size * 1.38
 
   const bodyStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateY: floatY.value },
+      { translateY: floatY.value + nodY.value + attentionY.value },
       { rotate: `${sway.value}rad` },
-      { scale: celebrate.value },
+      {
+        scale:
+          celebrate.value *
+          breathe.value *
+          proudPulse.value *
+          attentionScale.value *
+          rewardScale.value,
+      },
     ],
     opacity: sleepyDim.value,
+  }))
+
+  const blinkStyle = useAnimatedStyle(() => ({
+    transform: [{ scaleY: blinkY.value }],
+  }))
+
+  const glowStyle = useAnimatedStyle(() => ({
+    opacity: glowOpacity.value,
   }))
 
   const a11y = useMemo(
@@ -107,23 +265,50 @@ export const Mascot = memo(function Mascot({
     [locale, state],
   )
 
+  const glowColor = `${W.primary}38`
+
   return (
     <View
-      style={[styles.wrap, { width: size, height: size }, style]}
+      style={[
+        styles.wrap,
+        {
+          width: size + padH * 2,
+          minHeight: size + padV * 2,
+          paddingVertical: padV,
+          paddingHorizontal: padH,
+        },
+        style,
+      ]}
       accessibilityRole="image"
       accessibilityLabel={a11y}
       testID={testID}
     >
-      <AnimatedView style={[styles.lift, bodyStyle]}>
-        <Image
-          source={COMPANION_ASSET}
-          style={{ width: size, height: size }}
-          contentFit="contain"
-          cachePolicy="memory-disk"
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
+      <View style={styles.stage} pointerEvents="none">
+        <AnimatedView
+          style={[
+            styles.glow,
+            {
+              width: glowSize,
+              height: glowSize,
+              borderRadius: glowSize / 2,
+              backgroundColor: glowColor,
+            },
+            glowStyle,
+          ]}
         />
-      </AnimatedView>
+        <AnimatedView style={[styles.lift, bodyStyle]}>
+          <AnimatedView style={blinkStyle}>
+            <Image
+              source={COMPANION_ASSET}
+              style={{ width: size, height: size }}
+              contentFit="contain"
+              cachePolicy="memory-disk"
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+            />
+          </AnimatedView>
+        </AnimatedView>
+      </View>
     </View>
   )
 })
@@ -132,9 +317,22 @@ const styles = StyleSheet.create({
   wrap: {
     alignItems: "center",
     justifyContent: "center",
+    alignSelf: "center",
+  },
+  stage: {
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "visible",
+  },
+  glow: {
+    position: "absolute",
+    top: "10%",
+    alignSelf: "center",
+    zIndex: 0,
   },
   lift: {
     alignItems: "center",
     justifyContent: "center",
+    zIndex: 1,
   },
 })

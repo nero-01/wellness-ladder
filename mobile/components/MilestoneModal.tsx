@@ -6,6 +6,7 @@ import {
   Text,
   View,
 } from "react-native"
+import { useEffect, useState } from "react"
 import LottieView from "lottie-react-native"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
@@ -30,6 +31,11 @@ function isMoodMilestone(m: TaskMilestoneId | MoodMilestoneId): m is MoodMilesto
 export function MilestoneModal({ visible, milestone, onClose }: Props) {
   const W = useWellnessColors()
   const styles = createStyles(W)
+  const [rewardPulse, setRewardPulse] = useState(0)
+
+  useEffect(() => {
+    if (visible && milestone) setRewardPulse((p) => p + 1)
+  }, [visible, milestone])
 
   if (!milestone) return null
 
@@ -63,7 +69,12 @@ export function MilestoneModal({ visible, milestone, onClose }: Props) {
             style={styles.lottie}
           />
           <View style={styles.mascotRow}>
-            <Mascot state="proud" size={96} animated />
+            <Mascot
+              state="proud"
+              preset="milestone"
+              rewardKey={rewardPulse}
+              animated
+            />
           </View>
           <Text style={styles.kicker}>{mood ? "Mood milestone" : "Milestone"}</Text>
           <Text style={styles.title}>{meta.label}</Text>

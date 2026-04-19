@@ -101,7 +101,7 @@ export default function SignInScreen() {
             contentContainerStyle={styles.scrollContent}
           >
             <RNView style={{ alignItems: "center", marginBottom: 12 }}>
-              <Mascot state="encouraging" size={100} animated />
+              <Mascot state="encouraging" preset="auth" animated />
             </RNView>
             <Text style={[styles.hero, { color: textPrimary }]}>Sign in</Text>
             <Text style={[styles.sub, { color: textMuted }]}>

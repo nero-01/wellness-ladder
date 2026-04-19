@@ -296,7 +296,7 @@ export default function SignUpScreen() {
             contentContainerStyle={styles.scrollContent}
           >
             <RNView style={{ alignItems: "center", marginBottom: 12 }}>
-              <Mascot state="encouraging" size={100} animated />
+              <Mascot state="encouraging" preset="auth" animated />
             </RNView>
             <Text style={[styles.hero, { color: textPrimary }]}>
               Sign up for free ladder

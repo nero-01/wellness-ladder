@@ -19,7 +19,7 @@ export function ResumeLadderBanner({ onResume, maxStreak }: Props) {
       accessibilityRole="alert"
     >
       <View style={styles.iconWrap}>
-        <Mascot state="supportive" size={56} animated />
+        <Mascot state="supportive" preset="banner" animated />
       </View>
       <View style={styles.body}>
         <Text style={styles.title}>Resume your ladder?</Text>

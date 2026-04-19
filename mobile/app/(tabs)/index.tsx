@@ -324,7 +324,7 @@ export default function HomeScreen() {
         {/* Hero */}
         <View style={styles.hero}>
           <View style={{ alignItems: "center", marginBottom: 8 }}>
-            <Mascot state="idle" size={88} animated />
+            <Mascot state="idle" preset="hero" animated />
           </View>
           <Text style={styles.headline}>Bite-Size Wellness Ladder</Text>
           <Text style={styles.subhead}>
