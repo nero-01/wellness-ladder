@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
+import { Mascot } from "@/components/Mascot"
 import { TaskCatalogPreview } from "@/components/TaskCatalogPreview"
 import { TaskNotoIcon } from "@/components/TaskNotoIcon"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
@@ -322,6 +323,9 @@ export default function HomeScreen() {
 
         {/* Hero */}
         <View style={styles.hero}>
+          <View style={{ alignItems: "center", marginBottom: 8 }}>
+            <Mascot state="idle" size={88} animated />
+          </View>
           <Text style={styles.headline}>Bite-Size Wellness Ladder</Text>
           <Text style={styles.subhead}>
             One tiny self-care step daily. Unlock the next only when done. Build habits effortlessly.

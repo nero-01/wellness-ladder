@@ -19,6 +19,7 @@ import { Link, useRouter } from "expo-router"
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Text } from "@/components/Themed"
+import { Mascot } from "@/components/Mascot"
 import { FloatingLabelInput } from "@/components/auth/FloatingLabelInput"
 import { useColorScheme } from "@/components/useColorScheme"
 import type { OAuthProviderId } from "@/contexts/AuthContext"
@@ -294,6 +295,9 @@ export default function SignUpScreen() {
             extraScrollHeight={Platform.OS === "ios" ? 24 : 48}
             contentContainerStyle={styles.scrollContent}
           >
+            <RNView style={{ alignItems: "center", marginBottom: 12 }}>
+              <Mascot state="encouraging" size={100} animated />
+            </RNView>
             <Text style={[styles.hero, { color: textPrimary }]}>
               Sign up for free ladder
             </Text>

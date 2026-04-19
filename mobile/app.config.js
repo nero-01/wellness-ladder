@@ -48,7 +48,8 @@ module.exports = {
     userInterfaceStyle: "dark",
     newArchEnabled: true,
     splash: {
-      image: "./assets/images/splash-icon.png",
+      /** Native splash: minimal violet pebble companion on charcoal (see `assets/mascot/splash-mascot.png`). */
+      image: "./assets/mascot/splash-mascot.png",
       resizeMode: "contain",
       backgroundColor: "#151118",
     },

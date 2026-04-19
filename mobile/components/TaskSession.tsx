@@ -20,6 +20,7 @@ import { CircularProgress } from "@/components/CircularProgress"
 import { MoodPickerRow } from "@/components/MoodPickerRow"
 import { MoodStreakBadge } from "@/components/MoodStreakBadge"
 import { ResumeLadderBanner } from "@/components/ResumeLadderBanner"
+import { Mascot } from "@/components/Mascot"
 import { SupportHabitsSection } from "@/components/SupportHabitsSection"
 import { StreakFlameBadge } from "@/components/StreakFlameBadge"
 import {
@@ -309,6 +310,11 @@ function createTaskSessionStyles(W: WellnessPalette) {
       borderWidth: 1,
       borderColor: W.cardBorder,
       backgroundColor: W.bgElevated,
+    },
+    mascotCue: {
+      alignItems: "center",
+      marginBottom: 14,
+      opacity: 0.95,
     },
   })
 }
@@ -798,6 +804,14 @@ export function TaskSession({
               <Text style={styles.hint}>
                 {timer.mode === "manual" ? ui.hintManual : ui.hintCountdown}
               </Text>
+              <View style={styles.mascotCue}>
+                <Mascot
+                  state="encouraging"
+                  size={72}
+                  animated
+                  locale={localeReady && locale === "af" ? "af" : "en"}
+                />
+              </View>
               <Pressable
                 style={({ pressed }) => [
                   styles.startCta,

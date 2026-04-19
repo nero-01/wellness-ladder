@@ -16,6 +16,7 @@ import {
   View,
 } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
+import { Mascot } from "@/components/Mascot"
 import { TaskNotoIcon } from "@/components/TaskNotoIcon"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
@@ -103,17 +104,29 @@ function createCelebrationStyles(W: WellnessPalette) {
       paddingTop: 16,
     },
     backBtn: { alignSelf: "flex-start", marginBottom: 16 },
-    completionIconWrap: {
-      width: 96,
-      height: 96,
-      borderRadius: 48,
-      backgroundColor: W.primary,
+    mascotCelebrationWrap: {
+      alignSelf: "center",
+      width: 150,
+      height: 150,
       alignItems: "center",
       justifyContent: "center",
-      marginBottom: 20,
+      marginBottom: 12,
+      position: "relative",
+    },
+    checkBadge: {
+      position: "absolute",
+      bottom: 10,
+      right: 6,
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 3,
+      borderColor: W.bg,
       shadowColor: W.primary,
-      shadowOpacity: 0.4,
-      shadowRadius: 16,
+      shadowOpacity: 0.45,
+      shadowRadius: 10,
       elevation: 8,
     },
     completionTitle: {
@@ -359,8 +372,16 @@ export function TaskCompletionCelebration({ streakData }: Props) {
           <Ionicons name="chevron-back" size={26} color={W.text} />
         </Pressable>
 
-        <View style={styles.completionIconWrap}>
-          <Ionicons name="checkmark" size={48} color="#fff" />
+        <View style={styles.mascotCelebrationWrap}>
+          <Mascot
+            state="celebrating"
+            size={120}
+            animated
+            locale={effectiveLocale === "af" ? "af" : "en"}
+          />
+          <View style={[styles.checkBadge, { backgroundColor: W.primary }]}>
+            <Ionicons name="checkmark" size={28} color="#fff" />
+          </View>
         </View>
         <Text style={styles.completionTitle}>{copy.title}</Text>
         <Text style={styles.completionSub}>{copy.subtitle}</Text>

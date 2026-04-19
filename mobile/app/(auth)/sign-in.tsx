@@ -16,6 +16,7 @@ import { Link, useRouter } from "expo-router"
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Text } from "@/components/Themed"
+import { Mascot } from "@/components/Mascot"
 import { FloatingLabelInput } from "@/components/auth/FloatingLabelInput"
 import { useColorScheme } from "@/components/useColorScheme"
 import { IS_DEV_BYPASS } from "@/constants/devBypass"
@@ -99,6 +100,9 @@ export default function SignInScreen() {
             extraScrollHeight={Platform.OS === "ios" ? 24 : 48}
             contentContainerStyle={styles.scrollContent}
           >
+            <RNView style={{ alignItems: "center", marginBottom: 12 }}>
+              <Mascot state="encouraging" size={100} animated />
+            </RNView>
             <Text style={[styles.hero, { color: textPrimary }]}>Sign in</Text>
             <Text style={[styles.sub, { color: textMuted }]}>
               Fields stay above the keyboard on iOS and Android.

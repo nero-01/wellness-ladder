@@ -1,5 +1,5 @@
-import { Ionicons } from "@expo/vector-icons"
 import { Pressable, StyleSheet, Text, View } from "react-native"
+import { Mascot } from "@/components/Mascot"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { wellnessTapLight } from "@/lib/wellnessFeedback"
@@ -19,7 +19,7 @@ export function ResumeLadderBanner({ onResume, maxStreak }: Props) {
       accessibilityRole="alert"
     >
       <View style={styles.iconWrap}>
-        <Ionicons name="trail-sign-outline" size={22} color={W.primary} />
+        <Mascot state="supportive" size={56} animated />
       </View>
       <View style={styles.body}>
         <Text style={styles.title}>Resume your ladder?</Text>
@@ -57,12 +57,13 @@ function createStyles(W: WellnessPalette) {
       marginBottom: 16,
     },
     iconWrap: {
-      width: 40,
-      height: 40,
-      borderRadius: 12,
+      width: 64,
+      height: 64,
+      borderRadius: 16,
       backgroundColor: W.surfaceMuted,
       alignItems: "center",
       justifyContent: "center",
+      overflow: "visible",
     },
     body: { flex: 1 },
     title: { fontSize: 16, fontWeight: "800", color: W.text, marginBottom: 4 },

@@ -14,6 +14,7 @@ import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { IS_DEV_BYPASS } from "@/constants/devBypass"
 import { useAuth } from "@/contexts/AuthContext"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
+import { Mascot } from "@/components/Mascot"
 import { StreakHeatMap } from "@/components/StreakHeatMap"
 import { useStreak } from "@/hooks/useStreak"
 import { emojiFamilySvgUrl } from "@/lib/mood-picker-data"
@@ -348,9 +349,12 @@ export default function ProfileScreen() {
             <View style={styles.card}>
               <Text style={styles.cardTitle}>Recent completions</Text>
               {completions.length === 0 ?
-                <Text style={styles.emptyText}>
-                  Finish today’s task to build your history here.
-                </Text>
+                <View style={{ alignItems: "center", paddingVertical: 8 }}>
+                  <Mascot state="sleepy" size={80} animated />
+                  <Text style={[styles.emptyText, { marginTop: 12, textAlign: "center" }]}>
+                    Finish today’s task to build your history here.
+                  </Text>
+                </View>
               : completions.map((c, i) => (
                   <View
                     key={`done-${i}-${c.date}-${c.taskId}`}

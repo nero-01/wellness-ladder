@@ -11,6 +11,7 @@ import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { wellnessTapMedium } from "@/lib/wellnessFeedback"
 import { emojiFamilySvgUrl } from "@/lib/mood-picker-data"
+import { Mascot } from "@/components/Mascot"
 import { MILESTONE_NOTO, MOOD_MILESTONE_NOTO } from "@/lib/streak-rules"
 import type { MoodMilestoneId, TaskMilestoneId } from "@/lib/wellness-data"
 
@@ -61,6 +62,9 @@ export function MilestoneModal({ visible, milestone, onClose }: Props) {
             loop={false}
             style={styles.lottie}
           />
+          <View style={styles.mascotRow}>
+            <Mascot state="proud" size={96} animated />
+          </View>
           <Text style={styles.kicker}>{mood ? "Mood milestone" : "Milestone"}</Text>
           <Text style={styles.title}>{meta.label}</Text>
           <Image
@@ -92,6 +96,11 @@ function createStyles(W: WellnessPalette) {
       backgroundColor: "rgba(0,0,0,0.55)",
       justifyContent: "center",
       padding: 24,
+    },
+    mascotRow: {
+      alignItems: "center",
+      marginBottom: 8,
+      marginTop: -8,
     },
     sheet: {
       borderRadius: 20,
