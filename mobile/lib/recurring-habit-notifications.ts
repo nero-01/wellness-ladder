@@ -1,13 +1,38 @@
-import * as Notifications from "expo-notifications"
-import { SchedulableTriggerInputTypes } from "expo-notifications"
+import Constants from "expo-constants"
 import type { RepeatType } from "@/lib/recurring-habit-streak"
 import type { RecurringHabit } from "@/lib/recurring-habits-types"
+
+type NotificationsModule = typeof import("expo-notifications")
+
+/**
+ * Push / scheduled notifications are not available in Expo Go (SDK 53+). Loading the native
+ * module throws — never `import` or `require` it until we know we're not in StoreClient.
+ */
+let cachedModule: NotificationsModule | null | undefined
+
+function getNotifications(): NotificationsModule | null {
+  if (cachedModule !== undefined) return cachedModule
+  if (Constants.executionEnvironment === "storeClient") {
+    cachedModule = null
+    return null
+  }
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    cachedModule = require("expo-notifications") as NotificationsModule
+    return cachedModule
+  } catch {
+    cachedModule = null
+    return null
+  }
+}
 
 let handlerReady = false
 
 /** Call once at app startup so foreground notification behavior is defined. */
 export function initRecurringNotificationHandler(): void {
   if (handlerReady) return
+  const Notifications = getNotifications()
+  if (!Notifications) return
   handlerReady = true
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -20,6 +45,8 @@ export function initRecurringNotificationHandler(): void {
 }
 
 export async function ensureNotificationPermissions(): Promise<boolean> {
+  const Notifications = getNotifications()
+  if (!Notifications) return false
   initRecurringNotificationHandler()
   const { status: existing } = await Notifications.getPermissionsAsync()
   if (existing === "granted") return true
@@ -41,7 +68,10 @@ function expoWeekdayFromJs(jsDow: number): number {
   return jsDow + 1
 }
 
-async function cancelHabitIdentifiers(habitId: string): Promise<void> {
+async function cancelHabitIdentifiers(
+  Notifications: NotificationsModule,
+  habitId: string,
+): Promise<void> {
   const prefix = `wellness-rh-${habitId}-`
   const all = await Notifications.getAllScheduledNotificationsAsync()
   await Promise.all(
@@ -52,8 +82,12 @@ async function cancelHabitIdentifiers(habitId: string): Promise<void> {
 }
 
 export async function rescheduleHabitNotifications(habit: RecurringHabit): Promise<void> {
+  const Notifications = getNotifications()
+  if (!Notifications) return
+
   initRecurringNotificationHandler()
-  await cancelHabitIdentifiers(habit.id)
+  const { SchedulableTriggerInputTypes } = Notifications
+  await cancelHabitIdentifiers(Notifications, habit.id)
 
   if (!habit.enabled || !habit.reminderTime) return
 
@@ -114,6 +148,9 @@ export async function rescheduleHabitNotifications(habit: RecurringHabit): Promi
 export async function rescheduleAllHabitNotifications(
   habits: RecurringHabit[],
 ): Promise<void> {
+  const Notifications = getNotifications()
+  if (!Notifications) return
+
   const all = await Notifications.getAllScheduledNotificationsAsync()
   await Promise.all(
     all
@@ -128,5 +165,7 @@ export async function rescheduleAllHabitNotifications(
 }
 
 export async function cancelHabitNotifications(habitId: string): Promise<void> {
-  await cancelHabitIdentifiers(habitId)
+  const Notifications = getNotifications()
+  if (!Notifications) return
+  await cancelHabitIdentifiers(Notifications, habitId)
 }
