@@ -44,21 +44,22 @@ export function useRecurringHabits() {
   const refresh = useCallback(async () => {
     setLoading(true)
     setError(null)
+    let list: RecurringHabit[] = []
     try {
-      if (localOnly) {
-        const list = await loadLocalHabits()
-        setHabits(list)
-        await rescheduleAllHabitNotifications(list)
-      } else {
-        const list = await fetchRecurringHabits()
-        setHabits(list)
-        await rescheduleAllHabitNotifications(list)
-      }
+      list = localOnly ? await loadLocalHabits() : await fetchRecurringHabits()
+      setHabits(list)
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not load habits")
       setHabits([])
     } finally {
       setLoading(false)
+    }
+    try {
+      await rescheduleAllHabitNotifications(list)
+    } catch (e) {
+      if (__DEV__) {
+        console.warn("[wellness] habit notification reschedule failed", e)
+      }
     }
   }, [localOnly])
 
@@ -87,7 +88,11 @@ export function useRecurringHabits() {
           enabled: input.enabled ?? true,
         })
         setHabits((prev) => [...prev, h])
-        await rescheduleHabitNotifications(h)
+        try {
+          await rescheduleHabitNotifications(h)
+        } catch (e) {
+          if (__DEV__) console.warn("[wellness] reschedule after create (local)", e)
+        }
         return h
       }
       const h = await createRemoteHabit({
@@ -95,7 +100,11 @@ export function useRecurringHabits() {
         repeatDays,
       })
       setHabits((prev) => [...prev, h])
-      await rescheduleHabitNotifications(h)
+      try {
+        await rescheduleHabitNotifications(h)
+      } catch (e) {
+        if (__DEV__) console.warn("[wellness] reschedule after create (remote)", e)
+      }
       return h
     },
     [localOnly],
@@ -107,7 +116,11 @@ export function useRecurringHabits() {
         const h = await updateLocalHabit(id, patch)
         if (!h) return
         setHabits((prev) => prev.map((x) => (x.id === id ? h : x)))
-        await rescheduleHabitNotifications(h)
+        try {
+          await rescheduleHabitNotifications(h)
+        } catch (e) {
+          if (__DEV__) console.warn("[wellness] reschedule after update (local)", e)
+        }
         return h
       }
       const body: Parameters<typeof patchRemoteHabit>[1] = {}
@@ -119,7 +132,11 @@ export function useRecurringHabits() {
       if (patch.enabled !== undefined) body.enabled = patch.enabled
       const h = await patchRemoteHabit(id, body)
       setHabits((prev) => prev.map((x) => (x.id === id ? h : x)))
-      await rescheduleHabitNotifications(h)
+      try {
+        await rescheduleHabitNotifications(h)
+      } catch (e) {
+        if (__DEV__) console.warn("[wellness] reschedule after update (remote)", e)
+      }
       return h
     },
     [localOnly],

@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons"
 import * as Haptics from "expo-haptics"
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import {
+  ActivityIndicator,
   Alert,
   Modal,
   Pressable,
@@ -82,6 +83,32 @@ function createStyles(W: WellnessPalette) {
     addBtnDisabled: { opacity: 0.45 },
     addBtnText: { color: "#fff", fontSize: 16, fontWeight: "700" },
     error: { fontSize: 14, color: "#b91c1c", marginBottom: 12 },
+    errorBox: {
+      padding: 14,
+      borderRadius: 14,
+      backgroundColor: W.surfaceMuted,
+      borderWidth: 1,
+      borderColor: W.cardBorder,
+      marginBottom: 16,
+    },
+    retryBtn: {
+      marginTop: 12,
+      alignSelf: "flex-start",
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      borderRadius: 12,
+      backgroundColor: W.primary,
+    },
+    retryLabel: { fontSize: 14, fontWeight: "700", color: "#fff" },
+    emptyTitle: { fontSize: 16, fontWeight: "700", color: W.text, marginBottom: 6 },
+    emptySub: { fontSize: 14, color: W.textMuted, lineHeight: 20 },
+    loadingRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      paddingVertical: 20,
+      justifyContent: "center",
+    },
     modalBackdrop: {
       flex: 1,
       backgroundColor: "rgba(0,0,0,0.45)",
@@ -180,13 +207,19 @@ function createStyles(W: WellnessPalette) {
 const DAY_LETTERS = ["S", "M", "T", "W", "T", "F", "S"]
 
 function repeatSummary(h: RecurringHabit): string {
-  if (h.repeatType === "daily") return "Daily"
-  if (h.repeatType === "weekdays") return "Weekdays"
-  if (h.repeatType === "custom" && h.repeatDays?.length) {
-    const names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-    return h.repeatDays.map((d) => names[d]).join(", ")
+  try {
+    if (h.repeatType === "daily") return "Daily"
+    if (h.repeatType === "weekdays") return "Weekdays"
+    if (h.repeatType === "custom" && h.repeatDays && h.repeatDays.length > 0) {
+      const names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+      return h.repeatDays
+        .map((d) => names[Math.max(0, Math.min(6, Math.floor(Number(d))))] ?? "—")
+        .join(", ")
+    }
+    return "Custom"
+  } catch {
+    return "Custom"
   }
-  return "Custom"
 }
 
 export default function RecurringHabitsScreen() {
@@ -194,6 +227,22 @@ export default function RecurringHabitsScreen() {
   const styles = useMemo(() => createStyles(W), [W])
   const { habits, loading, error, create, update, remove, refresh } =
     useRecurringHabitsContext()
+
+  const safeHabits = useMemo(() => {
+    if (!Array.isArray(habits)) return []
+    return habits.filter(
+      (h) =>
+        h &&
+        typeof h.id === "string" &&
+        h.id.length > 0 &&
+        typeof h.title === "string",
+    )
+  }, [habits])
+
+  const onRetry = useCallback(() => {
+    wellnessTapLight()
+    void refresh()
+  }, [refresh])
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<RecurringHabit | null>(null)
@@ -279,7 +328,7 @@ export default function RecurringHabitsScreen() {
           enabled: editing.enabled,
         })
       } else {
-        if (habits.length >= MAX_RECURRING_HABITS) {
+        if (safeHabits.length >= MAX_RECURRING_HABITS) {
           Alert.alert("Limit", `You can add up to ${MAX_RECURRING_HABITS} support habits.`)
           return
         }
@@ -339,21 +388,48 @@ export default function RecurringHabitsScreen() {
         </Text>
 
         {error ?
-          <Text style={styles.error}>{error}</Text>
+          <View style={styles.errorBox}>
+            <Text style={styles.error}>{error}</Text>
+            <Pressable style={styles.retryBtn} onPress={onRetry}>
+              <Text style={styles.retryLabel}>Try again</Text>
+            </Pressable>
+          </View>
         : null}
 
-        {loading && habits.length === 0 ?
-          <Text style={styles.lead}>Loading…</Text>
+        {loading && safeHabits.length === 0 && !error ?
+          <View style={styles.loadingRow}>
+            <ActivityIndicator color={W.primary} />
+            <Text style={styles.lead}>Loading support habits…</Text>
+          </View>
         : null}
 
-        {habits.map((h) => (
+        {!loading && !error && safeHabits.length === 0 ?
+          <View style={{ marginBottom: 16 }}>
+            <Text style={styles.emptyTitle}>No support habits yet</Text>
+            <Text style={styles.emptySub}>
+              Add a small reminder beside your daily ladder task — optional, gentle, and easy to
+              turn off.
+            </Text>
+          </View>
+        : null}
+
+        {safeHabits.map((h) => (
           <View key={h.id} style={styles.card}>
             <View style={styles.rowBetween}>
               <Text style={styles.habitTitle}>{h.title}</Text>
               <Switch
-                value={h.enabled}
+                value={Boolean(h.enabled)}
                 onValueChange={(v) => {
-                  void update(h.id, { enabled: v })
+                  void (async () => {
+                    try {
+                      await update(h.id, { enabled: v })
+                    } catch (e) {
+                      Alert.alert(
+                        "Update failed",
+                        e instanceof Error ? e.message : "Could not update habit.",
+                      )
+                    }
+                  })()
                 }}
                 trackColor={{ false: W.cardBorder, true: W.primary }}
               />
@@ -362,7 +438,7 @@ export default function RecurringHabitsScreen() {
               {repeatSummary(h)}
               {h.reminderTime ? ` · ${h.reminderTime}` : ""}
             </Text>
-            {h.streakCount > 0 ?
+            {typeof h.streakCount === "number" && h.streakCount > 0 ?
               <View style={styles.streakPill}>
                 <Text style={styles.streakText}>
                   {h.streakCount} day streak
@@ -395,9 +471,10 @@ export default function RecurringHabitsScreen() {
         <Pressable
           style={({ pressed }) => [
             styles.addBtn,
-            (pressed || habits.length >= MAX_RECURRING_HABITS) && styles.addBtnDisabled,
+            (pressed || safeHabits.length >= MAX_RECURRING_HABITS) &&
+              styles.addBtnDisabled,
           ]}
-          disabled={habits.length >= MAX_RECURRING_HABITS}
+          disabled={safeHabits.length >= MAX_RECURRING_HABITS}
           onPress={() => {
             wellnessTapLight()
             openCreate()

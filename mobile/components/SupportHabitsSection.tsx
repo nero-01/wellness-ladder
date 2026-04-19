@@ -86,13 +86,19 @@ function createStyles(W: WellnessPalette) {
 }
 
 function repeatLabel(h: RecurringHabit): string {
-  if (h.repeatType === "daily") return "Daily"
-  if (h.repeatType === "weekdays") return "Weekdays"
-  if (h.repeatType === "custom" && h.repeatDays?.length) {
-    const names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-    return h.repeatDays.map((d) => names[d]).join(", ")
+  try {
+    if (h.repeatType === "daily") return "Daily"
+    if (h.repeatType === "weekdays") return "Weekdays"
+    if (h.repeatType === "custom" && h.repeatDays && h.repeatDays.length > 0) {
+      const names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+      return h.repeatDays
+        .map((d) => names[Math.max(0, Math.min(6, Math.floor(Number(d))))] ?? "—")
+        .join(", ")
+    }
+    return "Custom"
+  } catch {
+    return "Custom"
   }
-  return "Custom"
 }
 
 type Props = {
@@ -168,7 +174,9 @@ export function SupportHabitsSection({ previewMode }: Props) {
               onPress={() => {
                 wellnessTapLight()
                 void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                void complete(h.id)
+                void complete(h.id).catch(() => {
+                  /* hook surfaces no UI; avoid unhandled rejection */
+                })
               }}
               accessibilityLabel={
                 doneToday ? `${h.title} done today` : `Mark ${h.title} done`

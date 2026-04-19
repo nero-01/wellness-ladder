@@ -76,7 +76,7 @@ async function cancelHabitIdentifiers(
   const all = await Notifications.getAllScheduledNotificationsAsync()
   await Promise.all(
     all
-      .filter((n) => n.identifier.startsWith(prefix))
+      .filter((n) => (n.identifier ?? "").startsWith(prefix))
       .map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier)),
   )
 }
@@ -139,8 +139,12 @@ export async function rescheduleHabitNotifications(habit: RecurringHabit): Promi
   }
 
   if (rt === "custom" && days && days.length > 0) {
-    for (const jsDow of days) {
-      await scheduleWeekly(expoWeekdayFromJs(jsDow), `c${jsDow}`)
+    for (const raw of days) {
+      const jsDow = Number(raw)
+      if (!Number.isInteger(jsDow) || jsDow < 0 || jsDow > 6) continue
+      const expoWd = expoWeekdayFromJs(jsDow)
+      if (expoWd < 1 || expoWd > 7) continue
+      await scheduleWeekly(expoWd, `c${jsDow}`)
     }
   }
 }
@@ -154,7 +158,7 @@ export async function rescheduleAllHabitNotifications(
   const all = await Notifications.getAllScheduledNotificationsAsync()
   await Promise.all(
     all
-      .filter((n) => n.identifier.startsWith("wellness-rh-"))
+      .filter((n) => (n.identifier ?? "").startsWith("wellness-rh-"))
       .map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier)),
   )
   for (const h of habits) {
