@@ -8,8 +8,7 @@ import {
   DefaultTheme as NavigationDefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native"
-import { Image } from "expo-image"
-import { Platform, View } from "react-native"
+import { ActivityIndicator, Platform, View } from "react-native"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 import { useFonts } from "expo-font"
 import { Stack, usePathname, useRouter } from "expo-router"
@@ -24,8 +23,7 @@ import { RecurringHabitsProvider } from "@/contexts/RecurringHabitsContext"
 import { initRecurringNotificationHandler } from "@/lib/recurring-habit-notifications"
 import { WellnessColors, WellnessColorsLight } from "@/constants/wellnessTheme"
 
-/** Bundled splash art — updates on every Metro reload (not cached like native splash bitmap). */
-const SPLASH_COMPANION = require("../assets/mascot/wellness-splash-companion.png")
+/** Match native splash — solid only so we never stack a raster mascot under the vector `Mascot` on `index`. */
 const SPLASH_BG = "#151118"
 
 const WellnessDarkTheme = {
@@ -188,14 +186,9 @@ export default function RootLayout() {
           justifyContent: "center",
           alignItems: "center",
         }}
+        accessibilityLabel="Loading app"
       >
-        <Image
-          source={SPLASH_COMPANION}
-          style={{ width: 240, height: 240 }}
-          contentFit="contain"
-          cachePolicy="none"
-          accessibilityIgnoresInvertColors
-        />
+        <ActivityIndicator size="large" color={WellnessColors.primary} />
       </View>
     )
   }

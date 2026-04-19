@@ -48,9 +48,8 @@ module.exports = {
     userInterfaceStyle: "dark",
     newArchEnabled: true,
     /**
-     * Solid only — avoids Expo Go / simulator caching an old splash bitmap forever.
-     * The illustrated companion is shown from JS in `app/_layout.tsx` (always fresh from Metro).
-     * For release builds with a native image, run `npx expo prebuild` after changing assets.
+     * Solid only — avoids cached native splash bitmaps. The vector mascot lives in `Mascot.tsx`
+     * (e.g. app index loading) — do not stack a separate splash PNG on top of it.
      */
     splash: {
       resizeMode: "contain",
