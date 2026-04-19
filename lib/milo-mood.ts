@@ -4,6 +4,10 @@
  * Legacy entries may still use 1–5 — use `resolveMiloMoodId`.
  */
 
+import type { MoodPastelKey } from "./mood-pastels"
+
+export type { MoodPastelKey } from "./mood-pastels"
+
 export type MiloMoodId = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8
 
 /** Drives `Mascot` animation — keep in sync with `MascotState` in the mobile app */
@@ -31,6 +35,8 @@ export type MiloMoodItem = {
    * @see https://www.emoji.family/developers
    */
   emojiFamily: string
+  /** Subtle pastel accent — see `lib/mood-pastels.ts` */
+  pastelKey: MoodPastelKey
 }
 
 export const MILO_MOOD_ITEMS: readonly MiloMoodItem[] = [
@@ -42,6 +48,7 @@ export const MILO_MOOD_ITEMS: readonly MiloMoodItem[] = [
     hintAf: "Lig, opgewek",
     mascot: "celebrating",
     emojiFamily: "😊:1f60a",
+    pastelKey: "softYellow",
   },
   {
     id: 2,
@@ -51,6 +58,7 @@ export const MILO_MOOD_ITEMS: readonly MiloMoodItem[] = [
     hintAf: "Bedarend en bestendig",
     mascot: "idle",
     emojiFamily: "😌:1f60c",
+    pastelKey: "mint",
   },
   {
     id: 3,
@@ -60,6 +68,7 @@ export const MILO_MOOD_ITEMS: readonly MiloMoodItem[] = [
     hintAf: "Ewe en oop",
     mascot: "idle",
     emojiFamily: "😐:1f610",
+    pastelKey: "paleSky",
   },
   {
     id: 4,
@@ -69,6 +78,7 @@ export const MILO_MOOD_ITEMS: readonly MiloMoodItem[] = [
     hintAf: "Lae energie",
     mascot: "sleepy",
     emojiFamily: "😴:1f634",
+    pastelKey: "lavender",
   },
   {
     id: 5,
@@ -78,6 +88,7 @@ export const MILO_MOOD_ITEMS: readonly MiloMoodItem[] = [
     hintAf: "Opgespanne of oorlaai",
     mascot: "stressed",
     emojiFamily: "😟:1f61f",
+    pastelKey: "softPink",
   },
   {
     id: 6,
@@ -87,6 +98,7 @@ export const MILO_MOOD_ITEMS: readonly MiloMoodItem[] = [
     hintAf: "Bereik",
     mascot: "proud",
     emojiFamily: "🙌:1f64c",
+    pastelKey: "warmPeach",
   },
   {
     id: 7,
@@ -96,6 +108,7 @@ export const MILO_MOOD_ITEMS: readonly MiloMoodItem[] = [
     hintAf: "Sien uit",
     mascot: "encouraging",
     emojiFamily: "🌟:1f31f",
+    pastelKey: "softYellow",
   },
   {
     id: 8,
@@ -105,6 +118,7 @@ export const MILO_MOOD_ITEMS: readonly MiloMoodItem[] = [
     hintAf: "Peinsende oomblik",
     mascot: "reflective",
     emojiFamily: "🤔:1f914",
+    pastelKey: "lavender",
   },
 ] as const
 

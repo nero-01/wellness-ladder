@@ -1,11 +1,18 @@
 "use client"
 
+import { useTheme } from "next-themes"
+import { useMemo } from "react"
 import { wellnessWebTap } from "@/lib/wellness-feedback"
 import {
   getMiloMoodItem,
   MILO_MOOD_ITEMS,
   moodNotoSvgUrlFromFamily,
 } from "@/lib/mood-picker-data"
+import {
+  moodPastelAccent,
+  moodPastelsDark,
+  moodPastelsLight,
+} from "@/lib/mood-pastels"
 
 interface MoodPickerProps {
   selectedMood: number | null
@@ -15,6 +22,16 @@ interface MoodPickerProps {
 
 export function MoodPicker({ selectedMood, onMoodSelect, showLabel = true }: MoodPickerProps) {
   const selected = selectedMood !== null ? getMiloMoodItem(selectedMood) : undefined
+  const { resolvedTheme } = useTheme()
+
+  const pastelSet = useMemo(
+    () => (resolvedTheme === "dark" ? moodPastelsDark : moodPastelsLight),
+    [resolvedTheme],
+  )
+
+  const selectedAccent = selected
+    ? moodPastelAccent(pastelSet, selected.pastelKey)
+    : null
 
   return (
     <div>
@@ -31,6 +48,7 @@ export function MoodPicker({ selectedMood, onMoodSelect, showLabel = true }: Moo
         {MILO_MOOD_ITEMS.map((mood) => {
           const on = selectedMood === mood.id
           const src = moodNotoSvgUrlFromFamily(mood.emojiFamily)
+          const accent = moodPastelAccent(pastelSet, mood.pastelKey)
           return (
             <button
               key={mood.id}
@@ -40,10 +58,17 @@ export function MoodPicker({ selectedMood, onMoodSelect, showLabel = true }: Moo
                 onMoodSelect(mood.id)
               }}
               className={`flex flex-col items-center rounded-2xl border px-1.5 py-2.5 transition-all duration-200 min-h-[92px] ${
-                on ?
-                  "bg-primary/15 border-primary ring-2 ring-primary/40 shadow-md shadow-primary/10 scale-[1.02]"
-                : "bg-secondary/80 border-border/80 hover:bg-secondary hover:border-border"
+                on ? "scale-[1.01]" : "bg-secondary/80 border-border/80 hover:bg-secondary hover:border-border"
               }`}
+              style={
+                on ?
+                  {
+                    backgroundColor: accent.fill,
+                    borderColor: accent.border,
+                    borderWidth: 1,
+                  }
+                : undefined
+              }
               aria-pressed={selectedMood === mood.id}
               aria-label={mood.label}
             >
@@ -59,7 +84,7 @@ export function MoodPicker({ selectedMood, onMoodSelect, showLabel = true }: Moo
               />
               <span
                 className={`text-[10px] font-bold leading-tight text-center px-0.5 ${
-                  on ? "text-primary" : "text-muted-foreground"
+                  on ? "text-foreground" : "text-muted-foreground"
                 }`}
               >
                 {mood.label}
@@ -69,12 +94,19 @@ export function MoodPicker({ selectedMood, onMoodSelect, showLabel = true }: Moo
         })}
       </div>
 
-      {selected ?
-        <div className="mt-4 text-center space-y-1 animate-in fade-in duration-300">
-          <p className="text-sm font-medium text-primary">
+      {selected && selectedAccent ?
+        <div
+          className="mt-4 text-left space-y-1 animate-in fade-in duration-300 rounded-xl pl-3 py-2.5 pr-2 max-w-md mx-auto"
+          style={{
+            borderLeftWidth: 3,
+            borderLeftColor: selectedAccent.border,
+            backgroundColor: selectedAccent.fill,
+          }}
+        >
+          <p className="text-sm font-medium text-foreground">
             {"You're"} feeling {selected.label.toLowerCase()}
           </p>
-          <p className="text-xs text-muted-foreground leading-relaxed max-w-sm mx-auto">
+          <p className="text-xs text-muted-foreground leading-relaxed">
             {selected.hint}
           </p>
         </div>

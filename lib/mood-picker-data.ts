@@ -1,6 +1,7 @@
 /**
  * Shared helpers: **task** icons use Emoji Family SVGs; **mood** check-in uses
- * `MILO_MOOD_ITEMS` + `emojiFamily` from `lib/milo-mood.ts` (Noto SVGs).
+ * `MILO_MOOD_ITEMS` + `emojiFamily` + `pastelKey` from `lib/milo-mood.ts` (Noto SVGs +
+ * restrained pastels from `lib/mood-pastels.ts`).
  * @see https://www.emoji.family/developers
  */
 

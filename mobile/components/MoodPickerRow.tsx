@@ -11,6 +11,7 @@ import {
 } from "react-native"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { getMiloMoodItem, MILO_MOOD_ITEMS } from "@/lib/milo-mood"
+import { moodPastelAccent } from "@/lib/mood-pastels"
 import { moodNotoSvgUrlFromFamily } from "@/lib/mood-picker-data"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { wellnessSelection } from "@/lib/wellnessFeedback"
@@ -36,11 +37,13 @@ export function MoodPickerRow({
   const { width: screenW } = useWindowDimensions()
   const styles = useMemo(() => createStyles(W), [W])
 
-  /** ~4 columns on typical phones; wraps visually via flexWrap in scroll content */
   const cellOuter =
     Math.min(84, Math.max(72, (screenW - 40 - CELL_GAP * 3) / 4))
 
   const selected = selectedMood !== null ? getMiloMoodItem(selectedMood) : undefined
+  const selectedAccent = selected
+    ? moodPastelAccent(W.moodPastels, selected.pastelKey)
+    : null
 
   const onPick = useCallback(
     (value: number) => {
@@ -80,6 +83,7 @@ export function MoodPickerRow({
             const on = selectedMood === m.id
             const uri = moodNotoSvgUrlFromFamily(m.emojiFamily)
             const label = locale === "af" ? m.labelAf : m.label
+            const accent = moodPastelAccent(W.moodPastels, m.pastelKey)
             return (
               <Pressable
                 key={m.id}
@@ -91,14 +95,23 @@ export function MoodPickerRow({
                     minHeight: cellOuter + 18,
                     marginRight: i === MILO_MOOD_ITEMS.length - 1 ? 0 : CELL_GAP,
                   },
-                  on && styles.cellSelected,
+                  on && {
+                    backgroundColor: accent.fill,
+                    borderColor: accent.border,
+                    borderWidth: 1,
+                  },
                   pressed && styles.cellPressed,
                 ]}
                 accessibilityLabel={label}
                 accessibilityRole="button"
                 accessibilityState={{ selected: on }}
               >
-                <View style={[styles.emojiWell, on && styles.emojiWellOn]}>
+                <View
+                  style={[
+                    styles.emojiWell,
+                    on && { backgroundColor: W.bgElevated },
+                  ]}
+                >
                   <Image
                     source={{ uri }}
                     style={{
@@ -111,7 +124,10 @@ export function MoodPickerRow({
                   />
                 </View>
                 <Text
-                  style={[styles.cellLabel, on && styles.cellLabelOn]}
+                  style={[
+                    styles.cellLabel,
+                    on && styles.cellLabelOn,
+                  ]}
                   numberOfLines={1}
                 >
                   {label}
@@ -122,8 +138,20 @@ export function MoodPickerRow({
         </ScrollView>
       </View>
 
-      {selected ?
-        <View style={styles.confirm}>
+      {selected && selectedAccent ?
+        <View
+          style={[
+            styles.confirm,
+            {
+              borderLeftWidth: 3,
+              borderLeftColor: selectedAccent.border,
+              paddingLeft: 12,
+              paddingVertical: 10,
+              borderRadius: 12,
+              backgroundColor: selectedAccent.fill,
+            },
+          ]}
+        >
           <Text style={styles.confirmMain}>
             {locale === "af" ?
               `Jy voel ${selected.labelAf.toLowerCase()}`
@@ -174,12 +202,7 @@ function createStyles(W: WellnessPalette) {
       borderWidth: 1,
       borderColor: W.cardBorder,
     },
-    cellSelected: {
-      backgroundColor: W.iconBg,
-      borderColor: W.primary,
-      borderWidth: 2,
-    },
-    cellPressed: { opacity: 0.9 },
+    cellPressed: { opacity: 0.92 },
     emojiWell: {
       width: EMOJI_IMAGE_SIZE + 16,
       height: EMOJI_IMAGE_SIZE + 16,
@@ -189,9 +212,6 @@ function createStyles(W: WellnessPalette) {
       backgroundColor: W.bgElevated,
       marginBottom: 6,
     },
-    emojiWellOn: {
-      backgroundColor: W.bgElevated,
-    },
     cellLabel: {
       fontSize: 10,
       fontWeight: "700",
@@ -199,22 +219,22 @@ function createStyles(W: WellnessPalette) {
       textAlign: "center",
     },
     cellLabelOn: {
-      color: W.primary,
+      color: W.text,
     },
     confirm: {
       marginTop: 14,
-      paddingHorizontal: 8,
+      paddingHorizontal: 4,
     },
     confirmMain: {
       fontSize: 14,
       fontWeight: "600",
-      color: W.primary,
-      textAlign: "center",
+      color: W.text,
+      textAlign: "left",
     },
     confirmHint: {
       fontSize: 12,
       color: W.textMuted,
-      textAlign: "center",
+      textAlign: "left",
       marginTop: 6,
       lineHeight: 17,
     },

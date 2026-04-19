@@ -1,5 +1,13 @@
 /** Dark wellness landing palette — aligned with web `app/page.tsx` + globals dark theme */
 
+import {
+  moodPastelsDark,
+  moodPastelsLight,
+  type MoodPastelSet,
+} from "../../lib/mood-pastels"
+
+export type { MoodPastelSet }
+
 export type WellnessPalette = {
   bg: string
   bgElevated: string
@@ -16,6 +24,8 @@ export type WellnessPalette = {
   ringTrack: string
   surfaceMuted: string
   timerTrack: string
+  /** Soft mood-only accents — use sparingly (`lib/mood-pastels.ts`) */
+  moodPastels: MoodPastelSet
 }
 
 export const WellnessColors: WellnessPalette = {
@@ -33,6 +43,7 @@ export const WellnessColors: WellnessPalette = {
   ringTrack: "rgba(255, 255, 255, 0.12)",
   surfaceMuted: "rgba(255, 255, 255, 0.06)",
   timerTrack: "rgba(255, 255, 255, 0.1)",
+  moodPastels: moodPastelsDark,
 }
 
 /** Light palette — used when system Appearance is light */
@@ -51,4 +62,5 @@ export const WellnessColorsLight: WellnessPalette = {
   ringTrack: "rgba(0, 0, 0, 0.1)",
   surfaceMuted: "rgba(0, 0, 0, 0.06)",
   timerTrack: "rgba(0, 0, 0, 0.08)",
+  moodPastels: moodPastelsLight,
 }
