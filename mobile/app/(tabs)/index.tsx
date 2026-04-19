@@ -15,6 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context"
 import { Mascot } from "@/components/Mascot"
 import { TaskCatalogPreview } from "@/components/TaskCatalogPreview"
 import { TaskStepIconWell } from "@/components/TaskStepCard"
+import { previewCardShadow } from "@/constants/homeCard"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useStreak } from "@/hooks/useStreak"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
@@ -180,19 +181,18 @@ function createHomeStyles(W: WellnessPalette) {
       marginTop: 36,
       gap: 12,
       justifyContent: "space-between",
+      alignItems: "stretch",
     },
     card: {
       width: "48%",
-      borderRadius: 20,
+      minHeight: 172,
+      borderRadius: 18,
       borderWidth: 1,
-      padding: 18,
+      padding: 16,
       alignItems: "center",
-      marginBottom: 4,
-      shadowColor: "#000",
-      shadowOpacity: 0.07,
-      shadowRadius: 12,
-      shadowOffset: { width: 0, height: 4 },
-      elevation: 3,
+      justifyContent: "flex-start",
+      marginBottom: 0,
+      ...previewCardShadow,
     },
     iconCircle: {
       width: 52,
@@ -216,18 +216,23 @@ function createHomeStyles(W: WellnessPalette) {
       lineHeight: 16,
     },
     preview: {
-      marginHorizontal: 24,
+      marginHorizontal: 20,
       marginTop: 28,
-      borderRadius: 22,
-      padding: 22,
+      borderRadius: 20,
       borderWidth: 1,
       borderColor: W.cardBorder,
       overflow: "hidden",
-      shadowColor: "#000",
-      shadowOpacity: 0.06,
-      shadowRadius: 14,
-      shadowOffset: { width: 0, height: 6 },
-      elevation: 3,
+      flexDirection: "row",
+      alignItems: "stretch",
+      ...previewCardShadow,
+    },
+    previewAccentBar: {
+      width: 4,
+      alignSelf: "stretch",
+    },
+    previewBody: {
+      flex: 1,
+      padding: 20,
     },
     previewTopRow: {
       flexDirection: "row",
@@ -261,7 +266,9 @@ function createHomeStyles(W: WellnessPalette) {
     },
     previewTaskBox: {
       backgroundColor: W.surfaceMuted,
-      borderRadius: 16,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: W.cardBorder,
       padding: 16,
       alignItems: "center",
     },
@@ -466,46 +473,52 @@ export default function HomeScreen() {
               styles.preview,
               {
                 backgroundColor: W.bgElevated,
-                borderLeftWidth: 4,
-                borderLeftColor: previewAccent.border,
               },
             ]}
           >
-            <View style={styles.previewTopRow}>
-              <View style={styles.previewLeft}>
-                <View
-                  style={[
-                    styles.dayPill,
-                    {
-                      backgroundColor: dayPillAccent.idleFill,
-                      borderWidth: 1,
-                      borderColor: dayPillAccent.idleBorder,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[styles.dayPillText, { color: dayPillAccent.navIcon }]}
+            <View
+              style={[
+                styles.previewAccentBar,
+                { backgroundColor: previewAccent.border },
+              ]}
+            />
+            <View style={styles.previewBody}>
+              <View style={styles.previewTopRow}>
+                <View style={styles.previewLeft}>
+                  <View
+                    style={[
+                      styles.dayPill,
+                      {
+                        backgroundColor: dayPillAccent.idleFill,
+                        borderWidth: 1,
+                        borderColor: dayPillAccent.idleBorder,
+                      },
+                    ]}
                   >
-                    Day {displayStreak}
-                  </Text>
+                    <Text
+                      style={[styles.dayPillText, { color: dayPillAccent.navIcon }]}
+                    >
+                      Day {displayStreak}
+                    </Text>
+                  </View>
+                  <Text style={styles.previewTitle}>Your Progress</Text>
                 </View>
-                <Text style={styles.previewTitle}>Your Progress</Text>
+                <View style={styles.previewGlyphWrap}>
+                  <TaskStepIconWell
+                    taskId={todayTask.id}
+                    size={52}
+                    accent
+                    accessibilityLabel={`Today’s task: ${todayTask.title}`}
+                  />
+                </View>
               </View>
-              <View style={styles.previewGlyphWrap}>
-                <TaskStepIconWell
-                  taskId={todayTask.id}
-                  size={52}
-                  accent
-                  accessibilityLabel={`Today’s task: ${todayTask.title}`}
-                />
+              <View style={styles.previewTaskBox}>
+                <Text style={styles.previewHint}>{"Today's focus"}</Text>
+                <Text style={styles.previewTask}>{todayTask.title}</Text>
+                <Text style={styles.previewMeta}>
+                  ~{todayTask.duration}s · tap Start Your Ladder to begin
+                </Text>
               </View>
-            </View>
-            <View style={styles.previewTaskBox}>
-              <Text style={styles.previewHint}>{"Today's focus"}</Text>
-              <Text style={styles.previewTask}>{todayTask.title}</Text>
-              <Text style={styles.previewMeta}>
-                ~{todayTask.duration}s · tap Start Your Ladder to begin
-              </Text>
             </View>
           </View>
         ) : null}

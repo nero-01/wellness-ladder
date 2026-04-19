@@ -2,7 +2,6 @@ import { Ionicons } from "@expo/vector-icons"
 import * as Haptics from "expo-haptics"
 import { useMemo } from "react"
 import {
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -10,6 +9,7 @@ import {
   type StyleProp,
   type ViewStyle,
 } from "react-native"
+import { previewCardShadow } from "@/constants/homeCard"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import type { Task } from "@/lib/wellness-data"
@@ -22,21 +22,13 @@ function createStyles(W: WellnessPalette, variant: CardVariant) {
   return StyleSheet.create({
     root: {
       width: 156,
-      borderRadius: 20,
-      padding: 14,
-      backgroundColor: isToday ? W.iconBg : W.surfaceMuted,
+      minHeight: 200,
+      borderRadius: 18,
+      padding: 16,
+      backgroundColor: isToday ? W.iconBg : W.bgElevated,
       borderWidth: 1,
-      borderColor: isToday ? W.primary : W.cardBorder,
-      ...Platform.select({
-        ios: {
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: isToday ? 0.22 : 0.12,
-          shadowRadius: isToday ? 14 : 10,
-        },
-        android: { elevation: isToday ? 6 : 3 },
-        default: {},
-      }),
+      borderColor: isToday ? "rgba(139, 92, 246, 0.42)" : W.cardBorder,
+      ...previewCardShadow,
     },
     rootPressed: {
       opacity: 0.92,
@@ -53,14 +45,14 @@ function createStyles(W: WellnessPalette, variant: CardVariant) {
     iconWell: {
       width: 48,
       height: 48,
-      borderRadius: 16,
-      backgroundColor: isToday ? W.bgElevated : W.bgElevated,
+      borderRadius: 14,
+      backgroundColor: W.bgElevated,
       alignItems: "center",
       justifyContent: "center",
       alignSelf: "center",
       marginBottom: 10,
       borderWidth: 1,
-      borderColor: isToday ? "rgba(139, 92, 246, 0.35)" : W.cardBorder,
+      borderColor: isToday ? "rgba(139, 92, 246, 0.38)" : W.cardBorder,
     },
     title: {
       fontSize: 14,
@@ -159,22 +151,13 @@ const wellStyles = (W: WellnessPalette, size: number) =>
     well: {
       width: size,
       height: size,
-      borderRadius: size * 0.32,
+      borderRadius: size * 0.3,
       backgroundColor: W.bgElevated,
       alignItems: "center",
       justifyContent: "center",
       borderWidth: 1,
       borderColor: W.cardBorder,
-      ...Platform.select({
-        ios: {
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.14,
-          shadowRadius: 8,
-        },
-        android: { elevation: 4 },
-        default: {},
-      }),
+      ...previewCardShadow,
     },
   })
 

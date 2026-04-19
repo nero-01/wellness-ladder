@@ -54,7 +54,6 @@ export function TaskCatalogPreview({ todayTaskId }: Props) {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={{ backgroundColor: W.bg }}
         contentContainerStyle={styles.row}
       >
         {WELLNESS_TASKS.map((t: Task, index: number) => {
