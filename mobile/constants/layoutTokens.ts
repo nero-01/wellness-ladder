@@ -12,6 +12,9 @@ export const radiusMd = 18
 /** Large section surfaces (profile blocks, home “Your Progress”) */
 export const radiusLg = 20
 
+/** Silent Moon–style ladder step cards (soft, premium tiles) */
+export const radiusXl = 26
+
 /** Nested panels, chips, small controls */
 export const radiusSm = 12
 
