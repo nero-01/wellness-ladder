@@ -10,11 +10,13 @@ import { TaskSession } from "@/components/TaskSession"
 import { useStreak } from "@/hooks/useStreak"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { getTodayTask } from "@/lib/wellness-data"
+import { moodPastelAccent } from "@/lib/mood-pastels"
 import { useWellnessLocale } from "@/lib/wellness-locale"
 import { localizeTaskForLocale } from "@/lib/za-afrikaans-tasks"
 
 export default function TaskScreen() {
   const W = useWellnessColors()
+  const loadAccent = moodPastelAccent(W.moodPastels, "mint")
   const { locale, ready: localeReady } = useWellnessLocale()
   const {
     streakData,
@@ -38,7 +40,7 @@ export default function TaskScreen() {
   if (!isLoaded) {
     return (
       <View style={[styles.centered, { backgroundColor: W.bg }]}>
-        <ActivityIndicator size="large" color={W.primary} />
+        <ActivityIndicator size="large" color={loadAccent.navIcon} />
       </View>
     )
   }

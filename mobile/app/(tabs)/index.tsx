@@ -1,6 +1,8 @@
 import { Ionicons } from "@expo/vector-icons"
+import { LinearGradient } from "expo-linear-gradient"
 import { useRouter } from "expo-router"
 import { useCallback, useEffect, useMemo, useState } from "react"
+import type { ComponentProps } from "react"
 import {
   Appearance,
   Pressable,
@@ -18,27 +20,41 @@ import { useStreak } from "@/hooks/useStreak"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { wellnessTapLight, wellnessTapMedium } from "@/lib/wellnessFeedback"
 import { getTodayTask } from "@/lib/wellness-data"
+import {
+  FEATURE_TILE_PASTEL_KEYS,
+  moodPastelAccent,
+} from "@/lib/mood-pastels"
+import type { MoodPastelKey } from "@/lib/mood-pastels"
 
-const FEATURES = [
+const FEATURES: {
+  icon: ComponentProps<typeof Ionicons>["name"]
+  title: string
+  description: string
+  pastelKey: MoodPastelKey
+}[] = [
   {
-    icon: "calendar-outline" as const,
+    icon: "calendar-outline",
     title: "1 Task/Day",
     description: "Just one small step to focus on",
+    pastelKey: FEATURE_TILE_PASTEL_KEYS[0],
   },
   {
-    icon: "mic-outline" as const,
+    icon: "mic-outline",
     title: "Voice Guided",
     description: "Calming audio instructions",
+    pastelKey: FEATURE_TILE_PASTEL_KEYS[1],
   },
   {
-    icon: "sparkles-outline" as const,
+    icon: "sparkles-outline",
     title: "AI Personalized",
     description: "Tasks adapt to your mood",
+    pastelKey: FEATURE_TILE_PASTEL_KEYS[2],
   },
   {
-    icon: "cloud-offline-outline" as const,
+    icon: "cloud-offline-outline",
     title: "Offline Ready",
     description: "Works without internet",
+    pastelKey: FEATURE_TILE_PASTEL_KEYS[3],
   },
 ]
 
@@ -167,22 +183,24 @@ function createHomeStyles(W: WellnessPalette) {
     },
     card: {
       width: "48%",
-      backgroundColor: W.card,
-      borderRadius: 16,
+      borderRadius: 20,
       borderWidth: 1,
-      borderColor: W.cardBorder,
-      padding: 16,
+      padding: 18,
       alignItems: "center",
       marginBottom: 4,
+      shadowColor: "#000",
+      shadowOpacity: 0.07,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 3,
     },
     iconCircle: {
-      width: 48,
-      height: 48,
-      borderRadius: 16,
-      backgroundColor: W.iconBg,
+      width: 52,
+      height: 52,
+      borderRadius: 18,
       alignItems: "center",
       justifyContent: "center",
-      marginBottom: 10,
+      marginBottom: 12,
     },
     cardTitle: {
       color: W.text,
@@ -200,11 +218,16 @@ function createHomeStyles(W: WellnessPalette) {
     preview: {
       marginHorizontal: 24,
       marginTop: 28,
-      backgroundColor: W.bgElevated,
-      borderRadius: 20,
-      padding: 20,
+      borderRadius: 22,
+      padding: 22,
       borderWidth: 1,
       borderColor: W.cardBorder,
+      overflow: "hidden",
+      shadowColor: "#000",
+      shadowOpacity: 0.06,
+      shadowRadius: 14,
+      shadowOffset: { width: 0, height: 6 },
+      elevation: 3,
     },
     previewTopRow: {
       flexDirection: "row",
@@ -219,13 +242,11 @@ function createHomeStyles(W: WellnessPalette) {
       flex: 1,
     },
     dayPill: {
-      backgroundColor: W.iconBg,
       paddingHorizontal: 12,
       paddingVertical: 8,
       borderRadius: 999,
     },
     dayPillText: {
-      color: W.primary,
       fontSize: 13,
       fontWeight: "600",
     },
@@ -296,6 +317,25 @@ export default function HomeScreen() {
     router.push("/(tabs)/task")
   }, [router])
 
+  const heroWash = useMemo(
+    () =>
+      [
+        moodPastelAccent(W.moodPastels, "lavender").idleFill,
+        moodPastelAccent(W.moodPastels, "paleSky").idleFill,
+        W.bg,
+      ] as const,
+    [W],
+  )
+
+  const previewAccent = useMemo(
+    () => moodPastelAccent(W.moodPastels, "lavender"),
+    [W.moodPastels],
+  )
+  const dayPillAccent = useMemo(
+    () => moodPastelAccent(W.moodPastels, "mint"),
+    [W.moodPastels],
+  )
+
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <ScrollView
@@ -326,23 +366,30 @@ export default function HomeScreen() {
           </Pressable>
         </View>
 
-        {/* Hero */}
-        <View style={styles.hero}>
-          <View style={styles.heroMascot}>
-            <Mascot state="idle" preset="hero" animated />
-          </View>
-          <Text style={styles.headline}>Bite-Size Wellness Ladder</Text>
-          <Text style={styles.subhead}>
-            One tiny self-care step daily. Unlock the next only when done. Build habits effortlessly.
-          </Text>
+        <LinearGradient
+          colors={[...heroWash]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{ paddingBottom: 12 }}
+        >
+          {/* Hero — soft pastel wash (Figma-style calm hero) */}
+          <View style={styles.hero}>
+            <View style={styles.heroMascot}>
+              <Mascot state="idle" preset="hero" animated />
+            </View>
+            <Text style={styles.headline}>Bite-Size Wellness Ladder</Text>
+            <Text style={styles.subhead}>
+              One tiny self-care step daily. Unlock the next only when done. Build habits effortlessly.
+            </Text>
 
-          <Pressable
-            style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}
-            onPress={goTask}
-          >
-            <Text style={styles.ctaText}>Start Your Ladder</Text>
-          </Pressable>
-        </View>
+            <Pressable
+              style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}
+              onPress={goTask}
+            >
+              <Text style={styles.ctaText}>Start Your Ladder</Text>
+            </Pressable>
+          </View>
+        </LinearGradient>
 
         {streakLoaded ? (
           <View style={styles.ladderSection}>
@@ -378,26 +425,69 @@ export default function HomeScreen() {
           </View>
         ) : null}
 
-        {/* Feature grid — 2 columns, stacks on narrow phones naturally via flex */}
+        {/* Feature grid — one pastel per tile */}
         <View style={styles.grid}>
-          {FEATURES.map((f) => (
-            <View key={f.title} style={styles.card}>
-              <View style={styles.iconCircle}>
-                <Ionicons name={f.icon} size={26} color={W.primary} />
+          {FEATURES.map((f) => {
+            const a = moodPastelAccent(W.moodPastels, f.pastelKey)
+            return (
+              <View
+                key={f.title}
+                style={[
+                  styles.card,
+                  {
+                    backgroundColor: a.idleFill,
+                    borderColor: a.idleBorder,
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.iconCircle,
+                    {
+                      backgroundColor: a.fill,
+                      borderWidth: 1,
+                      borderColor: a.border,
+                    },
+                  ]}
+                >
+                  <Ionicons name={f.icon} size={26} color={a.navIcon} />
+                </View>
+                <Text style={styles.cardTitle}>{f.title}</Text>
+                <Text style={styles.cardDesc}>{f.description}</Text>
               </View>
-              <Text style={styles.cardTitle}>{f.title}</Text>
-              <Text style={styles.cardDesc}>{f.description}</Text>
-            </View>
-          ))}
+            )
+          })}
         </View>
 
         {/* Today’s focus — matches streak + scheduled task */}
         {streakLoaded ? (
-          <View style={styles.preview}>
+          <View
+            style={[
+              styles.preview,
+              {
+                backgroundColor: W.bgElevated,
+                borderLeftWidth: 4,
+                borderLeftColor: previewAccent.border,
+              },
+            ]}
+          >
             <View style={styles.previewTopRow}>
               <View style={styles.previewLeft}>
-                <View style={styles.dayPill}>
-                  <Text style={styles.dayPillText}>Day {displayStreak}</Text>
+                <View
+                  style={[
+                    styles.dayPill,
+                    {
+                      backgroundColor: dayPillAccent.idleFill,
+                      borderWidth: 1,
+                      borderColor: dayPillAccent.idleBorder,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[styles.dayPillText, { color: dayPillAccent.navIcon }]}
+                  >
+                    Day {displayStreak}
+                  </Text>
                 </View>
                 <Text style={styles.previewTitle}>Your Progress</Text>
               </View>

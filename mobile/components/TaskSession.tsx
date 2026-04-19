@@ -37,6 +37,8 @@ import { useTaskSessionTimer } from "@/hooks/useTaskSessionTimer"
 import { useTaskVoiceGuidance } from "@/hooks/useTaskVoiceGuidance"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { emojiFamilySvgUrl } from "@/lib/mood-picker-data"
+import { getMiloMoodItem } from "@/lib/milo-mood"
+import { moodPastelAccent } from "@/lib/mood-pastels"
 import { useWellnessLocale } from "@/lib/wellness-locale"
 import {
   wellnessTapLight,
@@ -420,6 +422,24 @@ export function TaskSession({
   }, [streakCountForBadge])
 
   const [selectedMood, setSelectedMood] = useState<number | null>(null)
+
+  const moodStripAccent = useMemo(() => {
+    const key =
+      selectedMood != null ?
+        getMiloMoodItem(selectedMood)?.pastelKey ?? "mint"
+      : "mint"
+    return moodPastelAccent(W.moodPastels, key)
+  }, [selectedMood, W.moodPastels])
+
+  const taskCardGradient = useMemo(
+    () =>
+      [
+        moodPastelAccent(W.moodPastels, "lavender").idleFill,
+        moodPastelAccent(W.moodPastels, "paleSky").idleFill,
+        W.bgElevated,
+      ] as const,
+    [W],
+  )
   const [isPlaying, setIsPlaying] = useState(false)
   const [voiceGuideBusy, setVoiceGuideBusy] = useState(false)
   const autoVoiceKeyRef = useRef<string | null>(null)
@@ -730,7 +750,7 @@ export function TaskSession({
         ) : null}
 
         <LinearGradient
-          colors={[W.iconBg, W.bgElevated]}
+          colors={[...taskCardGradient]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.card}
@@ -872,7 +892,17 @@ export function TaskSession({
           </View>
         ) : null}
 
-        <View style={styles.moodStrip}>
+        <View
+          style={[
+            styles.moodStrip,
+            {
+              borderLeftWidth: 4,
+              borderLeftColor: moodStripAccent.border,
+              backgroundColor: moodStripAccent.idleFill,
+              borderColor: moodStripAccent.idleBorder,
+            },
+          ]}
+        >
           <MoodPickerRow
             selectedMood={selectedMood}
             onMoodSelect={setSelectedMood}

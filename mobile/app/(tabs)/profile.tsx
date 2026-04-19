@@ -18,7 +18,12 @@ import { Mascot } from "@/components/Mascot"
 import { StreakHeatMap } from "@/components/StreakHeatMap"
 import { useStreak } from "@/hooks/useStreak"
 import { emojiFamilySvgUrl } from "@/lib/mood-picker-data"
-import { miloMoodLabel } from "@/lib/milo-mood"
+import {
+  getMiloMoodItem,
+  miloMoodLabel,
+  resolveMiloMoodId,
+} from "@/lib/milo-mood"
+import { moodPastelAccent } from "@/lib/mood-pastels"
 import { MILESTONE_NOTO, MOOD_MILESTONE_NOTO } from "@/lib/streak-rules"
 import { isWellnessPro } from "@/lib/wellness-pro"
 import { WELLNESS_TASKS } from "@/lib/wellness-data"
@@ -99,8 +104,7 @@ function createStyles(W: WellnessPalette) {
     moodPill: {
       fontSize: 13,
       fontWeight: "600",
-      color: W.primary,
-      maxWidth: 140,
+      maxWidth: 160,
       textAlign: "right",
     },
     accountBlock: { marginTop: 8 },
@@ -159,6 +163,10 @@ function createStyles(W: WellnessPalette) {
 export default function ProfileScreen() {
   const W = useWellnessColors()
   const styles = useMemo(() => createStyles(W), [W])
+  const habitsAccent = useMemo(
+    () => moodPastelAccent(W.moodPastels, "warmPeach"),
+    [W.moodPastels],
+  )
   const { user, signOut } = useAuth()
   const { streakData, isLoaded } = useStreak()
   const pro = isWellnessPro()
@@ -194,7 +202,11 @@ export default function ProfileScreen() {
           <Pressable
             style={({ pressed }) => [
               styles.card,
-              { marginTop: 4 },
+              {
+                marginTop: 4,
+                borderLeftWidth: 4,
+                borderLeftColor: habitsAccent.border,
+              },
               pressed && { opacity: 0.92 },
             ]}
             accessibilityRole="button"
@@ -331,27 +343,49 @@ export default function ProfileScreen() {
                 <Text style={styles.emptyText}>
                   Mood picks from your daily task will show up here.
                 </Text>
-              : moods.map((m, i) => (
-                  <View
-                    key={`mood-${i}-${m.date}-${m.mood}`}
-                    style={[
-                      styles.listItem,
-                      i === moods.length - 1 && styles.listItemLast,
-                    ]}
-                  >
-                    <View style={styles.listMain}>
-                      <Text style={styles.listTitle}>
-                        {formatShortDate(m.date)}
+              : moods.map((m, i) => {
+                  const resolved = resolveMiloMoodId(m.mood)
+                  const item = getMiloMoodItem(resolved)
+                  const ma = item
+                    ? moodPastelAccent(W.moodPastels, item.pastelKey)
+                    : moodPastelAccent(W.moodPastels, "paleSky")
+                  return (
+                    <View
+                      key={`mood-${i}-${m.date}-${m.mood}`}
+                      style={[
+                        styles.listItem,
+                        i === moods.length - 1 && styles.listItemLast,
+                      ]}
+                    >
+                      <View style={styles.listMain}>
+                        <Text style={styles.listTitle}>
+                          {formatShortDate(m.date)}
+                        </Text>
+                        <Text style={styles.listMeta}>Wellness check-in</Text>
+                      </View>
+                      <Text
+                        style={[
+                          styles.moodPill,
+                          {
+                            color: ma.label,
+                            backgroundColor: ma.idleFill,
+                            paddingHorizontal: 12,
+                            paddingVertical: 6,
+                            borderRadius: 999,
+                            borderWidth: 1,
+                            borderColor: ma.idleBorder,
+                            overflow: "hidden",
+                          },
+                        ]}
+                        accessibilityLabel="Mood"
+                      >
+                        {m.mood >= 1 && m.mood <= 8 ?
+                          miloMoodLabel(m.mood, "en")
+                        : `Mood ${m.mood}`}
                       </Text>
-                      <Text style={styles.listMeta}>Wellness check-in</Text>
                     </View>
-                    <Text style={styles.moodPill} accessibilityLabel="Mood">
-                      {m.mood >= 1 && m.mood <= 8 ?
-                        miloMoodLabel(m.mood, "en")
-                      : `Mood ${m.mood}`}
-                    </Text>
-                  </View>
-                ))
+                  )
+                })
               }
             </View>
 

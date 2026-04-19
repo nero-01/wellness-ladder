@@ -4,6 +4,7 @@ import { Animated, StyleSheet, Text, View } from "react-native"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { emojiFamilySvgUrl } from "@/lib/mood-picker-data"
+import { moodPastelAccent } from "@/lib/mood-pastels"
 
 const FLAME_NOTO = "1f525"
 
@@ -36,6 +37,7 @@ function createStyles(W: WellnessPalette) {
 export function StreakFlameBadge({ streakCount, bumpKey = 0 }: Props) {
   const W = useWellnessColors()
   const styles = createStyles(W)
+  const accent = moodPastelAccent(W.moodPastels, "warmPeach")
   const scale = useRef(new Animated.Value(1)).current
   const prevBump = useRef(bumpKey)
 
@@ -61,7 +63,16 @@ export function StreakFlameBadge({ streakCount, bumpKey = 0 }: Props) {
 
   return (
     <Animated.View style={{ transform: [{ scale }] }}>
-      <View style={styles.row} accessibilityRole="text">
+      <View
+        style={[
+          styles.row,
+          {
+            backgroundColor: accent.idleFill,
+            borderColor: accent.idleBorder,
+          },
+        ]}
+        accessibilityRole="text"
+      >
         <Image
           source={{ uri }}
           style={styles.flame}

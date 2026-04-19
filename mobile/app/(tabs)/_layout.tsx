@@ -3,7 +3,15 @@ import FontAwesome from "@expo/vector-icons/FontAwesome"
 import { Link, Tabs } from "expo-router"
 import { Easing, Pressable } from "react-native"
 import { useColorScheme } from "@/components/useColorScheme"
-import { WellnessColors, WellnessColorsLight } from "@/constants/wellnessTheme"
+import {
+  WellnessColors,
+  WellnessColorsLight,
+} from "@/constants/wellnessTheme"
+import { useWellnessColors } from "@/hooks/useWellnessColors"
+import {
+  moodPastelAccent,
+  NAV_TAB_PASTEL_KEYS,
+} from "@/lib/mood-pastels"
 
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>["name"]
@@ -15,16 +23,26 @@ function TabBarIcon(props: {
 export default function TabLayout() {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === "dark"
+  const W = useWellnessColors()
   const screenBg = isDark ? WellnessColors.bg : WellnessColorsLight.bg
+
+  const homeAccent = moodPastelAccent(W.moodPastels, NAV_TAB_PASTEL_KEYS[0])
+  const taskAccent = moodPastelAccent(W.moodPastels, NAV_TAB_PASTEL_KEYS[1])
+  const progressAccent = moodPastelAccent(W.moodPastels, NAV_TAB_PASTEL_KEYS[2])
+
+  const tabBarTopLine = isDark
+    ? "rgba(196, 181, 253, 0.28)"
+    : "rgba(167, 139, 250, 0.35)"
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: isDark ? "#c4b5fd" : "#7c3aed",
         tabBarInactiveTintColor: isDark ? "#71717a" : "#a1a1aa",
         tabBarStyle: {
           backgroundColor: screenBg,
-          borderTopColor: isDark ? "rgba(255,255,255,0.08)" : "#e4e4e7",
+          borderTopWidth: 1,
+          borderTopColor: tabBarTopLine,
+          paddingTop: 4,
         },
         sceneStyle: { backgroundColor: screenBg },
         headerStyle: {
@@ -48,6 +66,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Home",
+          tabBarActiveTintColor: homeAccent.navIcon,
           tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
           headerRight: () => (
             <Link href="/modal" asChild>
@@ -69,13 +88,17 @@ export default function TabLayout() {
         name="task"
         options={{
           title: "Task",
-          tabBarIcon: ({ color }) => <TabBarIcon name="check-circle" color={color} />,
+          tabBarActiveTintColor: taskAccent.navIcon,
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="check-circle" color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: "Progress",
+          tabBarActiveTintColor: progressAccent.navIcon,
           tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
         }}
       />
