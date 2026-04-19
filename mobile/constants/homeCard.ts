@@ -17,6 +17,3 @@ export const wellnessCardShadow: ViewStyle = {
     default: {},
   }),
 }
-
-/** Alias — same token (prefer `wellnessCardShadow` in new code). */
-export const previewCardShadow = wellnessCardShadow

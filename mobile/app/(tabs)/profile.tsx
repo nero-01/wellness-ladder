@@ -10,7 +10,7 @@ import {
 } from "react-native"
 import { Link } from "expo-router"
 import { SafeAreaView } from "react-native-safe-area-context"
-import { previewCardShadow } from "@/constants/homeCard"
+import { wellnessCardShadow } from "@/constants/homeCard"
 import {
   gapSection,
   inset,
@@ -73,7 +73,7 @@ function createStyles(W: WellnessPalette) {
       padding: padSection,
       borderWidth: 1,
       borderColor: W.cardBorder,
-      ...previewCardShadow,
+      ...wellnessCardShadow,
     },
     cardTitle: {
       fontSize: 13,

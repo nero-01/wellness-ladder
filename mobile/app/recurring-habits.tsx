@@ -15,7 +15,7 @@ import {
 } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { useRecurringHabitsContext } from "@/contexts/RecurringHabitsContext"
-import { previewCardShadow } from "@/constants/homeCard"
+import { wellnessCardShadow } from "@/constants/homeCard"
 import {
   gapSection,
   inset,
@@ -50,7 +50,7 @@ function createStyles(W: WellnessPalette) {
       borderColor: W.cardBorder,
       padding: padCard,
       marginBottom: gapSection,
-      ...previewCardShadow,
+      ...wellnessCardShadow,
     },
     rowBetween: {
       flexDirection: "row",

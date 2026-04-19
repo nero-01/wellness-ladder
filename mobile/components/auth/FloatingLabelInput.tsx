@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from "react"
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react"
 import {
   StyleSheet,
   TextInput,
@@ -15,7 +15,6 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated"
-import { useLabeledInput } from "@/utils/useLabeledInput"
 
 export type FloatingLabelInputProps = Omit<
   TextInputProps,
@@ -59,7 +58,14 @@ export function FloatingLabelInput({
   ...rest
 }: FloatingLabelInputProps) {
   const value = typeof rest.value === "string" ? rest.value : ""
-  const { active, onFocus: hookFocus, onBlur: hookBlur } = useLabeledInput(value)
+  const [focused, setFocused] = useState(false)
+  const active = useMemo(
+    () => focused || value.trim().length > 0,
+    [focused, value],
+  )
+
+  const hookFocus = useCallback(() => setFocused(true), [])
+  const hookBlur = useCallback(() => setFocused(false), [])
 
   const progress = useSharedValue(active ? 1 : 0)
 

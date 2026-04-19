@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native"
 import { useRecurringHabitsContext } from "@/contexts/RecurringHabitsContext"
-import { previewCardShadow } from "@/constants/homeCard"
+import { wellnessCardShadow } from "@/constants/homeCard"
 import { gapSection, padCard, radiusMd, radiusSm } from "@/constants/layoutTokens"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
@@ -28,7 +28,7 @@ function createStyles(W: WellnessPalette) {
       borderWidth: 1,
       borderColor: W.cardBorder,
       backgroundColor: W.surfaceMuted,
-      ...previewCardShadow,
+      ...wellnessCardShadow,
     },
     headerRow: {
       flexDirection: "row",
