@@ -32,7 +32,7 @@ import { TaskStepIconWell } from "@/components/TaskStepCard"
 import { TaskTimerBar } from "@/components/TaskTimerBar"
 import { VoiceRecorder } from "@/components/VoiceRecorder"
 import { VoiceWaveformLottie } from "@/components/VoiceWaveformLottie"
-import { previewCardShadow } from "@/constants/homeCard"
+import { wellnessCardShadow } from "@/constants/homeCard"
 import {
   gapItem,
   gapSection,
@@ -111,14 +111,18 @@ function createTaskSessionStyles(W: WellnessPalette) {
       alignItems: "flex-start",
       marginBottom: gapSection,
     },
+    /** Shadow only — inner gradient clips content so iOS shadow isn’t cut off */
+    cardOuter: {
+      marginBottom: gapSection,
+      borderRadius: radiusMd,
+      ...wellnessCardShadow,
+    },
     card: {
       borderRadius: radiusMd,
       padding: padSection,
-      marginBottom: gapSection,
       overflow: "hidden",
       borderWidth: 1,
       borderColor: W.cardBorder,
-      ...previewCardShadow,
     },
     cardHeader: {
       flexDirection: "row",
@@ -188,11 +192,7 @@ function createTaskSessionStyles(W: WellnessPalette) {
       paddingVertical: 16,
       borderRadius: radiusMd,
       alignItems: "center",
-      shadowColor: W.primary,
-      shadowOpacity: 0.35,
-      shadowRadius: 12,
-      shadowOffset: { width: 0, height: 4 },
-      elevation: 6,
+      ...wellnessCardShadow,
     },
     startCtaPressed: {
       opacity: 0.92,
@@ -756,6 +756,7 @@ export function TaskSession({
           />
         ) : null}
 
+        <View style={styles.cardOuter}>
         <LinearGradient
           colors={[...taskCardGradient]}
           start={{ x: 0, y: 0 }}
@@ -885,6 +886,7 @@ export function TaskSession({
           ) : null}
 
         </LinearGradient>
+        </View>
 
         {sessionActive && task.id !== BREATHING_TASK_ID ? (
           <View style={styles.sessionCompanion}>

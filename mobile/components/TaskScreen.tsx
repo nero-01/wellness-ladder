@@ -181,11 +181,11 @@ export function BreathingTaskVisual({
 
   const animatedCircle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
-    shadowColor: W.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.2 + scale.value * 0.45,
-    shadowRadius: 6 + scale.value * 22,
-    elevation: 4 + scale.value * 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06 + scale.value * 0.14,
+    shadowRadius: 8 + scale.value * 14,
+    elevation: 2 + Math.round(scale.value * 4),
   }))
 
   const gradientColors = useMemo(

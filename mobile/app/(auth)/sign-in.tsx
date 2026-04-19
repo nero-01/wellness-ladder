@@ -20,6 +20,7 @@ import { Mascot } from "@/components/Mascot"
 import { FloatingLabelInput } from "@/components/auth/FloatingLabelInput"
 import { useColorScheme } from "@/components/useColorScheme"
 import { IS_DEV_BYPASS } from "@/constants/devBypass"
+import { wellnessCardShadow } from "@/constants/homeCard"
 import { WellnessColors } from "@/constants/wellnessTheme"
 import { useAuth } from "@/contexts/AuthContext"
 
@@ -249,11 +250,7 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 16,
     padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    ...wellnessCardShadow,
   },
   hint: { fontSize: 13, lineHeight: 18, marginTop: 4 },
   error: { color: "#c00", marginTop: 8, fontSize: 14 },

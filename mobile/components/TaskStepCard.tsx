@@ -9,7 +9,7 @@ import {
   type StyleProp,
   type ViewStyle,
 } from "react-native"
-import { previewCardShadow } from "@/constants/homeCard"
+import { wellnessCardShadow } from "@/constants/homeCard"
 import { radiusInner, radiusMd, radiusSm } from "@/constants/layoutTokens"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
@@ -29,7 +29,7 @@ function createStyles(W: WellnessPalette, variant: CardVariant) {
       backgroundColor: isToday ? W.iconBg : W.bgElevated,
       borderWidth: 1,
       borderColor: isToday ? "rgba(139, 92, 246, 0.42)" : W.cardBorder,
-      ...previewCardShadow,
+      ...wellnessCardShadow,
     },
     rootPressed: {
       opacity: 0.92,
@@ -149,6 +149,7 @@ export function TaskStepCatalogCard({
 
 const wellStyles = (W: WellnessPalette, size: number) =>
   StyleSheet.create({
+    /** Border-only — avoids double elevation when this sits on a shadowed card */
     well: {
       width: size,
       height: size,
@@ -158,7 +159,6 @@ const wellStyles = (W: WellnessPalette, size: number) =>
       justifyContent: "center",
       borderWidth: 1,
       borderColor: W.cardBorder,
-      ...previewCardShadow,
     },
   })
 

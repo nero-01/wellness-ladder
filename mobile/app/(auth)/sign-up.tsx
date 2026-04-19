@@ -36,6 +36,7 @@ import {
 } from "@/lib/email-signup-cooldown"
 import { isPlausibleMailbox, sanitizeAuthEmailForSupabase } from "@/lib/auth-email"
 import { IS_DEV_BYPASS } from "@/constants/devBypass"
+import { wellnessCardShadow } from "@/constants/homeCard"
 import { WellnessColors } from "@/constants/wellnessTheme"
 import { isAuthRateLimitError } from "@/utils/auth-errors"
 
@@ -628,11 +629,7 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 16,
     padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    ...wellnessCardShadow,
   },
   awaitTitle: { fontSize: 20, fontWeight: "700" },
   awaitBody: { fontSize: 14, lineHeight: 20 },

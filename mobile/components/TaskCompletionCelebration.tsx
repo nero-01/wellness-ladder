@@ -18,6 +18,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Mascot } from "@/components/Mascot"
 import { TaskStepIconWell } from "@/components/TaskStepCard"
+import { wellnessCardShadow } from "@/constants/homeCard"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { wellnessCelebration, wellnessTapLight } from "@/lib/wellnessFeedback"
@@ -123,12 +124,9 @@ function createCelebrationStyles(W: WellnessPalette) {
       borderRadius: 22,
       alignItems: "center",
       justifyContent: "center",
-      borderWidth: 3,
+      borderWidth: 2,
       borderColor: W.bg,
-      shadowColor: W.primary,
-      shadowOpacity: 0.45,
-      shadowRadius: 10,
-      elevation: 8,
+      ...wellnessCardShadow,
     },
     completionTitle: {
       fontSize: 26,
@@ -170,6 +168,7 @@ function createCelebrationStyles(W: WellnessPalette) {
       borderWidth: 1,
       borderColor: W.cardBorder,
       marginBottom: 16,
+      ...wellnessCardShadow,
     },
     previewLabel: {
       fontSize: 11,
@@ -197,6 +196,7 @@ function createCelebrationStyles(W: WellnessPalette) {
       borderColor: W.primary,
       backgroundColor: W.iconBg,
       marginBottom: 20,
+      ...wellnessCardShadow,
     },
     proLabel: {
       fontSize: 11,
@@ -237,6 +237,7 @@ function createCelebrationStyles(W: WellnessPalette) {
       marginBottom: 16,
       borderWidth: 1,
       borderColor: W.cardBorder,
+      ...wellnessCardShadow,
     },
     sadagFlagRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 10 },
     sadagFlag: { width: 28, height: 28, borderRadius: 4 },

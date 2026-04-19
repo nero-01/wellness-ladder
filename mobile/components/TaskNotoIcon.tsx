@@ -1,5 +1,5 @@
 import { Image } from "expo-image"
-import { Platform, View, type StyleProp, type ViewStyle } from "react-native"
+import { View, type StyleProp, type ViewStyle } from "react-native"
 import { emojiFamilySvgUrl } from "@/lib/mood-picker-data"
 
 type Props = {
@@ -16,16 +16,6 @@ export function TaskNotoIcon({
   style,
 }: Props) {
   const uri = emojiFamilySvgUrl(iconCode)
-  const lift =
-    Platform.OS === "ios" ?
-      {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      }
-    : Platform.OS === "android" ? { elevation: 3 }
-    : {}
 
   return (
     <View
@@ -38,7 +28,6 @@ export function TaskNotoIcon({
           alignItems: "center",
           justifyContent: "center",
         },
-        lift,
         style,
       ]}
     >

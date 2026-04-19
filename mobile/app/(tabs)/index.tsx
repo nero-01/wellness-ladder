@@ -16,7 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context"
 import { Mascot } from "@/components/Mascot"
 import { TaskCatalogPreview } from "@/components/TaskCatalogPreview"
 import { TaskStepIconWell } from "@/components/TaskStepCard"
-import { previewCardShadow } from "@/constants/homeCard"
+import { wellnessCardShadow } from "@/constants/homeCard"
 import {
   gapItem,
   gapSection,
@@ -104,11 +104,7 @@ function createHomeStyles(W: WellnessPalette) {
       backgroundColor: W.primary,
       alignItems: "center",
       justifyContent: "center",
-      shadowColor: "#000",
-      shadowOpacity: 0.12,
-      shadowRadius: 8,
-      shadowOffset: { width: 0, height: 2 },
-      elevation: 2,
+      ...wellnessCardShadow,
     },
     logoLetter: {
       color: "#fff",
@@ -154,11 +150,7 @@ function createHomeStyles(W: WellnessPalette) {
       minWidth: 260,
       maxWidth: "100%",
       alignItems: "center",
-      shadowColor: "#000",
-      shadowOpacity: 0.1,
-      shadowRadius: 12,
-      shadowOffset: { width: 0, height: 4 },
-      elevation: 3,
+      ...wellnessCardShadow,
     },
     ctaPressed: {
       backgroundColor: W.primaryPressed,
@@ -209,7 +201,7 @@ function createHomeStyles(W: WellnessPalette) {
       alignItems: "center",
       justifyContent: "flex-start",
       marginBottom: 0,
-      ...previewCardShadow,
+      ...wellnessCardShadow,
     },
     iconCircle: {
       width: 52,
@@ -232,16 +224,19 @@ function createHomeStyles(W: WellnessPalette) {
       textAlign: "center",
       lineHeight: 16,
     },
-    preview: {
+    previewShell: {
       marginHorizontal: inset,
       marginTop: 16,
+      borderRadius: radiusLg,
+      ...wellnessCardShadow,
+    },
+    preview: {
       borderRadius: radiusLg,
       borderWidth: 1,
       borderColor: W.cardBorder,
       overflow: "hidden",
       flexDirection: "row",
       alignItems: "stretch",
-      ...previewCardShadow,
     },
     previewAccentBar: {
       width: 4,
@@ -503,6 +498,7 @@ export default function HomeScreen() {
 
         {/* Today’s focus — matches streak + scheduled task */}
         {streakLoaded ? (
+          <View style={styles.previewShell}>
           <View
             style={[
               styles.preview,
@@ -555,6 +551,7 @@ export default function HomeScreen() {
                 </Text>
               </View>
             </View>
+          </View>
           </View>
         ) : null}
       </ScrollView>
