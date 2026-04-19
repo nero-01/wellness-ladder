@@ -2,8 +2,8 @@ import { useMemo } from "react"
 import { useWindowDimensions } from "react-native"
 
 /**
- * Presets map to focal sizes on typical phones; scales with shortest screen side
- * so the mascot stays a clear hero on small devices without overwhelming tablets.
+ * Presets are **rendered width** (px) for the mascot bitmap — height follows asset aspect in `Mascot`.
+ * Scales with shortest screen side so the mascot stays a clear focal point on all devices.
  */
 export type MascotSizePreset =
   | "splash"
@@ -30,27 +30,27 @@ export function useMascotSize(preset: MascotSizePreset): number {
     const short = Math.min(width, height)
     switch (preset) {
       case "splash":
-        return fit(188, 168, 228, short)
+        return fit(268, 236, 320, short)
       case "loading":
-        return fit(128, 112, 158, short)
+        return fit(184, 160, 224, short)
       case "hero":
-        return fit(148, 128, 188, short)
+        return fit(216, 188, 276, short)
       case "auth":
-        return fit(138, 122, 172, short)
+        return fit(204, 176, 256, short)
       case "taskCue":
-        return fit(116, 100, 138, short)
+        return fit(172, 150, 212, short)
       case "taskSession":
-        return fit(96, 84, 118, short)
+        return fit(144, 126, 180, short)
       case "celebration":
-        return fit(156, 136, 200, short)
+        return fit(228, 200, 288, short)
       case "milestone":
-        return fit(140, 120, 180, short)
+        return fit(204, 176, 256, short)
       case "profile":
-        return fit(112, 96, 136, short)
+        return fit(160, 138, 200, short)
       case "banner":
-        return fit(68, 60, 82, short)
+        return fit(92, 80, 112, short)
       default:
-        return fit(112, 96, 132, short)
+        return fit(148, 128, 188, short)
     }
   }, [width, height, preset])
 }

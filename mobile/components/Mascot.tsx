@@ -42,6 +42,14 @@ type Props = {
 
 const COMPANION_ASSET = require("../assets/mascot/companion-official.png")
 
+/**
+ * Source dimensions of `companion-official` (landscape). The file is JPEG data; using a square
+ * `width`×`height` with `contain` letterboxed bands that often render as black — layout uses this aspect.
+ */
+const MASCOT_SRC_W = 1024
+const MASCOT_SRC_H = 571
+const MASCOT_ASPECT = MASCOT_SRC_W / MASCOT_SRC_H
+
 const AnimatedView = Animated.createAnimatedComponent(View)
 
 export const Mascot = memo(function Mascot({
@@ -58,7 +66,11 @@ export const Mascot = memo(function Mascot({
 }: Props) {
   const W = useWellnessColors()
   const presetSize = useMascotSize(preset ?? "hero")
-  const size = sizeProp ?? (preset !== undefined ? presetSize : 112)
+  /** Logical width of the mascot; height derived from asset aspect (no square letterboxing). */
+  const size = sizeProp ?? (preset !== undefined ? presetSize : 148)
+  const imgW = size
+  const imgH = size / MASCOT_ASPECT
+  const layoutMax = Math.max(imgW, imgH)
 
   const motion = MASCOT_MOTION[state]
   const calm = motionProfile === "calm"
@@ -79,7 +91,7 @@ export const Mascot = memo(function Mascot({
   const prevAttention = useRef<number | undefined>(undefined)
   const prevReward = useRef<number | undefined>(undefined)
 
-  const amp = size * (calm ? 0.018 : 0.024) * motion.float
+  const amp = layoutMax * (calm ? 0.018 : 0.024) * motion.float
   const floatDuration = calm ? 4400 : 3600
 
   useEffect(() => {
@@ -174,7 +186,7 @@ export const Mascot = memo(function Mascot({
       nodY.value = withRepeat(
         withSequence(
           withTiming(0, { duration: 2400, easing: Easing.inOut(Easing.quad) }),
-          withTiming(-size * 0.035, { duration: 420, easing: Easing.out(Easing.quad) }),
+          withTiming(-layoutMax * 0.035, { duration: 420, easing: Easing.out(Easing.quad) }),
           withTiming(0, { duration: 480, easing: Easing.inOut(Easing.quad) }),
         ),
         -1,
@@ -183,7 +195,7 @@ export const Mascot = memo(function Mascot({
     } else {
       nodY.value = withTiming(0, { duration: 280 })
     }
-  }, [animated, nodY, size, state])
+  }, [animated, layoutMax, nodY, state])
 
   useEffect(() => {
     if (!animated) return
@@ -212,10 +224,10 @@ export const Mascot = memo(function Mascot({
       withTiming(1, { duration: 380, easing: Easing.inOut(Easing.quad) }),
     )
     attentionY.value = withSequence(
-      withTiming(-size * 0.022, { duration: 240, easing: Easing.out(Easing.quad) }),
+      withTiming(-layoutMax * 0.022, { duration: 240, easing: Easing.out(Easing.quad) }),
       withTiming(0, { duration: 380, easing: Easing.inOut(Easing.quad) }),
     )
-  }, [animated, attentionKey, attentionScale, attentionY, size])
+  }, [animated, attentionKey, attentionScale, attentionY, layoutMax])
 
   useEffect(() => {
     if (rewardKey === undefined || rewardKey < 1) return
@@ -232,9 +244,9 @@ export const Mascot = memo(function Mascot({
     )
   }, [animated, glowOpacity, rewardKey, rewardScale])
 
-  const padV = size * 0.16
-  const padH = size * 0.12
-  const glowSize = size * 1.38
+  const padV = layoutMax * 0.12
+  const padH = layoutMax * 0.1
+  const glowSize = layoutMax * 1.32
 
   const bodyStyle = useAnimatedStyle(() => ({
     transform: [
@@ -265,17 +277,18 @@ export const Mascot = memo(function Mascot({
     [locale, state],
   )
 
-  const glowColor = `${W.primary}38`
+  const glowColor = `${W.primary}30`
 
   return (
     <View
       style={[
         styles.wrap,
         {
-          width: size + padH * 2,
-          minHeight: size + padV * 2,
+          width: imgW + padH * 2,
+          minHeight: imgH + padV * 2,
           paddingVertical: padV,
           paddingHorizontal: padH,
+          backgroundColor: "transparent",
         },
         style,
       ]}
@@ -297,10 +310,14 @@ export const Mascot = memo(function Mascot({
           ]}
         />
         <AnimatedView style={[styles.lift, bodyStyle]}>
-          <AnimatedView style={blinkStyle}>
+          <AnimatedView style={[blinkStyle, styles.imgFrame]}>
             <Image
               source={COMPANION_ASSET}
-              style={{ width: size, height: size }}
+              style={{
+                width: imgW,
+                height: imgH,
+                backgroundColor: "transparent",
+              }}
               contentFit="contain"
               cachePolicy="memory-disk"
               accessibilityElementsHidden
@@ -323,10 +340,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     overflow: "visible",
+    backgroundColor: "transparent",
   },
   glow: {
     position: "absolute",
-    top: "10%",
+    top: "6%",
     alignSelf: "center",
     zIndex: 0,
   },
@@ -334,5 +352,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     zIndex: 1,
+    backgroundColor: "transparent",
+  },
+  imgFrame: {
+    backgroundColor: "transparent",
   },
 })

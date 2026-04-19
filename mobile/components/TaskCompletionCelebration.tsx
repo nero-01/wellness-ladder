@@ -106,8 +106,8 @@ function createCelebrationStyles(W: WellnessPalette) {
     backBtn: { alignSelf: "flex-start", marginBottom: 16 },
     mascotCelebrationWrap: {
       alignSelf: "center",
-      minWidth: 228,
-      minHeight: 210,
+      minWidth: 260,
+      minHeight: 160,
       alignItems: "center",
       justifyContent: "center",
       marginBottom: 12,
