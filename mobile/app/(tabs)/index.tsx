@@ -1,6 +1,7 @@
+import FontAwesome from "@expo/vector-icons/FontAwesome"
 import { Ionicons } from "@expo/vector-icons"
 import { LinearGradient } from "expo-linear-gradient"
-import { useRouter } from "expo-router"
+import { Link, useRouter } from "expo-router"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import type { ComponentProps } from "react"
 import {
@@ -21,10 +22,10 @@ import {
   gapSection,
   inset,
   padCard,
-  padSection,
   radiusInner,
   radiusLg,
   radiusMd,
+  radiusSm,
 } from "@/constants/layoutTokens"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useStreak } from "@/hooks/useStreak"
@@ -76,14 +77,20 @@ function createHomeStyles(W: WellnessPalette) {
       backgroundColor: W.bg,
     },
     scroll: {
-      paddingBottom: 40,
+      paddingBottom: 28,
     },
     header: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
       paddingHorizontal: inset,
-      paddingVertical: 12,
+      paddingTop: 4,
+      paddingBottom: 8,
+    },
+    headerActions: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
     },
     brandRow: {
       flexDirection: "row",
@@ -97,11 +104,11 @@ function createHomeStyles(W: WellnessPalette) {
       backgroundColor: W.primary,
       alignItems: "center",
       justifyContent: "center",
-      shadowColor: W.primary,
-      shadowOpacity: 0.45,
+      shadowColor: "#000",
+      shadowOpacity: 0.12,
       shadowRadius: 8,
       shadowOffset: { width: 0, height: 2 },
-      elevation: 4,
+      elevation: 2,
     },
     logoLetter: {
       color: "#fff",
@@ -115,7 +122,7 @@ function createHomeStyles(W: WellnessPalette) {
     },
     hero: {
       paddingHorizontal: inset,
-      paddingTop: 4,
+      paddingTop: 0,
       alignItems: "center",
     },
     heroMascot: {
@@ -124,34 +131,34 @@ function createHomeStyles(W: WellnessPalette) {
     },
     headline: {
       color: W.text,
-      fontSize: 30,
+      fontSize: 28,
       fontWeight: "800",
       textAlign: "center",
-      lineHeight: 36,
-      marginTop: -2,
-      marginBottom: 10,
+      lineHeight: 34,
+      marginTop: 8,
+      marginBottom: 8,
     },
     subhead: {
       color: W.textMuted,
-      fontSize: 17,
-      lineHeight: 24,
+      fontSize: 16,
+      lineHeight: 23,
       textAlign: "center",
-      marginBottom: 28,
+      marginBottom: 20,
       maxWidth: 400,
     },
     cta: {
       backgroundColor: W.primary,
-      paddingVertical: 16,
-      paddingHorizontal: 40,
+      paddingVertical: 14,
+      paddingHorizontal: 36,
       borderRadius: radiusMd,
-      minWidth: 280,
+      minWidth: 260,
       maxWidth: "100%",
       alignItems: "center",
-      shadowColor: W.primary,
-      shadowOpacity: 0.4,
-      shadowRadius: 16,
-      shadowOffset: { width: 0, height: 6 },
-      elevation: 8,
+      shadowColor: "#000",
+      shadowOpacity: 0.1,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 3,
     },
     ctaPressed: {
       backgroundColor: W.primaryPressed,
@@ -164,7 +171,7 @@ function createHomeStyles(W: WellnessPalette) {
     },
     ladderSection: {
       paddingHorizontal: inset,
-      marginTop: gapSection / 2,
+      marginTop: 10,
     },
     devLinkWrap: {
       paddingHorizontal: inset,
@@ -174,7 +181,7 @@ function createHomeStyles(W: WellnessPalette) {
       alignSelf: "flex-start",
       paddingVertical: 10,
       paddingHorizontal: 14,
-      borderRadius: 12,
+      borderRadius: radiusSm,
       borderWidth: 1,
       borderColor: W.primary,
       backgroundColor: W.iconBg,
@@ -188,14 +195,14 @@ function createHomeStyles(W: WellnessPalette) {
       flexDirection: "row",
       flexWrap: "wrap",
       paddingHorizontal: inset,
-      marginTop: 32,
+      marginTop: 16,
       gap: gapItem,
       justifyContent: "space-between",
       alignItems: "stretch",
     },
     card: {
       width: "48%",
-      minHeight: 172,
+      minHeight: 158,
       borderRadius: radiusMd,
       borderWidth: 1,
       padding: padCard,
@@ -227,7 +234,7 @@ function createHomeStyles(W: WellnessPalette) {
     },
     preview: {
       marginHorizontal: inset,
-      marginTop: 24,
+      marginTop: 16,
       borderRadius: radiusLg,
       borderWidth: 1,
       borderColor: W.cardBorder,
@@ -242,13 +249,13 @@ function createHomeStyles(W: WellnessPalette) {
     },
     previewBody: {
       flex: 1,
-      padding: padSection,
+      padding: padCard,
     },
     previewTopRow: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      marginBottom: gapSection,
+      marginBottom: 12,
     },
     previewLeft: {
       flexDirection: "row",
@@ -369,25 +376,43 @@ export default function HomeScreen() {
             </View>
             <Text style={styles.brandName}>Wellness</Text>
           </View>
-          <Pressable
-            onPress={toggleTheme}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel="Toggle light or dark theme"
-          >
-            <Ionicons
-              name={colorScheme === "dark" ? "sunny-outline" : "moon-outline"}
-              size={22}
-              color={W.text}
-            />
-          </Pressable>
+          <View style={styles.headerActions}>
+            <Link href="/modal" asChild>
+              <Pressable
+                hitSlop={12}
+                accessibilityRole="button"
+                accessibilityLabel="App information"
+              >
+                {({ pressed }) => (
+                  <FontAwesome
+                    name="info-circle"
+                    size={22}
+                    color={W.text}
+                    style={{ opacity: pressed ? 0.5 : 1 }}
+                  />
+                )}
+              </Pressable>
+            </Link>
+            <Pressable
+              onPress={toggleTheme}
+              hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel="Toggle light or dark theme"
+            >
+              <Ionicons
+                name={colorScheme === "dark" ? "sunny-outline" : "moon-outline"}
+                size={22}
+                color={W.text}
+              />
+            </Pressable>
+          </View>
         </View>
 
         <LinearGradient
           colors={[...heroWash]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={{ paddingBottom: 12 }}
+          style={{ paddingBottom: 8 }}
         >
           {/* Hero — soft pastel wash (Figma-style calm hero) */}
           <View style={styles.hero}>
