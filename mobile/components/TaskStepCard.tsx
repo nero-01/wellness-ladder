@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons"
 import * as Haptics from "expo-haptics"
 import { LinearGradient } from "expo-linear-gradient"
 import { useMemo } from "react"
@@ -10,13 +11,15 @@ import {
   type StyleProp,
   type ViewStyle,
 } from "react-native"
-import { radiusXl } from "@/constants/layoutTokens"
+import { radiusInner, radiusXl } from "@/constants/layoutTokens"
 import {
   silentMoonLiftShadow,
-  stepMonogramLetter,
   stepSurfaceForTaskId,
   type StepCardSurface,
 } from "@/constants/stepCardTheme"
+import type { WellnessPalette } from "@/constants/wellnessTheme"
+import { useWellnessColors } from "@/hooks/useWellnessColors"
+import { taskStepIoniconName } from "@/lib/task-step-icons"
 import type { Task } from "@/lib/wellness-data"
 import { WELLNESS_TASKS } from "@/lib/wellness-data"
 
@@ -26,7 +29,11 @@ function taskTitleForId(taskId: number): string {
 
 type CardVariant = "today" | "muted"
 
-function createCatalogStyles(surface: StepCardSurface, variant: CardVariant) {
+function createCatalogStyles(
+  W: WellnessPalette,
+  surface: StepCardSurface,
+  variant: CardVariant,
+) {
   const isToday = variant === "today"
   return StyleSheet.create({
     rootOuter: {
@@ -117,6 +124,17 @@ function createCatalogStyles(surface: StepCardSurface, variant: CardVariant) {
       flex: 1,
       justifyContent: "space-between",
     },
+    iconWell: {
+      width: 48,
+      height: 48,
+      borderRadius: radiusInner,
+      backgroundColor: W.bgElevated,
+      alignItems: "center",
+      justifyContent: "center",
+      alignSelf: "center",
+      borderWidth: 1,
+      borderColor: isToday ? "rgba(139, 92, 246, 0.38)" : W.cardBorder,
+    },
   })
 }
 
@@ -129,7 +147,7 @@ type CatalogCardProps = {
 }
 
 /**
- * Horizontal ladder tiles — Silent Moon–style solid surfaces (no step icons).
+ * Horizontal ladder tiles — Silent Moon–style surfaces + shaded Ionicons step wells.
  */
 export function TaskStepCatalogCard({
   task,
@@ -138,11 +156,13 @@ export function TaskStepCatalogCard({
   onPress,
   style,
 }: CatalogCardProps) {
+  const W = useWellnessColors()
   const surface = stepSurfaceForTaskId(task.id)
   const styles = useMemo(
-    () => createCatalogStyles(surface, variant),
-    [surface, variant],
+    () => createCatalogStyles(W, surface, variant),
+    [W, surface, variant],
   )
+  const iconName = taskStepIoniconName(task.id)
 
   const inner = (
     <View style={styles.rootInner}>
@@ -166,7 +186,18 @@ export function TaskStepCatalogCard({
             </View>
           : null}
         </View>
-        <View style={styles.artWrap} />
+        <View
+          style={[
+            styles.artWrap,
+            { alignItems: "center", justifyContent: "center" },
+          ]}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        >
+          <View style={styles.iconWell}>
+            <Ionicons name={iconName} size={26} color={W.primary} />
+          </View>
+        </View>
         <View>
           <Text
             style={[styles.title, variant === "today" && styles.titleToday]}
@@ -203,30 +234,24 @@ export function TaskStepCatalogCard({
   return <View style={[styles.rootOuter, style]}>{inner}</View>
 }
 
-const wellStyles = (surface: StepCardSurface, size: number) => {
-  const r = Math.round(size * 0.34)
-  return StyleSheet.create({
+/** Border-only well — avoids double elevation when nested on shadowed cards */
+const wellStyles = (W: WellnessPalette, size: number) =>
+  StyleSheet.create({
     well: {
       width: size,
       height: size,
-      borderRadius: r,
-      backgroundColor: surface.bg,
+      borderRadius: size * 0.3,
+      backgroundColor: W.bgElevated,
       alignItems: "center",
       justifyContent: "center",
-      ...silentMoonLiftShadow,
+      borderWidth: 1,
+      borderColor: W.cardBorder,
     },
-    monogram: {
-      fontSize: Math.round(size * 0.4),
-      fontWeight: "800",
-      color: surface.fg,
-      marginTop: -2,
-    },
-    accentRing: {
-      borderWidth: 2,
-      borderColor: "rgba(255,255,255,0.5)",
+    accent: {
+      borderColor: "rgba(139, 92, 246, 0.45)",
+      backgroundColor: W.iconBg,
     },
   })
-}
 
 type IconWellProps = {
   taskId: number
@@ -238,7 +263,7 @@ type IconWellProps = {
 }
 
 /**
- * Compact step marker: monogram on a Silent Moon surface (replaces Ionicons glyph well).
+ * Compact shaded well with cycling Ionicons (matches ladder step glyphs).
  */
 export function TaskStepIconWell({
   taskId,
@@ -246,22 +271,19 @@ export function TaskStepIconWell({
   accent,
   accessibilityLabel,
 }: IconWellProps) {
+  const W = useWellnessColors()
   const title = accessibilityLabel?.trim() || taskTitleForId(taskId)
-  const surface = stepSurfaceForTaskId(taskId)
-  const letter = stepMonogramLetter(title)
-  const styles = useMemo(() => wellStyles(surface, size), [surface, size])
+  const iconName = taskStepIoniconName(taskId)
+  const iconPx = Math.round(size * 0.45)
+  const styles = useMemo(() => wellStyles(W, size), [W, size])
 
   return (
     <View
-      style={[
-        styles.well,
-        accent && styles.accentRing,
-        { backgroundColor: surface.bg },
-      ]}
+      style={[styles.well, accent && styles.accent]}
       accessibilityLabel={accessibilityLabel ?? title}
-      accessibilityRole="text"
+      accessibilityRole={accessibilityLabel ? "image" : undefined}
     >
-      <Text style={[styles.monogram, { color: surface.fg }]}>{letter}</Text>
+      <Ionicons name={iconName} size={iconPx} color={W.primary} />
     </View>
   )
 }
