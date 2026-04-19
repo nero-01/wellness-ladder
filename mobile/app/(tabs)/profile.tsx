@@ -18,6 +18,7 @@ import { Mascot } from "@/components/Mascot"
 import { StreakHeatMap } from "@/components/StreakHeatMap"
 import { useStreak } from "@/hooks/useStreak"
 import { emojiFamilySvgUrl } from "@/lib/mood-picker-data"
+import { miloMoodLabel } from "@/lib/milo-mood"
 import { MILESTONE_NOTO, MOOD_MILESTONE_NOTO } from "@/lib/streak-rules"
 import { isWellnessPro } from "@/lib/wellness-pro"
 import { WELLNESS_TASKS } from "@/lib/wellness-data"
@@ -95,7 +96,13 @@ function createStyles(W: WellnessPalette) {
     listMain: { flex: 1, paddingRight: 12 },
     listTitle: { fontSize: 15, fontWeight: "600", color: W.text },
     listMeta: { fontSize: 13, color: W.textMuted, marginTop: 4 },
-    moodEmoji: { fontSize: 22 },
+    moodPill: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: W.primary,
+      maxWidth: 140,
+      textAlign: "right",
+    },
     accountBlock: { marginTop: 8 },
     accountName: { fontSize: 18, fontWeight: "600", color: W.text },
     accountEmail: { fontSize: 14, color: W.textMuted, marginTop: 4 },
@@ -336,10 +343,12 @@ export default function ProfileScreen() {
                       <Text style={styles.listTitle}>
                         {formatShortDate(m.date)}
                       </Text>
-                      <Text style={styles.listMeta}>Mood {m.mood}/5</Text>
+                      <Text style={styles.listMeta}>Wellness check-in</Text>
                     </View>
-                    <Text style={styles.moodEmoji} accessibilityLabel="Mood">
-                      {m.mood >= 5 ? "😊" : m.mood >= 4 ? "😐" : m.mood >= 3 ? "😟" : m.mood >= 2 ? "😠" : "😢"}
+                    <Text style={styles.moodPill} accessibilityLabel="Mood">
+                      {m.mood >= 1 && m.mood <= 8 ?
+                        miloMoodLabel(m.mood, "en")
+                      : `Mood ${m.mood}`}
                     </Text>
                   </View>
                 ))

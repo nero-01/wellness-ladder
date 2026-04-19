@@ -75,6 +75,8 @@ export const Mascot = memo(function Mascot({
 
   const floatY = useSharedValue(0)
   const driftX = useSharedValue(0)
+  /** Subtle horizontal restlessness — Milo mood: Stressed (never harsh). */
+  const stressX = useSharedValue(0)
   const sway = useSharedValue(0)
   const attentionRotate = useSharedValue(0)
   const celebrate = useSharedValue(1)
@@ -95,7 +97,10 @@ export const Mascot = memo(function Mascot({
   const prevWarmNod = useRef<number | undefined>(undefined)
 
   const amp = layoutMax * (calm ? 0.02 : 0.03) * motion.float
-  const floatDuration = calm ? 4000 : 3200
+  const floatDuration =
+    calm ? 4000
+    : state === "reflective" ? 5200
+    : 3200
 
   useEffect(() => {
     if (!animated) return
@@ -114,19 +119,41 @@ export const Mascot = memo(function Mascot({
       driftX.value = withTiming(0, { duration: 600 })
       return
     }
+    if (state === "stressed") {
+      driftX.value = withTiming(0, { duration: 400 })
+      return
+    }
     const d =
       calm ? layoutMax * 0.0035
       : state === "celebrating" ? layoutMax * 0.0025
+      : state === "reflective" ? layoutMax * 0.0022
       : layoutMax * 0.0055
+    const period = state === "reflective" ? 7200 : 5200
     driftX.value = withRepeat(
       withSequence(
-        withTiming(d, { duration: 5200, easing: Easing.inOut(Easing.sin) }),
-        withTiming(-d, { duration: 5200, easing: Easing.inOut(Easing.sin) }),
+        withTiming(d, { duration: period, easing: Easing.inOut(Easing.sin) }),
+        withTiming(-d, { duration: period, easing: Easing.inOut(Easing.sin) }),
       ),
       -1,
       true,
     )
   }, [animated, calm, driftX, layoutMax, state])
+
+  useEffect(() => {
+    if (!animated || state !== "stressed") {
+      stressX.value = withTiming(0, { duration: 320 })
+      return
+    }
+    const dx = layoutMax * 0.004
+    stressX.value = withRepeat(
+      withSequence(
+        withTiming(dx, { duration: 720, easing: Easing.inOut(Easing.sin) }),
+        withTiming(-dx, { duration: 720, easing: Easing.inOut(Easing.sin) }),
+      ),
+      -1,
+      true,
+    )
+  }, [animated, layoutMax, state, stressX])
 
   useEffect(() => {
     if (!animated) return
@@ -135,9 +162,14 @@ export const Mascot = memo(function Mascot({
       : state === "supportive" ? 0.01
       : state === "celebrating" ? 0.016
       : state === "focused" ? 0.007
+      : state === "reflective" ? 0.005
+      : state === "stressed" ? 0.009
       : calm ? 0.006
       : 0.008
-    const dur = calm ? 2800 : 2400
+    const dur =
+      calm ? 2800
+      : state === "reflective" ? 3600
+      : 2400
     sway.value = withRepeat(
       withSequence(
         withTiming(-w, { duration: dur, easing: Easing.inOut(Easing.sin) }),
@@ -175,10 +207,14 @@ export const Mascot = memo(function Mascot({
       state === "sleepy" ? 1.004
       : state === "celebrating" ? 1.01
       : state === "focused" ? 1.012
+      : state === "reflective" ? 1.005
+      : state === "stressed" ? 1.008
       : 1.016
     const dur =
       state === "celebrating" ? 2400
       : state === "focused" ? 2700
+      : state === "reflective" ? 3400
+      : state === "stressed" ? 2600
       : 2500
     breathe.value = withRepeat(
       withSequence(
@@ -195,7 +231,11 @@ export const Mascot = memo(function Mascot({
       blinkY.value = 1
       return
     }
-    const gap = calm ? 4800 : 3600 / Math.max(0.45, motion.blink)
+    const gap =
+      state === "reflective" ? 6200
+      : state === "stressed" ? 2800
+      : calm ? 4800
+      : 3600 / Math.max(0.45, motion.blink)
     blinkY.value = withRepeat(
       withSequence(
         withTiming(1, { duration: gap, easing: Easing.linear }),
@@ -315,7 +355,7 @@ export const Mascot = memo(function Mascot({
 
   const bodyStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateX: driftX.value },
+      { translateX: driftX.value + stressX.value },
       {
         translateY: floatY.value + nodY.value + attentionY.value + completionNodY.value,
       },

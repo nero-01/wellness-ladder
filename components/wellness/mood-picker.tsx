@@ -1,11 +1,8 @@
 "use client"
 
+import Image from "next/image"
 import { wellnessWebTap } from "@/lib/wellness-feedback"
-import {
-  MOOD_PICKER_ITEMS,
-  moodSvgUrlFromFamily,
-  moods,
-} from "@/lib/mood-picker-data"
+import { MILO_MOOD_ITEMS, getMiloMoodItem } from "@/lib/mood-picker-data"
 
 interface MoodPickerProps {
   selectedMood: number | null
@@ -14,52 +11,63 @@ interface MoodPickerProps {
 }
 
 export function MoodPicker({ selectedMood, onMoodSelect, showLabel = true }: MoodPickerProps) {
-  const selectedMoodData =
-    selectedMood !== null ? MOOD_PICKER_ITEMS.find((m) => m.value === selectedMood) : null
+  const selected = selectedMood !== null ? getMiloMoodItem(selectedMood) : undefined
 
   return (
     <div>
-      {showLabel && (
+      {showLabel ?
         <p className="text-sm text-muted-foreground text-center mb-4">
           How are you feeling?
         </p>
-      )}
-      <div className="flex items-center justify-center gap-3">
-        {MOOD_PICKER_ITEMS.map((mood) => (
+      : null}
+
+      <div className="flex flex-col items-center gap-4 mb-2">
+        <div className="relative h-[120px] w-[220px] shrink-0">
+          <Image
+            src="/mascot/mascot-transparent.png"
+            alt=""
+            fill
+            className="object-contain object-center pointer-events-none select-none"
+            sizes="220px"
+            priority={false}
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-center gap-2 max-w-md mx-auto">
+        {MILO_MOOD_ITEMS.map((mood) => (
           <button
-            key={mood.value}
+            key={mood.id}
             type="button"
             onClick={() => {
               wellnessWebTap()
-              onMoodSelect(mood.value)
+              onMoodSelect(mood.id)
             }}
-            className={`h-12 w-12 rounded-2xl flex items-center justify-center transition-all duration-200 p-1.5 ${
-              selectedMood === mood.value
-                ? "bg-primary/20 scale-110 ring-2 ring-primary"
-                : "bg-secondary hover:bg-secondary/80"
+            className={`min-h-11 px-3.5 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
+              selectedMood === mood.id ?
+                "bg-primary/20 ring-2 ring-primary text-primary scale-[1.02]"
+              : "bg-secondary hover:bg-secondary/80 text-foreground"
             }`}
+            aria-pressed={selectedMood === mood.id}
             aria-label={mood.label}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={moodSvgUrlFromFamily(mood.family)}
-              alt=""
-              width={32}
-              height={32}
-              className="pointer-events-none select-none drop-shadow-sm"
-              loading="lazy"
-              decoding="async"
-            />
+            {mood.label}
           </button>
         ))}
       </div>
-      {selectedMoodData && (
-        <p className="text-sm text-primary text-center mt-3 animate-in fade-in duration-300">
-          {"You're"} feeling {selectedMoodData.label.toLowerCase()}
-        </p>
-      )}
+
+      {selected ?
+        <div className="mt-3 text-center space-y-1 animate-in fade-in duration-300">
+          <p className="text-sm text-primary">
+            {"You're"} feeling {selected.label.toLowerCase()}
+          </p>
+          <p className="text-xs text-muted-foreground leading-relaxed max-w-sm mx-auto">
+            {selected.hint}
+          </p>
+        </div>
+      : null}
     </div>
   )
 }
 
-export { moods }
+export { moods } from "@/lib/mood-picker-data"

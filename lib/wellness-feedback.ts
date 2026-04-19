@@ -57,7 +57,7 @@ function vibrate(pattern: number | number[]): void {
   navigator.vibrate(pattern)
 }
 
-/** Tiny tick — mood emoji, outline buttons, theme */
+/** Tiny tick — mood picker, outline buttons, theme */
 export function wellnessWebTap(): void {
   shortBeep(660, 45, 0.045)
   vibrate(8)

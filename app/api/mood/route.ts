@@ -4,7 +4,7 @@ import { requireUser } from "@/lib/api-auth"
 import { prisma } from "@/lib/prisma"
 
 const postSchema = z.object({
-  mood: z.number().int().min(1).max(5),
+  mood: z.number().int().min(1).max(8),
   note: z.string().max(2000).optional(),
   loggedAt: z.string().datetime().optional(),
 })

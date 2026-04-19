@@ -68,7 +68,7 @@ export function MoodStreakBadge({ moodStreak, bumpKey = 0 }: Props) {
           accessibilityLabel="Mood streak star"
         />
         <View>
-          <Text style={styles.label}>{`Mood Streak: ${moodStreak} 🌟`}</Text>
+          <Text style={styles.label}>{`Mood streak: ${moodStreak}`}</Text>
           <Text style={styles.sub}>check-ins in a row</Text>
         </View>
       </View>

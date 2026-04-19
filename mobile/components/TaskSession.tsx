@@ -344,7 +344,7 @@ function sessionUi(locale: "en" | "af", displayStreak: number) {
       done: "Klaar",
       moodRequiredTitle: "Kies eers jou bui",
       moodRequiredBody:
-        "Jou bui word gebruik om jou stemming-streep te bereken. Kies een emoji hier onder.",
+        "Jou bui word gebruik om jou stemming-streep te bereken. Kies ’n stemming vir Milo hier onder.",
       voiceGuide: "Stemgids",
       voiceGuideSpeaking: "Besig om te praat…",
     }
@@ -363,7 +363,7 @@ function sessionUi(locale: "en" | "af", displayStreak: number) {
     done: "Done",
     moodRequiredTitle: "Pick your mood first",
     moodRequiredBody:
-      "Your mood powers your mood streak. Tap one of the faces below.",
+      "Your mood powers your mood streak. Choose how you feel — Milo will match your energy.",
     voiceGuide: "Voice guide",
     voiceGuideSpeaking: "Speaking…",
   }
@@ -546,7 +546,7 @@ export function TaskSession({
 
   const handleComplete = useCallback(() => {
     wellnessTaskComplete()
-    const mood = selectedMood ?? (previewMode ? 4 : null)
+    const mood = selectedMood ?? (previewMode ? 3 : null)
     if (mood === null) {
       Alert.alert(ui.moodRequiredTitle, ui.moodRequiredBody)
       return
@@ -875,6 +875,7 @@ export function TaskSession({
             selectedMood={selectedMood}
             onMoodSelect={setSelectedMood}
             requiredForStreak={!previewMode}
+            locale={localeReady && locale === "af" ? "af" : "en"}
           />
         </View>
 
