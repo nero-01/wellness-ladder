@@ -47,9 +47,12 @@ module.exports = {
     scheme: "mobile",
     userInterfaceStyle: "dark",
     newArchEnabled: true,
+    /**
+     * Solid only — avoids Expo Go / simulator caching an old splash bitmap forever.
+     * The illustrated companion is shown from JS in `app/_layout.tsx` (always fresh from Metro).
+     * For release builds with a native image, run `npx expo prebuild` after changing assets.
+     */
     splash: {
-      /** Native splash: minimal violet pebble companion on charcoal (see `assets/mascot/splash-mascot.png`). */
-      image: "./assets/mascot/splash-mascot.png",
       resizeMode: "contain",
       backgroundColor: "#151118",
     },

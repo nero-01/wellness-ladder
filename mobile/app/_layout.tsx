@@ -8,6 +8,7 @@ import {
   DefaultTheme as NavigationDefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native"
+import { Image } from "expo-image"
 import { Platform, View } from "react-native"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 import { useFonts } from "expo-font"
@@ -22,6 +23,10 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext"
 import { RecurringHabitsProvider } from "@/contexts/RecurringHabitsContext"
 import { initRecurringNotificationHandler } from "@/lib/recurring-habit-notifications"
 import { WellnessColors, WellnessColorsLight } from "@/constants/wellnessTheme"
+
+/** Bundled splash art — updates on every Metro reload (not cached like native splash bitmap). */
+const SPLASH_COMPANION = require("../assets/mascot/wellness-splash-companion.png")
+const SPLASH_BG = "#151118"
 
 const WellnessDarkTheme = {
   ...NavigationDarkTheme,
@@ -169,11 +174,31 @@ export default function RootLayout() {
     if (error) throw error
   }, [error])
 
+  /** Hide native splash immediately so the JS layer (below) is visible — avoids stale cached native PNG. */
   useEffect(() => {
-    if (loaded) SplashScreen.hideAsync()
-  }, [loaded])
+    void SplashScreen.hideAsync()
+  }, [])
 
-  if (!loaded) return null
+  if (!loaded) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: SPLASH_BG,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Image
+          source={SPLASH_COMPANION}
+          style={{ width: 240, height: 240 }}
+          contentFit="contain"
+          cachePolicy="none"
+          accessibilityIgnoresInvertColors
+        />
+      </View>
+    )
+  }
 
   return (
     <SafeAreaProvider>
