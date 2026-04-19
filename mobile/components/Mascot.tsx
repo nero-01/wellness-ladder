@@ -1,18 +1,15 @@
-import { Image } from "expo-image"
 import { memo, useEffect, useMemo, useRef } from "react"
-import { StyleSheet, View } from "react-native"
+import { Image, StyleSheet, View } from "react-native"
 import Animated, {
   Easing,
   useAnimatedStyle,
   useSharedValue,
-  withDelay,
   withRepeat,
   withSequence,
   withTiming,
 } from "react-native-reanimated"
 import type { MascotSizePreset } from "@/hooks/useMascotSize"
 import { useMascotSize } from "@/hooks/useMascotSize"
-import { useWellnessColors } from "@/hooks/useWellnessColors"
 import {
   MASCOT_MOTION,
   type MascotLocale,
@@ -64,12 +61,11 @@ export const Mascot = memo(function Mascot({
   attentionKey,
   rewardKey,
 }: Props) {
-  const W = useWellnessColors()
   const presetSize = useMascotSize(preset ?? "hero")
   /** Logical width of the mascot; height derived from asset aspect (no square letterboxing). */
-  const size = sizeProp ?? (preset !== undefined ? presetSize : 148)
-  const imgW = size
-  const imgH = size / MASCOT_ASPECT
+  const size = sizeProp ?? (preset !== undefined ? presetSize : 160)
+  const imgW = Math.round(size)
+  const imgH = Math.round(size / MASCOT_ASPECT)
   const layoutMax = Math.max(imgW, imgH)
 
   const motion = MASCOT_MOTION[state]
@@ -86,7 +82,6 @@ export const Mascot = memo(function Mascot({
   const attentionScale = useSharedValue(1)
   const attentionY = useSharedValue(0)
   const rewardScale = useSharedValue(1)
-  const glowOpacity = useSharedValue(0)
 
   const prevAttention = useRef<number | undefined>(undefined)
   const prevReward = useRef<number | undefined>(undefined)
@@ -238,15 +233,11 @@ export const Mascot = memo(function Mascot({
       withTiming(1.06, { duration: 280, easing: Easing.out(Easing.cubic) }),
       withTiming(1, { duration: 520, easing: Easing.inOut(Easing.quad) }),
     )
-    glowOpacity.value = withSequence(
-      withTiming(0.22, { duration: 180, easing: Easing.out(Easing.quad) }),
-      withDelay(120, withTiming(0, { duration: 520, easing: Easing.inOut(Easing.quad) })),
-    )
-  }, [animated, glowOpacity, rewardKey, rewardScale])
+  }, [animated, rewardKey, rewardScale])
 
-  const padV = layoutMax * 0.12
-  const padH = layoutMax * 0.1
-  const glowSize = layoutMax * 1.32
+  /** Minimal room for float/scale; keep tight so mascot + titles read as one unit. */
+  const padV = layoutMax * 0.045
+  const padH = layoutMax * 0.035
 
   const bodyStyle = useAnimatedStyle(() => ({
     transform: [
@@ -268,16 +259,10 @@ export const Mascot = memo(function Mascot({
     transform: [{ scaleY: blinkY.value }],
   }))
 
-  const glowStyle = useAnimatedStyle(() => ({
-    opacity: glowOpacity.value,
-  }))
-
   const a11y = useMemo(
     () => mascotAccessibilityLabel(state, locale),
     [locale, state],
   )
-
-  const glowColor = `${W.primary}30`
 
   return (
     <View
@@ -289,6 +274,7 @@ export const Mascot = memo(function Mascot({
           paddingVertical: padV,
           paddingHorizontal: padH,
           backgroundColor: "transparent",
+          borderWidth: 0,
         },
         style,
       ]}
@@ -297,18 +283,6 @@ export const Mascot = memo(function Mascot({
       testID={testID}
     >
       <View style={styles.stage} pointerEvents="none">
-        <AnimatedView
-          style={[
-            styles.glow,
-            {
-              width: glowSize,
-              height: glowSize,
-              borderRadius: glowSize / 2,
-              backgroundColor: glowColor,
-            },
-            glowStyle,
-          ]}
-        />
         <AnimatedView style={[styles.lift, bodyStyle]}>
           <AnimatedView style={[blinkStyle, styles.imgFrame]}>
             <Image
@@ -317,9 +291,10 @@ export const Mascot = memo(function Mascot({
                 width: imgW,
                 height: imgH,
                 backgroundColor: "transparent",
+                borderWidth: 0,
+                borderColor: "transparent",
               }}
-              contentFit="contain"
-              cachePolicy="memory-disk"
+              resizeMode="contain"
               accessibilityElementsHidden
               importantForAccessibility="no-hide-descendants"
             />
@@ -335,26 +310,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     alignSelf: "center",
+    borderWidth: 0,
   },
   stage: {
     alignItems: "center",
     justifyContent: "center",
     overflow: "visible",
     backgroundColor: "transparent",
-  },
-  glow: {
-    position: "absolute",
-    top: "6%",
-    alignSelf: "center",
-    zIndex: 0,
+    borderWidth: 0,
   },
   lift: {
     alignItems: "center",
     justifyContent: "center",
-    zIndex: 1,
     backgroundColor: "transparent",
+    borderWidth: 0,
   },
   imgFrame: {
     backgroundColor: "transparent",
+    borderWidth: 0,
   },
 })

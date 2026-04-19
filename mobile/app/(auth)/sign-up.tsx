@@ -295,7 +295,7 @@ export default function SignUpScreen() {
             extraScrollHeight={Platform.OS === "ios" ? 24 : 48}
             contentContainerStyle={styles.scrollContent}
           >
-            <RNView style={{ alignItems: "center", marginBottom: 12 }}>
+            <RNView style={{ alignItems: "center", marginBottom: 4 }}>
               <Mascot state="encouraging" preset="auth" animated />
             </RNView>
             <Text style={[styles.hero, { color: textPrimary }]}>

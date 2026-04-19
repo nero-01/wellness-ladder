@@ -186,7 +186,7 @@ export default function RootLayout() {
           backgroundColor: SPLASH_BG,
           justifyContent: "center",
           alignItems: "center",
-          gap: 20,
+          gap: 12,
         }}
         accessibilityLabel="Loading app"
       >

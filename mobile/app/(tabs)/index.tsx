@@ -88,8 +88,12 @@ function createHomeStyles(W: WellnessPalette) {
     },
     hero: {
       paddingHorizontal: 24,
-      paddingTop: 16,
+      paddingTop: 8,
       alignItems: "center",
+    },
+    heroMascot: {
+      alignItems: "center",
+      marginBottom: 2,
     },
     headline: {
       color: W.text,
@@ -97,7 +101,8 @@ function createHomeStyles(W: WellnessPalette) {
       fontWeight: "800",
       textAlign: "center",
       lineHeight: 36,
-      marginBottom: 12,
+      marginTop: 0,
+      marginBottom: 10,
     },
     subhead: {
       color: W.textMuted,
@@ -323,7 +328,7 @@ export default function HomeScreen() {
 
         {/* Hero */}
         <View style={styles.hero}>
-          <View style={{ alignItems: "center", marginBottom: 8 }}>
+          <View style={styles.heroMascot}>
             <Mascot state="idle" preset="hero" animated />
           </View>
           <Text style={styles.headline}>Bite-Size Wellness Ladder</Text>

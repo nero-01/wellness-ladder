@@ -30,27 +30,27 @@ export function useMascotSize(preset: MascotSizePreset): number {
     const short = Math.min(width, height)
     switch (preset) {
       case "splash":
-        return fit(268, 236, 320, short)
+        return fit(300, 260, 348, short)
       case "loading":
-        return fit(184, 160, 224, short)
+        return fit(212, 184, 256, short)
       case "hero":
-        return fit(216, 188, 276, short)
+        return fit(252, 216, 312, short)
       case "auth":
-        return fit(204, 176, 256, short)
+        return fit(236, 204, 292, short)
       case "taskCue":
-        return fit(172, 150, 212, short)
+        return fit(196, 170, 240, short)
       case "taskSession":
-        return fit(144, 126, 180, short)
+        return fit(164, 142, 200, short)
       case "celebration":
-        return fit(228, 200, 288, short)
+        return fit(256, 224, 316, short)
       case "milestone":
-        return fit(204, 176, 256, short)
+        return fit(232, 200, 292, short)
       case "profile":
-        return fit(160, 138, 200, short)
+        return fit(184, 158, 228, short)
       case "banner":
-        return fit(92, 80, 112, short)
+        return fit(100, 86, 118, short)
       default:
-        return fit(148, 128, 188, short)
+        return fit(168, 146, 212, short)
     }
   }, [width, height, preset])
 }
