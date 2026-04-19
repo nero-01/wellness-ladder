@@ -14,6 +14,7 @@ import {
   loadLocalHabits,
   updateLocalHabit,
 } from "@/lib/recurring-habits-local"
+import { sanitizeRecurringHabitsList } from "@/lib/recurring-habit-normalize"
 import {
   cancelHabitNotifications,
   rescheduleAllHabitNotifications,
@@ -45,9 +46,11 @@ export function useRecurringHabits() {
     setLoading(true)
     setError(null)
     let list: RecurringHabit[] = []
+    let clean: RecurringHabit[] = []
     try {
       list = localOnly ? await loadLocalHabits() : await fetchRecurringHabits()
-      setHabits(list)
+      clean = sanitizeRecurringHabitsList(list)
+      setHabits(clean)
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not load habits")
       setHabits([])
@@ -55,7 +58,7 @@ export function useRecurringHabits() {
       setLoading(false)
     }
     try {
-      await rescheduleAllHabitNotifications(list)
+      await rescheduleAllHabitNotifications(clean)
     } catch (e) {
       if (__DEV__) {
         console.warn("[wellness] habit notification reschedule failed", e)

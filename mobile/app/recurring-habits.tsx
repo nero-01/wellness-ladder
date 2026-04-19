@@ -27,6 +27,10 @@ import {
 } from "@/constants/layoutTokens"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
+import {
+  coerceRepeatType,
+  sanitizeRecurringHabitsList,
+} from "@/lib/recurring-habit-normalize"
 import { ensureNotificationPermissions } from "@/lib/recurring-habit-notifications"
 import type { RepeatType } from "@/lib/recurring-habit-streak"
 import {
@@ -238,16 +242,10 @@ export default function RecurringHabitsScreen() {
   const { habits, loading, error, create, update, remove, refresh } =
     useRecurringHabitsContext()
 
-  const safeHabits = useMemo(() => {
-    if (!Array.isArray(habits)) return []
-    return habits.filter(
-      (h) =>
-        h &&
-        typeof h.id === "string" &&
-        h.id.length > 0 &&
-        typeof h.title === "string",
-    )
-  }, [habits])
+  const safeHabits = useMemo(
+    () => sanitizeRecurringHabitsList(habits),
+    [habits],
+  )
 
   const onRetry = useCallback(() => {
     wellnessTapLight()
@@ -278,14 +276,19 @@ export default function RecurringHabitsScreen() {
 
   function openEdit(h: RecurringHabit) {
     setEditing(h)
-    setTitle(h.title)
-    setDescription(h.description ?? "")
-    setRepeatType(h.repeatType)
+    const titleSafe = typeof h.title === "string" ? h.title.trim() : ""
+    setTitle(titleSafe || "Support habit")
+    setDescription(h.description != null ? String(h.description) : "")
+    const rt = coerceRepeatType(h.repeatType)
+    setRepeatType(rt)
     setCustomDays(
-      h.repeatType === "custom" && h.repeatDays?.length ? [...h.repeatDays] : [1, 2, 3, 4, 5],
+      rt === "custom" && Array.isArray(h.repeatDays) && h.repeatDays.length > 0 ?
+        [...h.repeatDays]
+      : [1, 2, 3, 4, 5],
     )
-    setReminderOn(!!h.reminderTime)
-    setReminderTime(h.reminderTime ?? "09:00")
+    setReminderOn(Boolean(h.reminderTime))
+    const rtStr = h.reminderTime != null ? String(h.reminderTime).trim() : ""
+    setReminderTime(rtStr.length > 0 ? rtStr : "09:00")
     setModalOpen(true)
   }
 
@@ -427,7 +430,11 @@ export default function RecurringHabitsScreen() {
           <View key={h.id} style={styles.cardOuter}>
             <View style={styles.cardInner}>
             <View style={styles.rowBetween}>
-              <Text style={styles.habitTitle}>{h.title}</Text>
+              <Text style={styles.habitTitle}>
+                {typeof h.title === "string" && h.title.trim().length > 0 ?
+                  h.title
+                : "Support habit"}
+              </Text>
               <Switch
                 value={Boolean(h.enabled)}
                 onValueChange={(v) => {
@@ -447,7 +454,9 @@ export default function RecurringHabitsScreen() {
             </View>
             <Text style={styles.meta}>
               {repeatSummary(h)}
-              {h.reminderTime ? ` · ${h.reminderTime}` : ""}
+              {h.reminderTime != null && String(h.reminderTime).trim() !== "" ?
+                ` · ${String(h.reminderTime).trim()}`
+              : ""}
             </Text>
             {typeof h.streakCount === "number" && h.streakCount > 0 ?
               <View style={styles.streakPill}>

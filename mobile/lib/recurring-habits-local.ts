@@ -1,4 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import {
+  normalizeRecurringHabitRecord,
+  normalizeUnknownToHabit,
+} from "@/lib/recurring-habit-normalize"
 import { computeNextStreak } from "@/lib/recurring-habit-streak"
 import type { RecurringHabit } from "@/lib/recurring-habits-types"
 import { MAX_RECURRING_HABITS } from "@/lib/recurring-habits-types"
@@ -13,8 +17,11 @@ export async function loadLocalHabits(): Promise<RecurringHabit[]> {
   try {
     const raw = await AsyncStorage.getItem(STORAGE_KEY)
     if (!raw) return []
-    const parsed = JSON.parse(raw) as RecurringHabit[]
-    return Array.isArray(parsed) ? parsed : []
+    const parsed = JSON.parse(raw) as unknown
+    if (!Array.isArray(parsed)) return []
+    return parsed
+      .map((row) => normalizeUnknownToHabit(row))
+      .filter((h): h is RecurringHabit => h != null)
   } catch {
     return []
   }
@@ -31,12 +38,14 @@ export async function createLocalHabit(
   if (habits.length >= MAX_RECURRING_HABITS) {
     throw new Error(`Maximum ${MAX_RECURRING_HABITS} support habits`)
   }
-  const habit: RecurringHabit = {
-    ...input,
-    id: uid(),
+  const newId = uid()
+  const habit = normalizeRecurringHabitRecord({
+    ...(input as unknown as Record<string, unknown>),
+    id: newId,
     streakCount: 0,
     lastCompletedDate: null,
-  }
+  })
+  if (!habit) throw new Error("Could not create habit")
   habits.push(habit)
   await saveLocalHabits(habits)
   return habit
@@ -49,7 +58,11 @@ export async function updateLocalHabit(
   const habits = await loadLocalHabits()
   const i = habits.findIndex((h) => h.id === id)
   if (i < 0) return null
-  habits[i] = { ...habits[i], ...patch }
+  const merged = normalizeRecurringHabitRecord({
+    ...(habits[i] as unknown as Record<string, unknown>),
+    ...(patch as Record<string, unknown>),
+  })
+  habits[i] = merged ?? { ...habits[i], ...patch }
   await saveLocalHabits(habits)
   return habits[i]
 }
@@ -80,11 +93,12 @@ export async function completeLocalHabit(
   if (alreadyCompleted) {
     return { habit: h, alreadyCompleted: true }
   }
-  habits[i] = {
-    ...h,
+  const updated = normalizeRecurringHabitRecord({
+    ...(h as unknown as Record<string, unknown>),
     streakCount,
     lastCompletedDate: localDate,
-  }
+  })
+  habits[i] = updated ?? { ...h, streakCount, lastCompletedDate: localDate }
   await saveLocalHabits(habits)
   return { habit: habits[i], alreadyCompleted: false }
 }

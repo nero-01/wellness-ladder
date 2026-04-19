@@ -12,6 +12,15 @@ let cachedModule: NotificationsModule | null | undefined
 
 function getNotifications(): NotificationsModule | null {
   if (cachedModule !== undefined) return cachedModule
+  /**
+   * Expo Go (SDK 53+), especially Android: requiring `expo-notifications` throws before any API
+   * call. Skip loading the native module entirely in the Expo Go client.
+   * @see https://docs.expo.dev/develop/development-builds/introduction/
+   */
+  if (Constants.appOwnership === "expo") {
+    cachedModule = null
+    return null
+  }
   if (Constants.executionEnvironment === "storeClient") {
     cachedModule = null
     return null

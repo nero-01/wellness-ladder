@@ -1,51 +1,10 @@
 import { apiFetch } from "@/lib/api"
+import { normalizeRecurringHabitRecord } from "@/lib/recurring-habit-normalize"
 import type { RepeatType } from "@/lib/recurring-habit-streak"
 import type { RecurringHabit } from "@/lib/recurring-habits-types"
 
-const REPEAT_TYPES = new Set<RepeatType>(["daily", "weekdays", "custom"])
-
-function normalizeRepeatType(raw: unknown): RepeatType {
-  return typeof raw === "string" && REPEAT_TYPES.has(raw as RepeatType) ?
-      (raw as RepeatType)
-    : "daily"
-}
-
-function normalizeRepeatDays(raw: unknown): number[] | null {
-  if (!Array.isArray(raw)) return null
-  const nums = raw
-    .map((x) => Number(x))
-    .filter((n) => Number.isInteger(n) && n >= 0 && n <= 6)
-  if (nums.length === 0) return null
-  return [...new Set(nums)].sort((a, b) => a - b)
-}
-
 function mapHabitFromApi(json: Record<string, unknown>): RecurringHabit | null {
-  if (json.id == null) return null
-  const id = String(json.id)
-  const titleRaw = json.title != null ? String(json.title).trim() : ""
-  const title = titleRaw.length > 0 ? titleRaw : "Support habit"
-
-  let last: string | null = null
-  if (json.lastCompletedDate) {
-    const d = new Date(String(json.lastCompletedDate))
-    last = Number.isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10)
-  }
-
-  const streak = Number(json.streakCount ?? 0)
-  return {
-    id,
-    userId: json.userId ? String(json.userId) : undefined,
-    title,
-    description: json.description != null ? String(json.description) : null,
-    repeatType: normalizeRepeatType(json.repeatType),
-    repeatDays: normalizeRepeatDays(json.repeatDays),
-    reminderTime: json.reminderTime != null ? String(json.reminderTime) : null,
-    enabled: Boolean(json.enabled ?? true),
-    streakCount: Number.isFinite(streak) ? Math.max(0, streak) : 0,
-    lastCompletedDate: last,
-    createdAt: json.createdAt ? String(json.createdAt) : undefined,
-    updatedAt: json.updatedAt ? String(json.updatedAt) : undefined,
-  }
+  return normalizeRecurringHabitRecord(json)
 }
 
 export async function fetchRecurringHabits(): Promise<RecurringHabit[]> {
