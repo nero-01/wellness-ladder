@@ -378,6 +378,7 @@ export function TaskCompletionCelebration({ streakData }: Props) {
             state="celebrating"
             preset="celebration"
             rewardKey={1}
+            warmNodKey={1}
             animated
             locale={effectiveLocale === "af" ? "af" : "en"}
           />

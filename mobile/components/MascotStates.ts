@@ -1,10 +1,12 @@
 /**
  * Wellness companion mascot — expression states (minimal set).
  * Raster art: `assets/mascot/mascot-transparent.png` (RGBA). Motion is driven in `Mascot.tsx`
- * (float, blink, nod, celebrate, proud pulse, optional `attentionKey` / `rewardKey`).
+ * (float, drift, blink, breathe, nod, celebrate, proud pulse, soft glow, `attentionKey`, `rewardKey`, `warmNodKey`).
  */
 export type MascotState =
   | "idle"
+  /** Task / walk in progress — steady, present, calm */
+  | "focused"
   | "encouraging"
   | "celebrating"
   | "sleepy"
@@ -15,6 +17,7 @@ export type MascotLocale = "en" | "af"
 
 const LABELS_EN: Record<MascotState, string> = {
   idle: "Calm wellness companion",
+  focused: "Wellness companion, here with you while you focus",
   encouraging: "Friendly wellness companion, cheering you on gently",
   celebrating: "Wellness companion, sharing a quiet moment of joy with you",
   sleepy: "Wellness companion, resting — a soft reminder for later",
@@ -24,6 +27,7 @@ const LABELS_EN: Record<MascotState, string> = {
 
 const LABELS_AF: Record<MascotState, string> = {
   idle: "Kalm welstand-metgesel",
+  focused: "Welstand-metgesel is hier by jou terwyl jy fokus",
   encouraging: "Vriendelike welstand-metgesel moedig jou sag aan",
   celebrating: "Welstand-metgesel deel stil vreugde met jou",
   sleepy: "Welstand-metgesel rus — sagte herinnering vir later",
@@ -41,6 +45,7 @@ export function mascotAccessibilityLabel(
 /** Motion intensity — keep low for calm, approachable motion */
 export const MASCOT_MOTION = {
   idle: { float: 1, blink: 1 },
+  focused: { float: 0.88, blink: 0.95 },
   encouraging: { float: 1.05, blink: 1 },
   celebrating: { float: 0.75, blink: 0.65 },
   sleepy: { float: 0.55, blink: 0.35 },

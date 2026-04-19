@@ -11,6 +11,7 @@ import Animated, {
 } from "react-native-reanimated"
 import type { MascotSizePreset } from "@/hooks/useMascotSize"
 import { useMascotSize } from "@/hooks/useMascotSize"
+import { useWellnessColors } from "@/hooks/useWellnessColors"
 import {
   MASCOT_MOTION,
   type MascotLocale,
@@ -32,16 +33,17 @@ type Props = {
   testID?: string
   /** Slower, softer motion (splash / loading / in-task companion). */
   motionProfile?: MotionProfile
-  /** Increment to fire a one-shot gentle attention motion (e.g. task start). */
+  /** Increment for a soft “wave” + attention (e.g. task start). */
   attentionKey?: number
-  /** Increment to fire a soft celebratory pop + glow (e.g. milestone, emphasis). */
+  /** Increment for happy pop + soft glow burst (celebration, milestone). */
   rewardKey?: number
+  /** Increment for a gentle completion nod (e.g. task done screen). */
+  warmNodKey?: number
 }
 
 /** RGBA export: flat background removed (see `scripts/generate-mascot-transparent.mjs`). */
 const COMPANION_ASSET = require("../assets/mascot/mascot-transparent.png")
 
-/** Pixel dimensions — must match `mascot-transparent.png` source file. */
 const MASCOT_SRC_W = 1376
 const MASCOT_SRC_H = 768
 const MASCOT_ASPECT = MASCOT_SRC_W / MASCOT_SRC_H
@@ -59,9 +61,10 @@ export const Mascot = memo(function Mascot({
   motionProfile = "default",
   attentionKey,
   rewardKey,
+  warmNodKey,
 }: Props) {
+  const W = useWellnessColors()
   const presetSize = useMascotSize(preset ?? "hero")
-  /** Logical width of the mascot; height derived from asset aspect (no square letterboxing). */
   const size = sizeProp ?? (preset !== undefined ? presetSize : 196)
   const imgW = Math.round(size)
   const imgH = Math.round(size / MASCOT_ASPECT)
@@ -71,19 +74,25 @@ export const Mascot = memo(function Mascot({
   const calm = motionProfile === "calm"
 
   const floatY = useSharedValue(0)
+  const driftX = useSharedValue(0)
   const sway = useSharedValue(0)
+  const attentionRotate = useSharedValue(0)
   const celebrate = useSharedValue(1)
   const sleepyDim = useSharedValue(1)
   const breathe = useSharedValue(1)
   const blinkY = useSharedValue(1)
   const nodY = useSharedValue(0)
+  const completionNodY = useSharedValue(0)
   const proudPulse = useSharedValue(1)
   const attentionScale = useSharedValue(1)
   const attentionY = useSharedValue(0)
   const rewardScale = useSharedValue(1)
+  const glowAmbient = useSharedValue(0)
+  const glowBurst = useSharedValue(0)
 
   const prevAttention = useRef<number | undefined>(undefined)
   const prevReward = useRef<number | undefined>(undefined)
+  const prevWarmNod = useRef<number | undefined>(undefined)
 
   const amp = layoutMax * (calm ? 0.02 : 0.03) * motion.float
   const floatDuration = calm ? 4000 : 3200
@@ -101,11 +110,31 @@ export const Mascot = memo(function Mascot({
   }, [animated, amp, floatDuration, floatY])
 
   useEffect(() => {
+    if (!animated || state === "sleepy") {
+      driftX.value = withTiming(0, { duration: 600 })
+      return
+    }
+    const d =
+      calm ? layoutMax * 0.0035
+      : state === "celebrating" ? layoutMax * 0.0025
+      : layoutMax * 0.0055
+    driftX.value = withRepeat(
+      withSequence(
+        withTiming(d, { duration: 5200, easing: Easing.inOut(Easing.sin) }),
+        withTiming(-d, { duration: 5200, easing: Easing.inOut(Easing.sin) }),
+      ),
+      -1,
+      true,
+    )
+  }, [animated, calm, driftX, layoutMax, state])
+
+  useEffect(() => {
     if (!animated) return
     const w =
       state === "encouraging" ? 0.014
       : state === "supportive" ? 0.01
       : state === "celebrating" ? 0.016
+      : state === "focused" ? 0.007
       : calm ? 0.006
       : 0.008
     const dur = calm ? 2800 : 2400
@@ -145,8 +174,12 @@ export const Mascot = memo(function Mascot({
     const br =
       state === "sleepy" ? 1.004
       : state === "celebrating" ? 1.01
+      : state === "focused" ? 1.012
       : 1.016
-    const dur = state === "celebrating" ? 2400 : 2500
+    const dur =
+      state === "celebrating" ? 2400
+      : state === "focused" ? 2700
+      : 2500
     breathe.value = withRepeat(
       withSequence(
         withTiming(br, { duration: dur, easing: Easing.inOut(Easing.sin) }),
@@ -209,19 +242,40 @@ export const Mascot = memo(function Mascot({
   }, [animated, proudPulse, state])
 
   useEffect(() => {
+    if (!animated) return
+    if (state === "proud") {
+      glowAmbient.value = withRepeat(
+        withSequence(
+          withTiming(0.14, { duration: 3200, easing: Easing.inOut(Easing.sin) }),
+          withTiming(0.05, { duration: 3400, easing: Easing.inOut(Easing.sin) }),
+        ),
+        -1,
+        true,
+      )
+    } else {
+      glowAmbient.value = withTiming(0, { duration: 500 })
+    }
+  }, [animated, glowAmbient, state])
+
+  useEffect(() => {
     if (attentionKey === undefined || attentionKey < 1) return
     if (prevAttention.current === attentionKey) return
     prevAttention.current = attentionKey
     if (!animated) return
     attentionScale.value = withSequence(
-      withTiming(1.042, { duration: 240, easing: Easing.out(Easing.quad) }),
-      withTiming(1, { duration: 380, easing: Easing.inOut(Easing.quad) }),
+      withTiming(1.045, { duration: 260, easing: Easing.out(Easing.quad) }),
+      withTiming(1, { duration: 400, easing: Easing.inOut(Easing.quad) }),
     )
     attentionY.value = withSequence(
-      withTiming(-layoutMax * 0.022, { duration: 240, easing: Easing.out(Easing.quad) }),
-      withTiming(0, { duration: 380, easing: Easing.inOut(Easing.quad) }),
+      withTiming(-layoutMax * 0.024, { duration: 260, easing: Easing.out(Easing.quad) }),
+      withTiming(0, { duration: 400, easing: Easing.inOut(Easing.quad) }),
     )
-  }, [animated, attentionKey, attentionScale, attentionY, layoutMax])
+    attentionRotate.value = withSequence(
+      withTiming(0.022, { duration: 200, easing: Easing.out(Easing.quad) }),
+      withTiming(-0.014, { duration: 240, easing: Easing.inOut(Easing.sin) }),
+      withTiming(0, { duration: 360, easing: Easing.inOut(Easing.quad) }),
+    )
+  }, [animated, attentionKey, attentionRotate, attentionScale, attentionY, layoutMax])
 
   useEffect(() => {
     if (rewardKey === undefined || rewardKey < 1) return
@@ -229,19 +283,43 @@ export const Mascot = memo(function Mascot({
     prevReward.current = rewardKey
     if (!animated) return
     rewardScale.value = withSequence(
-      withTiming(1.06, { duration: 280, easing: Easing.out(Easing.cubic) }),
-      withTiming(1, { duration: 520, easing: Easing.inOut(Easing.quad) }),
+      withTiming(1.065, { duration: 300, easing: Easing.out(Easing.cubic) }),
+      withTiming(1, { duration: 540, easing: Easing.inOut(Easing.quad) }),
     )
-  }, [animated, rewardKey, rewardScale])
+    glowBurst.value = withSequence(
+      withTiming(0.22, { duration: 200, easing: Easing.out(Easing.quad) }),
+      withTiming(0, { duration: 900, easing: Easing.inOut(Easing.quad) }),
+    )
+  }, [animated, glowBurst, rewardKey, rewardScale])
 
-  /** Padding only for motion overflow; alpha PNG needs no “frame” to hide edges. */
-  const padV = layoutMax * 0.028
-  const padH = layoutMax * 0.022
+  useEffect(() => {
+    if (warmNodKey === undefined || warmNodKey < 1) return
+    if (prevWarmNod.current === warmNodKey) return
+    prevWarmNod.current = warmNodKey
+    if (!animated) return
+    completionNodY.value = withSequence(
+      withTiming(-layoutMax * 0.032, { duration: 280, easing: Easing.out(Easing.quad) }),
+      withTiming(0, { duration: 420, easing: Easing.inOut(Easing.quad) }),
+    )
+  }, [animated, completionNodY, layoutMax, warmNodKey])
+
+  const padV = layoutMax * 0.03
+  const padH = layoutMax * 0.024
+  const glowSize = layoutMax * 1.22
+
+  const glowTint = `${W.primary}55`
+
+  const glowCombinedStyle = useAnimatedStyle(() => ({
+    opacity: Math.min(1, glowAmbient.value + glowBurst.value),
+  }))
 
   const bodyStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateY: floatY.value + nodY.value + attentionY.value },
-      { rotate: `${sway.value}rad` },
+      { translateX: driftX.value },
+      {
+        translateY: floatY.value + nodY.value + attentionY.value + completionNodY.value,
+      },
+      { rotate: `${sway.value + attentionRotate.value}rad` },
       {
         scale:
           celebrate.value *
@@ -280,6 +358,18 @@ export const Mascot = memo(function Mascot({
       testID={testID}
     >
       <View style={styles.stage} pointerEvents="none">
+        <AnimatedView
+          style={[
+            styles.glowAura,
+            {
+              width: glowSize,
+              height: glowSize,
+              borderRadius: glowSize / 2,
+              backgroundColor: glowTint,
+            },
+            glowCombinedStyle,
+          ]}
+        />
         <AnimatedView style={[styles.lift, bodyStyle]} collapsable={false}>
           <AnimatedView style={[blinkStyle, styles.imgFrame]} collapsable={false}>
             <Image
@@ -324,11 +414,18 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     borderWidth: 0,
   },
+  glowAura: {
+    position: "absolute",
+    alignSelf: "center",
+    top: "8%",
+    zIndex: 0,
+  },
   lift: {
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "transparent",
     borderWidth: 0,
+    zIndex: 1,
   },
   imgFrame: {
     backgroundColor: "transparent",

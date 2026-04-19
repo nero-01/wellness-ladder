@@ -860,7 +860,7 @@ export function TaskSession({
         {sessionActive && task.id !== BREATHING_TASK_ID ? (
           <View style={styles.sessionCompanion}>
             <Mascot
-              state="idle"
+              state="focused"
               preset="taskSession"
               motionProfile="calm"
               animated
