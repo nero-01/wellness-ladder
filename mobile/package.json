@@ -6,7 +6,8 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "mascot:transparent": "node scripts/generate-mascot-transparent.mjs"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -44,6 +45,7 @@
   "devDependencies": {
     "@types/react": "~19.1.0",
     "react-test-renderer": "19.1.0",
+    "sharp": "^0.34.5",
     "typescript": "~5.9.2"
   },
   "private": true

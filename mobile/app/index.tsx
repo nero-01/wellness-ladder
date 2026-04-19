@@ -18,7 +18,7 @@ export default function Index() {
     return (
       <View style={[styles.centered, { backgroundColor: bg }]}>
         <Mascot state="idle" preset="loading" motionProfile="calm" animated />
-        <View style={{ height: 10 }} />
+        <View style={{ height: 8 }} />
         <ActivityIndicator size="large" color={WellnessColors.primary} accessibilityLabel="Loading session" />
       </View>
     )

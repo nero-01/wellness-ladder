@@ -24,7 +24,7 @@ import { initRecurringNotificationHandler } from "@/lib/recurring-habit-notifica
 import { Mascot } from "@/components/Mascot"
 import { WellnessColors, WellnessColorsLight } from "@/constants/wellnessTheme"
 
-/** Match native splash background; mascot uses `wellness-splash-companion.png` inside `Mascot`. */
+/** Match native splash background; mascot uses `mascot-transparent.png` inside `Mascot`. */
 const SPLASH_BG = "#151118"
 
 const WellnessDarkTheme = {

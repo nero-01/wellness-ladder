@@ -88,12 +88,12 @@ function createHomeStyles(W: WellnessPalette) {
     },
     hero: {
       paddingHorizontal: 24,
-      paddingTop: 8,
+      paddingTop: 4,
       alignItems: "center",
     },
     heroMascot: {
       alignItems: "center",
-      marginBottom: 2,
+      marginBottom: 0,
     },
     headline: {
       color: W.text,
@@ -101,7 +101,7 @@ function createHomeStyles(W: WellnessPalette) {
       fontWeight: "800",
       textAlign: "center",
       lineHeight: 36,
-      marginTop: 0,
+      marginTop: -2,
       marginBottom: 10,
     },
     subhead: {

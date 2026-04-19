@@ -38,10 +38,10 @@ type Props = {
   rewardKey?: number
 }
 
-/** Full-resolution PNG (RGB canvas). Avoids JPEG ringing/halos that read as a black edge around the blob. */
-const COMPANION_ASSET = require("../assets/mascot/wellness-splash-companion.png")
+/** RGBA export: flat background removed (see `scripts/generate-mascot-transparent.mjs`). */
+const COMPANION_ASSET = require("../assets/mascot/mascot-transparent.png")
 
-/** Pixel dimensions of `wellness-splash-companion.png` — layout matches aspect so nothing letterboxes. */
+/** Pixel dimensions — must match `mascot-transparent.png` source file. */
 const MASCOT_SRC_W = 1376
 const MASCOT_SRC_H = 768
 const MASCOT_ASPECT = MASCOT_SRC_W / MASCOT_SRC_H
@@ -62,7 +62,7 @@ export const Mascot = memo(function Mascot({
 }: Props) {
   const presetSize = useMascotSize(preset ?? "hero")
   /** Logical width of the mascot; height derived from asset aspect (no square letterboxing). */
-  const size = sizeProp ?? (preset !== undefined ? presetSize : 172)
+  const size = sizeProp ?? (preset !== undefined ? presetSize : 196)
   const imgW = Math.round(size)
   const imgH = Math.round(size / MASCOT_ASPECT)
   const layoutMax = Math.max(imgW, imgH)
@@ -85,8 +85,8 @@ export const Mascot = memo(function Mascot({
   const prevAttention = useRef<number | undefined>(undefined)
   const prevReward = useRef<number | undefined>(undefined)
 
-  const amp = layoutMax * (calm ? 0.018 : 0.024) * motion.float
-  const floatDuration = calm ? 4400 : 3600
+  const amp = layoutMax * (calm ? 0.02 : 0.03) * motion.float
+  const floatDuration = calm ? 4000 : 3200
 
   useEffect(() => {
     if (!animated) return
@@ -108,7 +108,7 @@ export const Mascot = memo(function Mascot({
       : state === "celebrating" ? 0.016
       : calm ? 0.006
       : 0.008
-    const dur = calm ? 3000 : 2600
+    const dur = calm ? 2800 : 2400
     sway.value = withRepeat(
       withSequence(
         withTiming(-w, { duration: dur, easing: Easing.inOut(Easing.sin) }),
@@ -124,8 +124,8 @@ export const Mascot = memo(function Mascot({
     if (state === "celebrating") {
       celebrate.value = withRepeat(
         withSequence(
-          withTiming(1.065, { duration: 780, easing: Easing.inOut(Easing.quad) }),
-          withTiming(1, { duration: 920, easing: Easing.inOut(Easing.quad) }),
+          withTiming(1.072, { duration: 720, easing: Easing.inOut(Easing.quad) }),
+          withTiming(1, { duration: 880, easing: Easing.inOut(Easing.quad) }),
         ),
         -1,
         true,
@@ -144,9 +144,9 @@ export const Mascot = memo(function Mascot({
     if (!animated) return
     const br =
       state === "sleepy" ? 1.004
-      : state === "celebrating" ? 1.008
-      : 1.012
-    const dur = state === "celebrating" ? 2600 : 2800
+      : state === "celebrating" ? 1.01
+      : 1.016
+    const dur = state === "celebrating" ? 2400 : 2500
     breathe.value = withRepeat(
       withSequence(
         withTiming(br, { duration: dur, easing: Easing.inOut(Easing.sin) }),
@@ -162,7 +162,7 @@ export const Mascot = memo(function Mascot({
       blinkY.value = 1
       return
     }
-    const gap = calm ? 5200 : 3800 / Math.max(0.45, motion.blink)
+    const gap = calm ? 4800 : 3600 / Math.max(0.45, motion.blink)
     blinkY.value = withRepeat(
       withSequence(
         withTiming(1, { duration: gap, easing: Easing.linear }),
@@ -180,8 +180,8 @@ export const Mascot = memo(function Mascot({
       nodY.value = withRepeat(
         withSequence(
           withTiming(0, { duration: 2400, easing: Easing.inOut(Easing.quad) }),
-          withTiming(-layoutMax * 0.035, { duration: 420, easing: Easing.out(Easing.quad) }),
-          withTiming(0, { duration: 480, easing: Easing.inOut(Easing.quad) }),
+          withTiming(-layoutMax * 0.042, { duration: 460, easing: Easing.out(Easing.quad) }),
+          withTiming(0, { duration: 500, easing: Easing.inOut(Easing.quad) }),
         ),
         -1,
         false,
@@ -197,8 +197,8 @@ export const Mascot = memo(function Mascot({
       proudPulse.value = withRepeat(
         withSequence(
           withTiming(1, { duration: 2600, easing: Easing.inOut(Easing.quad) }),
-          withTiming(1.07, { duration: 420, easing: Easing.out(Easing.cubic) }),
-          withTiming(1, { duration: 520, easing: Easing.inOut(Easing.quad) }),
+          withTiming(1.075, { duration: 440, easing: Easing.out(Easing.cubic) }),
+          withTiming(1, { duration: 540, easing: Easing.inOut(Easing.quad) }),
         ),
         -1,
         false,
@@ -234,9 +234,9 @@ export const Mascot = memo(function Mascot({
     )
   }, [animated, rewardKey, rewardScale])
 
-  /** Minimal room for float/scale — no extra box around the bitmap. */
-  const padV = layoutMax * 0.04
-  const padH = layoutMax * 0.03
+  /** Padding only for motion overflow; alpha PNG needs no “frame” to hide edges. */
+  const padV = layoutMax * 0.028
+  const padH = layoutMax * 0.022
 
   const bodyStyle = useAnimatedStyle(() => ({
     transform: [
