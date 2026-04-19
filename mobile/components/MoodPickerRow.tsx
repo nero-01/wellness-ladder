@@ -89,16 +89,14 @@ export function MoodPickerRow({
                 key={m.id}
                 onPress={() => onPick(m.id)}
                 style={({ pressed }) => [
-                  styles.cell,
+                  styles.cellBase,
                   {
                     width: cellOuter,
                     minHeight: cellOuter + 18,
                     marginRight: i === MILO_MOOD_ITEMS.length - 1 ? 0 : CELL_GAP,
-                  },
-                  on && {
-                    backgroundColor: accent.fill,
-                    borderColor: accent.border,
-                    borderWidth: 1,
+                    backgroundColor: on ? accent.fill : accent.idleFill,
+                    borderColor: on ? accent.border : accent.idleBorder,
+                    borderWidth: on ? 2 : 1,
                   },
                   pressed && styles.cellPressed,
                 ]}
@@ -109,7 +107,11 @@ export function MoodPickerRow({
                 <View
                   style={[
                     styles.emojiWell,
-                    on && { backgroundColor: W.bgElevated },
+                    {
+                      backgroundColor: on ? accent.fill : W.bgElevated,
+                      borderWidth: 1,
+                      borderColor: on ? accent.border : W.cardBorder,
+                    },
                   ]}
                 >
                   <Image
@@ -126,7 +128,7 @@ export function MoodPickerRow({
                 <Text
                   style={[
                     styles.cellLabel,
-                    on && styles.cellLabelOn,
+                    on ? { color: accent.label } : { color: W.textMuted },
                   ]}
                   numberOfLines={1}
                 >
@@ -143,16 +145,16 @@ export function MoodPickerRow({
           style={[
             styles.confirm,
             {
-              borderLeftWidth: 3,
+              borderLeftWidth: 4,
               borderLeftColor: selectedAccent.border,
               paddingLeft: 12,
-              paddingVertical: 10,
+              paddingVertical: 12,
               borderRadius: 12,
               backgroundColor: selectedAccent.fill,
             },
           ]}
         >
-          <Text style={styles.confirmMain}>
+          <Text style={[styles.confirmMain, { color: selectedAccent.label }]}>
             {locale === "af" ?
               `Jy voel ${selected.labelAf.toLowerCase()}`
             : `You're feeling ${selected.label.toLowerCase()}`}
@@ -192,15 +194,13 @@ function createStyles(W: WellnessPalette) {
       paddingVertical: 4,
       paddingHorizontal: 4,
     },
-    cell: {
+    /** Layout only — mood color comes from accent tokens */
+    cellBase: {
       alignItems: "center",
       justifyContent: "flex-start",
       paddingVertical: 10,
       paddingHorizontal: 6,
       borderRadius: 18,
-      backgroundColor: W.surfaceMuted,
-      borderWidth: 1,
-      borderColor: W.cardBorder,
     },
     cellPressed: { opacity: 0.92 },
     emojiWell: {
@@ -209,17 +209,12 @@ function createStyles(W: WellnessPalette) {
       borderRadius: 16,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: W.bgElevated,
       marginBottom: 6,
     },
     cellLabel: {
       fontSize: 10,
       fontWeight: "700",
-      color: W.textMuted,
       textAlign: "center",
-    },
-    cellLabelOn: {
-      color: W.text,
     },
     confirm: {
       marginTop: 14,
@@ -228,7 +223,6 @@ function createStyles(W: WellnessPalette) {
     confirmMain: {
       fontSize: 14,
       fontWeight: "600",
-      color: W.text,
       textAlign: "left",
     },
     confirmHint: {

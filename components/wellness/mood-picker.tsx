@@ -24,10 +24,10 @@ export function MoodPicker({ selectedMood, onMoodSelect, showLabel = true }: Moo
   const selected = selectedMood !== null ? getMiloMoodItem(selectedMood) : undefined
   const { resolvedTheme } = useTheme()
 
-  const pastelSet = useMemo(
-    () => (resolvedTheme === "dark" ? moodPastelsDark : moodPastelsLight),
-    [resolvedTheme],
-  )
+  const pastelSet = useMemo(() => {
+    if (resolvedTheme === "dark") return moodPastelsDark
+    return moodPastelsLight
+  }, [resolvedTheme])
 
   const selectedAccent = selected
     ? moodPastelAccent(pastelSet, selected.pastelKey)
@@ -57,18 +57,15 @@ export function MoodPicker({ selectedMood, onMoodSelect, showLabel = true }: Moo
                 wellnessWebTap()
                 onMoodSelect(mood.id)
               }}
-              className={`flex flex-col items-center rounded-2xl border px-1.5 py-2.5 transition-all duration-200 min-h-[92px] ${
-                on ? "scale-[1.01]" : "bg-secondary/80 border-border/80 hover:bg-secondary hover:border-border"
+              className={`flex flex-col items-center rounded-2xl px-1.5 py-2.5 transition-all duration-200 min-h-[92px] ${
+                on ? "scale-[1.02] shadow-sm" : "hover:opacity-95"
               }`}
-              style={
-                on ?
-                  {
-                    backgroundColor: accent.fill,
-                    borderColor: accent.border,
-                    borderWidth: 1,
-                  }
-                : undefined
-              }
+              style={{
+                backgroundColor: on ? accent.fill : accent.idleFill,
+                borderColor: on ? accent.border : accent.idleBorder,
+                borderWidth: on ? 2 : 1,
+                borderStyle: "solid",
+              }}
               aria-pressed={selectedMood === mood.id}
               aria-label={mood.label}
             >
@@ -84,8 +81,9 @@ export function MoodPicker({ selectedMood, onMoodSelect, showLabel = true }: Moo
               />
               <span
                 className={`text-[10px] font-bold leading-tight text-center px-0.5 ${
-                  on ? "text-foreground" : "text-muted-foreground"
+                  on ? "" : "text-muted-foreground"
                 }`}
+                style={on ? { color: accent.label } : undefined}
               >
                 {mood.label}
               </span>
@@ -96,14 +94,14 @@ export function MoodPicker({ selectedMood, onMoodSelect, showLabel = true }: Moo
 
       {selected && selectedAccent ?
         <div
-          className="mt-4 text-left space-y-1 animate-in fade-in duration-300 rounded-xl pl-3 py-2.5 pr-2 max-w-md mx-auto"
+          className="mt-4 text-left space-y-1 animate-in fade-in duration-300 rounded-xl pl-3 py-3 pr-2 max-w-md mx-auto shadow-sm"
           style={{
-            borderLeftWidth: 3,
+            borderLeftWidth: 4,
             borderLeftColor: selectedAccent.border,
             backgroundColor: selectedAccent.fill,
           }}
         >
-          <p className="text-sm font-medium text-foreground">
+          <p className="text-sm font-medium" style={{ color: selectedAccent.label }}>
             {"You're"} feeling {selected.label.toLowerCase()}
           </p>
           <p className="text-xs text-muted-foreground leading-relaxed">
