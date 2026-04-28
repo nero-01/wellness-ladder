@@ -11,7 +11,7 @@ import {
 import { ActivityIndicator, Platform, View } from "react-native"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 import { useFonts } from "expo-font"
-import { Stack, usePathname, useRouter } from "expo-router"
+import { Stack, usePathname, useRouter, useSegments } from "expo-router"
 import * as SplashScreen from "expo-splash-screen"
 import { StatusBar } from "expo-status-bar"
 import { useEffect } from "react"
@@ -63,14 +63,18 @@ SplashScreen.preventAutoHideAsync()
 function useProtectedRoute() {
   const { user, isLoaded } = useAuth()
   const pathname = usePathname()
+  const segments = useSegments()
   const router = useRouter()
 
   useEffect(() => {
     if (!isLoaded) return
 
     const path = pathname ?? ""
-    const inAuthScreen = path.includes("sign-in") || path.includes("sign-up")
-    const inOnboarding = path.includes("(onboarding)")
+    const firstSegment = String(segments[0] ?? "")
+    const inAuthGroup = firstSegment === "(auth)"
+    const inOnboardingGroup = firstSegment === "(onboarding)"
+    const inAuthScreen = inAuthGroup || path.includes("sign-in") || path.includes("sign-up")
+    const inOnboarding = inOnboardingGroup || path === "/splash" || path === "/value" || path === "/auth-lite"
     const isRootEntry =
       path === "/" || path === "" || path === "/index" || path.endsWith("/index")
 
@@ -95,7 +99,7 @@ function useProtectedRoute() {
       }
       router.replace("/(tabs)")
     }
-  }, [user, isLoaded, pathname, router])
+  }, [user, isLoaded, pathname, router, segments])
 }
 
 function RootLayoutNav() {
