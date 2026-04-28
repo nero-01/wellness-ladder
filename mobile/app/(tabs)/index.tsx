@@ -13,6 +13,14 @@ import {
   View,
 } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
+import Animated, {
+  FadeIn,
+  FadeInDown,
+  FadeOut,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated"
 import { BrandedScreenBackdrop } from "@/components/BrandedScreenBackdrop"
 import { TaskCatalogPreview } from "@/components/TaskCatalogPreview"
 import { TaskStepIconWell } from "@/components/TaskStepCard"
@@ -315,6 +323,8 @@ export default function HomeScreen() {
   const [colorScheme, setColorScheme] = useState<"light" | "dark" | null>(
     () => Appearance.getColorScheme() ?? "dark",
   )
+  const [transitionTo, setTransitionTo] = useState<"light" | "dark" | null>(null)
+  const themeOverlayOpacity = useSharedValue(0)
 
   useEffect(() => {
     const sub = Appearance.addChangeListener(({ colorScheme: cs }) => {
@@ -324,10 +334,17 @@ export default function HomeScreen() {
   }, [])
 
   const toggleTheme = useCallback(() => {
+    if (transitionTo) return
     wellnessTapLight()
     const next = colorScheme === "dark" ? "light" : "dark"
-    Appearance.setColorScheme(next)
-  }, [colorScheme])
+    setTransitionTo(next)
+    themeOverlayOpacity.value = 0
+    themeOverlayOpacity.value = withTiming(1, { duration: 220 }, () => {
+      Appearance.setColorScheme(next)
+      themeOverlayOpacity.value = withTiming(0, { duration: 220 })
+    })
+    setTimeout(() => setTransitionTo(null), 460)
+  }, [colorScheme, themeOverlayOpacity, transitionTo])
 
   const goTask = useCallback(() => {
     wellnessTapMedium()
@@ -352,9 +369,22 @@ export default function HomeScreen() {
     () => moodPastelAccent(W.moodPastels, "mint"),
     [W.moodPastels],
   )
+  const overlayBg =
+    transitionTo === "light" ? WellnessColorsLight.bg : WellnessColors.bg
+  const overlayStyle = useAnimatedStyle(() => ({
+    opacity: themeOverlayOpacity.value,
+  }))
 
   return (
     <BrandedScreenBackdrop style={{ flex: 1 }}>
+    <Animated.View
+      pointerEvents="none"
+      style={[
+        StyleSheet.absoluteFillObject,
+        { zIndex: 9, backgroundColor: overlayBg },
+        overlayStyle,
+      ]}
+    />
     <SafeAreaView style={[styles.safe, { backgroundColor: "transparent" }]} edges={["top"]}>
       <ScrollView
         style={{ flex: 1, backgroundColor: "transparent" }}
@@ -363,7 +393,7 @@ export default function HomeScreen() {
         bounces
       >
         {/* Header — matches web landing */}
-        <View style={styles.header}>
+        <Animated.View entering={FadeInDown.duration(260)} style={styles.header}>
           <View style={styles.brandRow}>
             <View style={styles.logoMark}>
               <Text style={styles.logoLetter}>W</Text>
@@ -400,8 +430,9 @@ export default function HomeScreen() {
               />
             </Pressable>
           </View>
-        </View>
+        </Animated.View>
 
+        <Animated.View entering={FadeIn.duration(320)}>
         <LinearGradient
           colors={[...heroWash]}
           start={{ x: 0, y: 0 }}
@@ -423,15 +454,23 @@ export default function HomeScreen() {
             </Pressable>
           </View>
         </LinearGradient>
+        </Animated.View>
 
         {streakLoaded ? (
-          <View style={styles.ladderSection}>
+          <Animated.View
+            entering={FadeInDown.delay(70).duration(280)}
+            exiting={FadeOut.duration(180)}
+            style={styles.ladderSection}
+          >
             <TaskCatalogPreview todayTaskId={todayTask.id} />
-          </View>
+          </Animated.View>
         ) : null}
 
         {__DEV__ ? (
-          <View style={styles.devLinkWrap}>
+          <Animated.View
+            entering={FadeInDown.delay(90).duration(260)}
+            style={styles.devLinkWrap}
+          >
             <Pressable
               onPress={() => router.push("/dev-task-preview")}
               style={({ pressed }) => [
@@ -455,11 +494,11 @@ export default function HomeScreen() {
             >
               <Text style={styles.devLinkText}>Dev: SADAG completion screen →</Text>
             </Pressable>
-          </View>
+          </Animated.View>
         ) : null}
 
         {/* Feature grid — one pastel per tile */}
-        <View style={styles.grid}>
+        <Animated.View entering={FadeInDown.delay(120).duration(320)} style={styles.grid}>
           {FEATURES.map((f) => {
             const a = moodPastelAccent(W.moodPastels, f.pastelKey)
             return (
@@ -491,11 +530,14 @@ export default function HomeScreen() {
               </View>
             )
           })}
-        </View>
+        </Animated.View>
 
         {/* Today’s focus — matches streak + scheduled task */}
         {streakLoaded ? (
-          <View style={styles.previewShell}>
+          <Animated.View
+          entering={FadeInDown.delay(150).duration(320)}
+          exiting={FadeOut.duration(200)}
+          style={styles.previewShell}>
           <View style={[styles.preview, { backgroundColor: W.bgElevated }]}>
             <View
               style={[
@@ -542,7 +584,7 @@ export default function HomeScreen() {
               </View>
             </View>
           </View>
-          </View>
+          </Animated.View>
         ) : null}
       </ScrollView>
     </SafeAreaView>
