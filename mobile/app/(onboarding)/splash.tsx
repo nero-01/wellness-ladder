@@ -19,23 +19,15 @@ import { markOnboardingComplete } from "@/lib/onboarding-storage"
 import { prepareBrandedBackdropFromSplash, skipOrFinishOnboarding } from "@/lib/onboarding-nav"
 import { captureSplashPoster } from "@/lib/splash-poster"
 import { resolveSplashGifSource } from "@/lib/splash-gif-source"
+import { useWellnessColors } from "@/hooks/useWellnessColors"
+import { useColorScheme } from "@/components/useColorScheme"
 
 /** Matches Canva landing: https://canva.link/p2xky6a5cds17v9 */
 const HEADLINE = "Bite-sized wellness"
 const TAGLINE = "Simple wellness for busy lives"
-const GIF_PALETTE = {
-  /** Sampled from latest attached splash refs (lavender/periwinkle variant). */
-  background: "#8E91EC",
-  text: "#F1EFE5",
-  textSecondary: "rgba(241, 239, 229, 0.9)",
-  cta: "#5B6DDB",
-  ctaPressed: "#5365D3",
-  ctaText: "#F1EFE5",
-  ctaBorder: "rgba(241, 239, 229, 0.24)",
-  ctaShadow: "rgba(40, 50, 130, 0.36)",
-}
-
 export default function OnboardingSplashScreen() {
+  const scheme = useColorScheme()
+  const W = useWellnessColors()
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const { tour } = useLocalSearchParams<{ tour?: string }>()
@@ -52,6 +44,19 @@ export default function OnboardingSplashScreen() {
   )
   /** Fallback still if GIF decode fails on device. */
   const [staticPreviewUri, setStaticPreviewUri] = useState<string | null>(null)
+  const splashPalette = useMemo(
+    () => ({
+      background: W.bg,
+      text: W.text,
+      textSecondary: W.textMuted,
+      cta: W.primary,
+      ctaPressed: W.primaryPressed,
+      ctaText: "#F5F7FF",
+      ctaBorder: W.cardBorder,
+      ctaShadow: "rgba(40, 50, 130, 0.36)",
+    }),
+    [W],
+  )
 
   useEffect(() => {
     let cancelled = false
@@ -70,10 +75,10 @@ export default function OnboardingSplashScreen() {
     console.log("[onboarding/splash] splash screen mounted")
     // eslint-disable-next-line no-console
     console.log("[theme/palette] GIF aligned colors", {
-      background: GIF_PALETTE.background,
-      primary: GIF_PALETTE.cta,
-      text: GIF_PALETTE.text,
-      textSecondary: GIF_PALETTE.textSecondary,
+      background: splashPalette.background,
+      primary: splashPalette.cta,
+      text: splashPalette.text,
+      textSecondary: splashPalette.textSecondary,
     })
 
     Animated.parallel([
@@ -188,9 +193,9 @@ export default function OnboardingSplashScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar style="light" />
+      <StatusBar style={scheme === "light" ? "dark" : "light"} />
       <LinearGradient
-        colors={[GIF_PALETTE.background, GIF_PALETTE.background, GIF_PALETTE.background]}
+        colors={[splashPalette.background, splashPalette.background, splashPalette.background]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={[StyleSheet.absoluteFill, styles.layerGradient]}
@@ -228,7 +233,7 @@ export default function OnboardingSplashScreen() {
             accessibilityLabel="Skip onboarding"
             style={({ pressed }) => [styles.skipBtn, pressed && { opacity: 0.75 }]}
           >
-            <Text style={styles.skipText}>Skip</Text>
+            <Text style={[styles.skipText, { color: splashPalette.textSecondary }]}>Skip</Text>
           </Pressable>
         </View>
         <Animated.View
@@ -240,8 +245,8 @@ export default function OnboardingSplashScreen() {
           pointerEvents="auto"
         >
         <View style={styles.centerBlock} pointerEvents="box-none">
-          <Text style={styles.appName}>{HEADLINE}</Text>
-          <Text style={styles.tagline}>{TAGLINE}</Text>
+          <Text style={[styles.appName, { color: splashPalette.text }]}>{HEADLINE}</Text>
+          <Text style={[styles.tagline, { color: splashPalette.textSecondary }]}>{TAGLINE}</Text>
         </View>
         <View style={[styles.bottomBlock, { paddingBottom: Math.max(insets.bottom + 20, 34) }]}>
           <Pressable
@@ -249,6 +254,10 @@ export default function OnboardingSplashScreen() {
             disabled={busy}
             style={({ pressed }) => [
               styles.primary,
+              {
+                backgroundColor: splashPalette.cta,
+                borderColor: splashPalette.ctaBorder,
+              },
               pressed && styles.primaryPressed,
               (pressed || busy) && { opacity: 0.9 },
             ]}
@@ -256,13 +265,13 @@ export default function OnboardingSplashScreen() {
             accessibilityLabel="Get started"
           >
             {busy ? (
-              <ActivityIndicator color={GIF_PALETTE.ctaText} />
+              <ActivityIndicator color={splashPalette.ctaText} />
             ) : (
-              <Text style={styles.primaryText}>Get Started</Text>
+              <Text style={[styles.primaryText, { color: splashPalette.ctaText }]}>Get Started</Text>
             )}
           </Pressable>
           <View style={styles.loginRow}>
-            <Text style={styles.loginLead}>Already have an account? </Text>
+            <Text style={[styles.loginLead, { color: splashPalette.textSecondary }]}>Already have an account? </Text>
             <Pressable
               onPress={() => void onLoginHere()}
               disabled={busy}
@@ -270,7 +279,7 @@ export default function OnboardingSplashScreen() {
               accessibilityRole="link"
               accessibilityLabel="Login here"
             >
-              <Text style={styles.loginLink}>Login here</Text>
+              <Text style={[styles.loginLink, { color: splashPalette.text }]}>Login here</Text>
             </Pressable>
           </View>
         </View>
@@ -281,7 +290,7 @@ export default function OnboardingSplashScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: GIF_PALETTE.background },
+  root: { flex: 1 },
   /** Behind full-screen GIF (GIF uses zIndex 0 in `gifLayoutStyle`). */
   layerGradient: { zIndex: -1 },
   layerOverlay: { zIndex: 2 },
@@ -301,7 +310,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   skipText: {
-    color: GIF_PALETTE.textSecondary,
     fontSize: 15,
     fontWeight: "600",
   },
@@ -312,7 +320,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   appName: {
-    color: GIF_PALETTE.text,
     fontSize: 28,
     fontWeight: "800",
     textAlign: "center",
@@ -320,7 +327,6 @@ const styles = StyleSheet.create({
   },
   tagline: {
     marginTop: 12,
-    color: GIF_PALETTE.textSecondary,
     fontSize: 16,
     lineHeight: 24,
     textAlign: "center",
@@ -332,7 +338,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   primary: {
-    backgroundColor: GIF_PALETTE.cta,
     paddingVertical: 16,
     paddingHorizontal: 44,
     borderRadius: 14,
@@ -340,18 +345,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: GIF_PALETTE.ctaBorder,
-    shadowColor: GIF_PALETTE.ctaShadow,
+    shadowColor: "rgba(40, 50, 130, 0.36)",
     shadowOpacity: 0.7,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 8 },
     elevation: 5,
   },
   primaryPressed: {
-    backgroundColor: GIF_PALETTE.ctaPressed,
+    opacity: 0.92,
   },
   primaryText: {
-    color: GIF_PALETTE.ctaText,
     fontSize: 17,
     fontWeight: "700",
   },
@@ -364,11 +367,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   loginLead: {
-    color: GIF_PALETTE.textSecondary,
     fontSize: 15,
   },
   loginLink: {
-    color: GIF_PALETTE.text,
     fontSize: 15,
     fontWeight: "700",
     textDecorationLine: "underline",

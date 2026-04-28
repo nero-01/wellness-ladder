@@ -31,13 +31,13 @@ export default function SignInScreen() {
   const router = useRouter()
   const colorScheme = useColorScheme()
   const isDark = colorScheme === "dark"
-  const textPrimary = isDark ? "#f9fafb" : "#111827"
-  const textMuted = isDark ? "#9ca3af" : "#6b7280"
-  const border = isDark ? "#4b5563" : "#d1d5db"
-  const inputBg = isDark ? "#252030" : "#ffffff"
-  const labelFloat = isDark ? "#a78bfa" : WellnessColors.primary
-  const labelInside = isDark ? "#9ca3af" : "#6b7280"
   const W = isDark ? WellnessColors : WellnessColorsLight
+  const textPrimary = W.text
+  const textMuted = W.textMuted
+  const border = W.cardBorder
+  const inputBg = isDark ? "#252030" : "#ffffff"
+  const labelFloat = W.primary
+  const labelInside = textMuted
 
   const { signIn, signInWithDevBypass } = useAuth()
   const [email, setEmail] = useState("")
@@ -156,7 +156,7 @@ export default function SignInScreen() {
                     <Ionicons
                       name={showPw ? "eye-off-outline" : "eye-outline"}
                       size={22}
-                      color="#6b7280"
+                      color={textMuted}
                     />
                   </Pressable>
                 }
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   hint: { fontSize: 13, lineHeight: 18, marginTop: 4 },
   error: { color: "#c00", marginTop: 8, fontSize: 14 },
   button: {
-    backgroundColor: "#6b4d8a",
+    backgroundColor: WellnessColors.primary,
     padding: 16,
     borderRadius: 12,
     alignItems: "center",

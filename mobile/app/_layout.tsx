@@ -24,8 +24,6 @@ import { RecurringHabitsProvider } from "@/contexts/RecurringHabitsContext"
 import { initRecurringNotificationHandler } from "@/lib/recurring-habit-notifications"
 import { WellnessColors, WellnessColorsLight } from "@/constants/wellnessTheme"
 
-const SPLASH_BG = "#8E91EC"
-
 const WellnessDarkTheme = {
   ...NavigationDarkTheme,
   colors: {
@@ -177,6 +175,7 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
+  const colorScheme = useColorScheme()
   const [loaded, error] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
     ...FontAwesome.font,
@@ -201,11 +200,13 @@ export default function RootLayout() {
   }, [loaded])
 
   if (!loaded) {
+    const splashBg =
+      colorScheme === "light" ? WellnessColorsLight.bg : WellnessColors.bg
     return (
       <View
         style={{
           flex: 1,
-          backgroundColor: SPLASH_BG,
+          backgroundColor: splashBg,
           justifyContent: "center",
           alignItems: "center",
           gap: 12,
