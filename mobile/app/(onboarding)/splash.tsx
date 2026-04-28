@@ -24,7 +24,7 @@ import { useColorScheme } from "@/components/useColorScheme"
 
 /** Matches Canva landing: https://canva.link/p2xky6a5cds17v9 */
 const HEADLINE = "Bite-sized wellness"
-const TAGLINE = "Simple wellness for busy lives"
+const TAGLINE = "Simple steps for a better life"
 export default function OnboardingSplashScreen() {
   const scheme = useColorScheme()
   const W = useWellnessColors()
