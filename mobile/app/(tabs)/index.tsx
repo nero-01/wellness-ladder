@@ -39,7 +39,11 @@ import {
   radiusMd,
   radiusSm,
 } from "@/constants/layoutTokens"
-import type { WellnessPalette } from "@/constants/wellnessTheme"
+import {
+  WellnessColors,
+  WellnessColorsLight,
+  type WellnessPalette,
+} from "@/constants/wellnessTheme"
 import { useStreak } from "@/hooks/useStreak"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { wellnessTapLight, wellnessTapMedium } from "@/lib/wellnessFeedback"
