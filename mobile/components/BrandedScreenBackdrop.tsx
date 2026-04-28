@@ -64,7 +64,7 @@ export function BrandedScreenBackdrop({ children, style }: Props) {
 
   return (
     <View style={[styles.fill, style]}>
-      <View style={[styles.fill, styles.clip]}>
+      <View style={[styles.fill, styles.clip]} pointerEvents="none">
         <Animated.View
           style={[
             StyleSheet.absoluteFill,
@@ -83,8 +83,12 @@ export function BrandedScreenBackdrop({ children, style }: Props) {
         intensity={isDark ? 34 : 30}
         tint={isDark ? "dark" : "light"}
         style={StyleSheet.absoluteFill}
+        pointerEvents="none"
       />
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: scrim }]} />
+      <View
+        style={[StyleSheet.absoluteFill, { backgroundColor: scrim }]}
+        pointerEvents="none"
+      />
       <View style={styles.foreground}>{children}</View>
     </View>
   )
