@@ -22,11 +22,9 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext"
 import { BrandedBackdropProvider } from "@/contexts/BrandedBackdropContext"
 import { RecurringHabitsProvider } from "@/contexts/RecurringHabitsContext"
 import { initRecurringNotificationHandler } from "@/lib/recurring-habit-notifications"
-import { Mascot } from "@/components/Mascot"
 import { WellnessColors, WellnessColorsLight } from "@/constants/wellnessTheme"
 
-/** Match native splash background; mascot uses `mascot-transparent.png` inside `Mascot`. */
-const SPLASH_BG = "#151118"
+const SPLASH_BG = "#8E91EC"
 
 const WellnessDarkTheme = {
   ...NavigationDarkTheme,
@@ -210,7 +208,6 @@ export default function RootLayout() {
         }}
         accessibilityLabel="Loading app"
       >
-        <Mascot state="idle" preset="splash" motionProfile="calm" animated />
         <ActivityIndicator size="large" color={WellnessColors.primary} />
       </View>
     )

@@ -2,7 +2,7 @@ import { useCallback, useState } from "react"
 import { Pressable, StyleSheet, Text, View } from "react-native"
 import { useLocalSearchParams, useRouter } from "expo-router"
 import { StatusBar } from "expo-status-bar"
-import { SafeAreaView } from "react-native-safe-area-context"
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { BrandedScreenBackdrop } from "@/components/BrandedScreenBackdrop"
 import { useAuth } from "@/contexts/AuthContext"
 import { useBrandedBackdrop } from "@/contexts/BrandedBackdropContext"
@@ -10,9 +10,18 @@ import { markOnboardingComplete } from "@/lib/onboarding-storage"
 import { skipOrFinishOnboarding } from "@/lib/onboarding-nav"
 
 const BULLETS = ["Tiny habits, real change", "Designed for busy, full-on lives"]
+const PALETTE = {
+  text: "#F1EFE5",
+  textSecondary: "rgba(241, 239, 229, 0.9)",
+  cta: "#5B6DDB",
+  ctaPressed: "#5365D3",
+  card: "rgba(36, 47, 120, 0.34)",
+  cardBorder: "rgba(241, 239, 229, 0.22)",
+}
 
 export default function OnboardingValueScreen() {
   const router = useRouter()
+  const insets = useSafeAreaInsets()
   const { tour } = useLocalSearchParams<{ tour?: string }>()
   const tourOnly = tour === "1"
   const { user, continueAsGuest } = useAuth()
@@ -49,7 +58,7 @@ export default function OnboardingValueScreen() {
   return (
     <BrandedScreenBackdrop style={styles.fill}>
       <StatusBar style="light" />
-      <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
+      <SafeAreaView style={styles.safe} edges={["top", "left", "right", "bottom"]}>
         <View style={styles.topBar}>
           <Pressable
             onPress={() => void onSkip()}
@@ -62,7 +71,7 @@ export default function OnboardingValueScreen() {
             <Text style={styles.skipText}>Skip</Text>
           </Pressable>
         </View>
-        <View style={styles.cardWrap}>
+        <View style={[styles.cardWrap, { paddingBottom: Math.max(insets.bottom + 20, 34) }]}>
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Why this app</Text>
             {BULLETS.map((line) => (
@@ -76,7 +85,7 @@ export default function OnboardingValueScreen() {
               disabled={busy}
               style={({ pressed }) => [
                 styles.next,
-                pressed && { opacity: 0.9 },
+                pressed && styles.nextPressed,
               ]}
               accessibilityRole="button"
               accessibilityLabel="Next"
@@ -104,25 +113,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   skipText: {
-    color: "rgba(255,255,255,0.92)",
+    color: PALETTE.textSecondary,
     fontSize: 15,
     fontWeight: "600",
   },
   cardWrap: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 24,
+    paddingTop: 26,
   },
   card: {
     borderRadius: 20,
     paddingVertical: 28,
     paddingHorizontal: 22,
-    backgroundColor: "rgba(21, 17, 24, 0.72)",
+    backgroundColor: PALETTE.card,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.12)",
+    borderColor: PALETTE.cardBorder,
   },
   cardTitle: {
-    color: "#fff",
+    color: PALETTE.text,
     fontSize: 20,
     fontWeight: "800",
     marginBottom: 18,
@@ -134,13 +144,13 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   bulletDot: {
-    color: "rgba(255,255,255,0.85)",
+    color: PALETTE.textSecondary,
     fontSize: 16,
     lineHeight: 22,
   },
   bulletText: {
     flex: 1,
-    color: "rgba(255,255,255,0.92)",
+    color: PALETTE.text,
     fontSize: 16,
     lineHeight: 24,
     fontWeight: "600",
@@ -148,13 +158,16 @@ const styles = StyleSheet.create({
   next: {
     marginTop: 22,
     alignSelf: "stretch",
-    backgroundColor: "#8b5cf6",
+    backgroundColor: PALETTE.cta,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",
   },
+  nextPressed: {
+    backgroundColor: PALETTE.ctaPressed,
+  },
   nextText: {
-    color: "#fff",
+    color: PALETTE.text,
     fontSize: 16,
     fontWeight: "700",
   },

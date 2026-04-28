@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react"
 import { Redirect } from "expo-router"
 import { ActivityIndicator, StyleSheet, View } from "react-native"
-import { Mascot } from "@/components/Mascot"
 import { useAuth } from "@/contexts/AuthContext"
 import { useColorScheme } from "@/components/useColorScheme"
 import { WellnessColors, WellnessColorsLight } from "@/constants/wellnessTheme"
@@ -50,8 +49,6 @@ export default function Index() {
   if (!isLoaded) {
     return (
       <View style={[styles.centered, { backgroundColor: bg }]}>
-        <Mascot state="idle" preset="loading" motionProfile="calm" animated />
-        <View style={{ height: 8 }} />
         <ActivityIndicator size="large" color={WellnessColors.primary} accessibilityLabel="Loading session" />
       </View>
     )
