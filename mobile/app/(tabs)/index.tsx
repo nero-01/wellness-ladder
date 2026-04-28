@@ -14,9 +14,12 @@ import {
 } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import Animated, {
+  Easing as ReanimatedEasing,
   FadeIn,
   FadeInDown,
   FadeOut,
+  interpolate,
+  interpolateColor,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
@@ -329,7 +332,7 @@ export default function HomeScreen() {
     () => Appearance.getColorScheme() ?? "dark",
   )
   const [transitionTo, setTransitionTo] = useState<"light" | "dark" | null>(null)
-  const themeOverlayOpacity = useSharedValue(0)
+  const themeProgress = useSharedValue(0)
 
   const applyColorScheme = useCallback((next: "light" | "dark") => {
     Appearance.setColorScheme(next)
@@ -350,14 +353,41 @@ export default function HomeScreen() {
     wellnessTapLight()
     const next = colorScheme === "dark" ? "light" : "dark"
     setTransitionTo(next)
-    themeOverlayOpacity.value = 0
-    themeOverlayOpacity.value = withTiming(1, { duration: 220 }, () => {
-      runOnJS(applyColorScheme)(next)
-      themeOverlayOpacity.value = withTiming(0, { duration: 220 }, () => {
+    themeProgress.value = 0
+    themeProgress.value = withTiming(
+      1,
+      { duration: 420, easing: ReanimatedEasing.inOut(ReanimatedEasing.quad) },
+      () => {
         runOnJS(clearThemeTransition)()
-      })
-    })
-  }, [applyColorScheme, clearThemeTransition, colorScheme, themeOverlayOpacity, transitionTo])
+      },
+    )
+    setTimeout(() => {
+      applyColorScheme(next)
+      setColorScheme(next)
+    }, 210)
+  }, [applyColorScheme, clearThemeTransition, colorScheme, themeProgress, transitionTo])
+
+  useEffect(() => {
+    return () => {
+      if (!transitionTo) return
+      themeProgress.value = 0
+    }
+  }, [themeProgress, transitionTo])
+
+  const overlayStyle = useAnimatedStyle(() => {
+    const overlayOpacity = interpolate(themeProgress.value, [0, 0.5, 1], [0, 0.16, 0])
+    const veilStart = transitionTo === "light" ? "rgba(246, 248, 255, 0)" : "rgba(21, 24, 39, 0)"
+    const veilPeak = transitionTo === "light" ? "rgba(246, 248, 255, 1)" : "rgba(21, 24, 39, 1)"
+    return {
+      opacity: overlayOpacity,
+      backgroundColor: interpolateColor(themeProgress.value, [0, 0.5, 1], [veilStart, veilPeak, veilStart]),
+    }
+  }, [transitionTo])
+
+  const contentBlendStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(themeProgress.value, [0, 0.5, 1], [1, 0.985, 1]),
+    transform: [{ scale: interpolate(themeProgress.value, [0, 0.5, 1], [1, 0.998, 1]) }],
+  }))
 
   const goTask = useCallback(() => {
     wellnessTapMedium()
@@ -382,11 +412,6 @@ export default function HomeScreen() {
     () => moodPastelAccent(W.moodPastels, "mint"),
     [W.moodPastels],
   )
-  const overlayBg =
-    transitionTo === "light" ? WellnessColorsLight.bg : WellnessColors.bg
-  const overlayStyle = useAnimatedStyle(() => ({
-    opacity: themeOverlayOpacity.value,
-  }))
 
   return (
     <BrandedScreenBackdrop style={{ flex: 1 }}>
@@ -394,10 +419,11 @@ export default function HomeScreen() {
       pointerEvents="none"
       style={[
         StyleSheet.absoluteFillObject,
-        { zIndex: 9, backgroundColor: overlayBg },
+        { zIndex: 9 },
         overlayStyle,
       ]}
     />
+    <Animated.View style={[{ flex: 1 }, contentBlendStyle]}>
     <SafeAreaView style={[styles.safe, { backgroundColor: "transparent" }]} edges={["top"]}>
       <ScrollView
         style={{ flex: 1, backgroundColor: "transparent" }}
@@ -601,6 +627,7 @@ export default function HomeScreen() {
         ) : null}
       </ScrollView>
     </SafeAreaView>
+    </Animated.View>
     </BrandedScreenBackdrop>
   )
 }
