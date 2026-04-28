@@ -16,7 +16,7 @@ import {
   View,
 } from "react-native"
 import Animated, { FadeInDown } from "react-native-reanimated"
-import { SafeAreaView } from "react-native-safe-area-context"
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { CircularProgress } from "@/components/CircularProgress"
 import { MoodPickerRow } from "@/components/MoodPickerRow"
 import { MoodStreakBadge } from "@/components/MoodStreakBadge"
@@ -452,6 +452,7 @@ export function TaskSession({
   previewMode = false,
 }: Props) {
   const router = useRouter()
+  const insets = useSafeAreaInsets()
   const W = useWellnessColors()
   const styles = useMemo(() => createTaskSessionStyles(W), [W])
   const { locale, setLocale, ready: localeReady } = useWellnessLocale()
@@ -476,6 +477,8 @@ export function TaskSession({
   }, [streakCountForBadge])
 
   const [selectedMood, setSelectedMood] = useState<number | null>(null)
+  const [focusViewportHeight, setFocusViewportHeight] = useState(0)
+  const [focusContentHeight, setFocusContentHeight] = useState(0)
 
   const moodStripAccent = useMemo(() => {
     const key =
@@ -671,6 +674,10 @@ export function TaskSession({
       ? timer.isActive || timer.timeLeft < task.duration
       : timer.walkPhase !== "idle"
   const focusLocked = hasStarted
+  const focusNeedsScroll =
+    focusLocked &&
+    focusViewportHeight > 0 &&
+    focusContentHeight > focusViewportHeight - Math.max(insets.bottom, 12)
 
   const showVoiceWave = !focusLocked && sessionActive && isPlaying
   const completionSummary =
@@ -690,7 +697,13 @@ export function TaskSession({
           contentContainerStyle={[styles.scroll, focusLocked && styles.scrollLocked]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          scrollEnabled={!focusLocked}
+          scrollEnabled={!focusLocked || focusNeedsScroll}
+          onLayout={(e) => {
+            setFocusViewportHeight(e.nativeEvent.layout.height)
+          }}
+          onContentSizeChange={(_, h) => {
+            setFocusContentHeight(h)
+          }}
         >
         <View style={styles.topBar}>
           <Pressable
