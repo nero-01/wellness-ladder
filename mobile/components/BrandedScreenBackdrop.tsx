@@ -64,7 +64,7 @@ export function BrandedScreenBackdrop({ children, style }: Props) {
 
   return (
     <View style={[styles.fill, style]}>
-      <View style={[styles.fill, styles.clip]} pointerEvents="none">
+      <View style={[StyleSheet.absoluteFill, styles.clip]} pointerEvents="none">
         <Animated.View
           style={[
             StyleSheet.absoluteFill,
