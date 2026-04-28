@@ -243,7 +243,7 @@ export default function OnboardingSplashScreen() {
           <Text style={styles.appName}>{HEADLINE}</Text>
           <Text style={styles.tagline}>{TAGLINE}</Text>
         </View>
-        <View style={[styles.bottomBlock, { paddingBottom: Math.max(insets.bottom + 18, 36) }]}>
+        <View style={[styles.bottomBlock, { paddingBottom: Math.max(insets.bottom + 20, 34) }]}>
           <Pressable
             onPress={onGetStarted}
             disabled={busy}
@@ -293,8 +293,8 @@ const styles = StyleSheet.create({
   topBar: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    paddingHorizontal: 8,
-    paddingTop: 4,
+    paddingHorizontal: 10,
+    paddingTop: 6,
   },
   skipBtn: {
     paddingVertical: 10,
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 28,
+    paddingHorizontal: 24,
   },
   appName: {
     color: GIF_PALETTE.text,
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   bottomBlock: {
-    paddingHorizontal: 28,
+    paddingHorizontal: 24,
     paddingBottom: 28,
     alignItems: "center",
   },

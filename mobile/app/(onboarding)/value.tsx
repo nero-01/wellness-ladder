@@ -120,8 +120,8 @@ const styles = StyleSheet.create({
   topBar: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    paddingHorizontal: 8,
-    paddingTop: 4,
+    paddingHorizontal: 10,
+    paddingTop: 6,
   },
   skipBtn: {
     paddingVertical: 10,
@@ -135,8 +135,8 @@ const styles = StyleSheet.create({
   cardWrap: {
     flexGrow: 1,
     justifyContent: "center",
-    paddingHorizontal: 24,
-    paddingTop: 18,
+    paddingHorizontal: 22,
+    paddingTop: 12,
   },
   card: {
     borderRadius: 20,
