@@ -14,7 +14,6 @@ import {
 } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { BrandedScreenBackdrop } from "@/components/BrandedScreenBackdrop"
-import { Mascot } from "@/components/Mascot"
 import { TaskCatalogPreview } from "@/components/TaskCatalogPreview"
 import { TaskStepIconWell } from "@/components/TaskStepCard"
 import {
@@ -126,17 +125,13 @@ function createHomeStyles(W: WellnessPalette) {
       paddingTop: 0,
       alignItems: "center",
     },
-    heroMascot: {
-      alignItems: "center",
-      marginBottom: 0,
-    },
     headline: {
       color: W.text,
       fontSize: 28,
       fontWeight: "800",
       textAlign: "center",
       lineHeight: 34,
-      marginTop: 8,
+      marginTop: 18,
       marginBottom: 8,
     },
     subhead: {
@@ -415,9 +410,6 @@ export default function HomeScreen() {
         >
           {/* Hero — soft pastel wash (Figma-style calm hero) */}
           <View style={styles.hero}>
-            <View style={styles.heroMascot}>
-              <Mascot state="idle" preset="hero" animated />
-            </View>
             <Text style={styles.headline}>Bite-Size Wellness Ladder</Text>
             <Text style={styles.subhead}>
               One tiny self-care step daily. Unlock the next only when done. Build habits effortlessly.

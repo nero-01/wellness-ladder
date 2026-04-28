@@ -28,7 +28,6 @@ import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { IS_DEV_BYPASS } from "@/constants/devBypass"
 import { useAuth } from "@/contexts/AuthContext"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
-import { Mascot } from "@/components/Mascot"
 import { StreakHeatMap } from "@/components/StreakHeatMap"
 import { useStreak } from "@/hooks/useStreak"
 import { emojiFamilySvgUrl } from "@/lib/mood-picker-data"
@@ -478,7 +477,7 @@ export default function ProfileScreen() {
               <Text style={styles.cardTitle}>Recent completions</Text>
               {completions.length === 0 ?
                 <View style={{ alignItems: "center", paddingVertical: 8 }}>
-                  <Mascot state="sleepy" preset="profile" animated />
+                  <Ionicons name="moon-outline" size={36} color={W.textMuted} />
                   <Text style={[styles.emptyText, { marginTop: 12, textAlign: "center" }]}>
                     Finish today’s task to build your history here.
                   </Text>

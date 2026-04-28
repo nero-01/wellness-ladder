@@ -14,12 +14,11 @@ import {
 import * as Haptics from "expo-haptics"
 import { FontAwesome5 } from "@expo/vector-icons"
 import { Ionicons } from "@expo/vector-icons"
-import { LinearGradient } from "expo-linear-gradient"
 import { Link, useRouter } from "expo-router"
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view"
 import { SafeAreaView } from "react-native-safe-area-context"
+import { BrandedScreenBackdrop } from "@/components/BrandedScreenBackdrop"
 import { Text } from "@/components/Themed"
-import { Mascot } from "@/components/Mascot"
 import { FloatingLabelInput } from "@/components/auth/FloatingLabelInput"
 import { useColorScheme } from "@/components/useColorScheme"
 import type { OAuthProviderId } from "@/contexts/AuthContext"
@@ -282,13 +281,9 @@ export default function SignUpScreen() {
     }
   }
 
-  const gradientColors = isDark
-    ? (["#1e1033", "#0f172a", "#0c2e28"] as const)
-    : (["#f3e8ff", "#ecfdf5", "#f8fafc"] as const)
-
   return (
-    <LinearGradient colors={[...gradientColors]} style={styles.gradient}>
-      <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
+    <BrandedScreenBackdrop style={styles.fill}>
+      <SafeAreaView style={styles.safe} edges={["top", "left", "right", "bottom"]}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.kav}
@@ -301,9 +296,6 @@ export default function SignUpScreen() {
             extraScrollHeight={Platform.OS === "ios" ? 24 : 48}
             contentContainerStyle={styles.scrollContent}
           >
-            <RNView style={{ alignItems: "center", marginBottom: 4 }}>
-              <Mascot state="encouraging" preset="auth" animated />
-            </RNView>
             <Text style={[styles.hero, { color: textPrimary }]}>
               Sign up for free ladder
             </Text>
@@ -607,12 +599,12 @@ export default function SignUpScreen() {
           </KeyboardAwareScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
-    </LinearGradient>
+    </BrandedScreenBackdrop>
   )
 }
 
 const styles = StyleSheet.create({
-  gradient: { flex: 1 },
+  fill: { flex: 1 },
   safe: { flex: 1, backgroundColor: "transparent" },
   kav: { flex: 1 },
   scrollContent: {
