@@ -672,7 +672,7 @@ export function TaskSession({
       : timer.walkPhase !== "idle"
   const focusLocked = hasStarted
 
-  const showVoiceWave = sessionActive && isPlaying
+  const showVoiceWave = !focusLocked && sessionActive && isPlaying
   const completionSummary =
     timer.mode === "manual"
       ? `${Math.max(1, Math.round(timer.elapsed))}s walked`
@@ -864,27 +864,29 @@ export function TaskSession({
           <Text style={styles.taskTitle}>{task.title}</Text>
           <Text style={styles.taskInstruction}>{task.instruction}</Text>
 
-          <Pressable
-            style={({ pressed }) => [
-              styles.voiceGuideBtn,
-              (pressed || voiceGuideBusy) && styles.voiceGuideBtnDisabled,
-            ]}
-            onPress={() => {
-              void handleVoiceGuide()
-            }}
-            disabled={voiceGuideBusy}
-            accessibilityRole="button"
-            accessibilityLabel={ui.voiceGuide}
-          >
-            <Ionicons
-              name={voiceGuideBusy ? "volume-high" : "chatbubble-ellipses-outline"}
-              size={20}
-              color={W.primary}
-            />
-            <Text style={styles.voiceGuideLabel}>
-              {voiceGuideBusy ? ui.voiceGuideSpeaking : ui.voiceGuide}
-            </Text>
-          </Pressable>
+          {!focusLocked ? (
+            <Pressable
+              style={({ pressed }) => [
+                styles.voiceGuideBtn,
+                (pressed || voiceGuideBusy) && styles.voiceGuideBtnDisabled,
+              ]}
+              onPress={() => {
+                void handleVoiceGuide()
+              }}
+              disabled={voiceGuideBusy}
+              accessibilityRole="button"
+              accessibilityLabel={ui.voiceGuide}
+            >
+              <Ionicons
+                name={voiceGuideBusy ? "volume-high" : "chatbubble-ellipses-outline"}
+                size={20}
+                color={W.primary}
+              />
+              <Text style={styles.voiceGuideLabel}>
+                {voiceGuideBusy ? ui.voiceGuideSpeaking : ui.voiceGuide}
+              </Text>
+            </Pressable>
+          ) : null}
 
           {showVoiceWave ? (
             <VoiceWaveformLottie active color={W.primary} height={48} />
@@ -908,18 +910,22 @@ export function TaskSession({
 
           {showStartSection ? (
             <>
-              <Text style={styles.hint}>
-                {timer.mode === "manual" ? ui.hintManual : ui.hintCountdown}
-              </Text>
-              <View style={styles.mascotCue}>
-                <Mascot
-                  state="encouraging"
-                  preset="taskCue"
-                  attentionKey={mascotAttentionKey}
-                  animated
-                  locale={localeReady && locale === "af" ? "af" : "en"}
-                />
-              </View>
+              {!focusLocked ? (
+                <>
+                  <Text style={styles.hint}>
+                    {timer.mode === "manual" ? ui.hintManual : ui.hintCountdown}
+                  </Text>
+                  <View style={styles.mascotCue}>
+                    <Mascot
+                      state="encouraging"
+                      preset="taskCue"
+                      attentionKey={mascotAttentionKey}
+                      animated
+                      locale={localeReady && locale === "af" ? "af" : "en"}
+                    />
+                  </View>
+                </>
+              ) : null}
               <Pressable
                 style={({ pressed }) => [
                   styles.startCta,
@@ -957,7 +963,7 @@ export function TaskSession({
         </LinearGradient>
         </View>
 
-        {sessionActive && task.id !== BREATHING_TASK_ID ? (
+        {!focusLocked && sessionActive && task.id !== BREATHING_TASK_ID ? (
           <View style={styles.sessionCompanion}>
             <Mascot
               state="focused"
@@ -973,7 +979,7 @@ export function TaskSession({
         {focusLocked && timerCompleted ? (
           <Animated.View entering={FadeInDown.duration(280)}>
             <View style={styles.inlineResultCard}>
-              <Text style={styles.inlineResultTitle}>Nice work. Task complete.</Text>
+              <Text style={styles.inlineResultTitle}>Complete</Text>
               <Text style={styles.inlineResultMeta}>{completionSummary}</Text>
               <MoodPickerRow
                 selectedMood={selectedMood}
