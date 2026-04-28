@@ -14,6 +14,7 @@ import { sanitizeAuthEmailForSupabase } from "@/lib/auth-email"
 import { bootstrapUserProfile } from "@/lib/api"
 import { signInWithOAuthNative } from "@/lib/supabase-oauth"
 import { isSupabaseConfigured, logSupabaseAuthDebug, supabase } from "@/lib/supabase"
+import { markOnboardingComplete } from "@/lib/onboarding-storage"
 import { mapSupabaseAuthError } from "@/utils/auth-errors"
 
 /** Supabase OAuth providers (same as web `lib/auth.tsx`). */
@@ -25,6 +26,8 @@ export interface User {
   name: string
   imageUrl?: string
   isPremium: boolean
+  /** Local explore mode — no Supabase session (or anonymous). */
+  isGuest?: boolean
 }
 
 /** Mirrors web `lib/auth.tsx` — true when Supabase is waiting for email confirmation. */
@@ -49,6 +52,8 @@ interface AuthContextType {
   signInWithDevBypass: () => Promise<void>
   signOut: () => Promise<void>
   signInWithOAuth: (provider: OAuthProviderId) => Promise<void>
+  /** Friction-light entry: anonymous Supabase when available, else device-local guest. */
+  continueAsGuest: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -62,6 +67,17 @@ const MOCK_USER: User = {
 }
 
 const AUTH_STORAGE_KEY = "wellness-auth-user"
+const GUEST_STORAGE_KEY = "wellness-guest-user-v1"
+
+export function createGuestUser(): User {
+  return {
+    id: "00000000-0000-4000-8000-000000009u57",
+    email: "",
+    name: "Explorer",
+    isPremium: false,
+    isGuest: true,
+  }
+}
 
 function getMockDevCredentials():
   | { email: string; password: string }
@@ -120,7 +136,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       void (async () => {
         try {
           const stored = await AsyncStorage.getItem(AUTH_STORAGE_KEY)
-          if (stored) setUser(JSON.parse(stored) as User)
+          if (stored) {
+            const parsed = JSON.parse(stored) as User
+            if (!parsed.isGuest) await markOnboardingComplete()
+            setUser(parsed)
+          } else {
+            const guestRaw = await AsyncStorage.getItem(GUEST_STORAGE_KEY)
+            if (guestRaw) setUser(JSON.parse(guestRaw) as User)
+          }
         } catch {
           /* ignore */
         } finally {
@@ -134,8 +157,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     supabase.auth
       .getSession()
-      .then(({ data: { session } }) => {
-        setUser(mapUser(session))
+      .then(async ({ data: { session } }) => {
+        const mapped = mapUser(session)
+        if (mapped) {
+          await markOnboardingComplete()
+          setUser(mapped)
+          return
+        }
+        try {
+          const guestRaw = await AsyncStorage.getItem(GUEST_STORAGE_KEY)
+          if (guestRaw) setUser(JSON.parse(guestRaw) as User)
+        } catch {
+          /* ignore */
+        }
       })
       .catch((err: unknown) => {
         console.warn("[wellness] getSession failed:", err)
@@ -146,7 +180,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-        setUser(mapUser(session))
+        void (async () => {
+          const mapped = mapUser(session)
+          if (mapped) {
+            await markOnboardingComplete()
+            setUser(mapped)
+            try {
+              await AsyncStorage.removeItem(GUEST_STORAGE_KEY)
+            } catch {
+              /* ignore */
+            }
+            return
+          }
+          try {
+            const guestRaw = await AsyncStorage.getItem(GUEST_STORAGE_KEY)
+            if (guestRaw) setUser(JSON.parse(guestRaw) as User)
+            else setUser(null)
+          } catch {
+            setUser(null)
+          }
+        })()
       })
       subscription = data.subscription
     } catch (err) {
@@ -166,7 +219,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         name: email.trim().split("@")[0] ?? "User",
       }
       setUser(newUser)
+      try {
+        await AsyncStorage.multiRemove([GUEST_STORAGE_KEY])
+      } catch {
+        /* ignore */
+      }
       await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(newUser))
+      await markOnboardingComplete()
       return
     }
 
@@ -184,6 +243,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(msg)
     }
     await logSupabaseAuthDebug("signInWithPassword")
+    try {
+      await AsyncStorage.removeItem(GUEST_STORAGE_KEY)
+    } catch {
+      /* ignore */
+    }
     await bootstrapUserProfile().catch(() => {
       /* backend optional in dev */
     })
@@ -199,7 +263,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isPremium: false,
       }
       setUser(newUser)
+      try {
+        await AsyncStorage.removeItem(GUEST_STORAGE_KEY)
+      } catch {
+        /* ignore */
+      }
       await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(newUser))
+      await markOnboardingComplete()
       return { needsEmailConfirmation: false }
     }
 
@@ -254,11 +324,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async () => {
     if (!isSupabaseConfigured()) {
       setUser(null)
-      await AsyncStorage.removeItem(AUTH_STORAGE_KEY)
+      try {
+        await AsyncStorage.multiRemove([AUTH_STORAGE_KEY, GUEST_STORAGE_KEY])
+      } catch {
+        /* ignore */
+      }
       return
+    }
+    try {
+      await AsyncStorage.removeItem(GUEST_STORAGE_KEY)
+    } catch {
+      /* ignore */
     }
     await supabase.auth.signOut()
     setUser(null)
+  }, [])
+
+  const continueAsGuest = useCallback(async () => {
+    if (!isSupabaseConfigured()) {
+      await new Promise((r) => setTimeout(r, 120))
+      const guest = createGuestUser()
+      setUser(guest)
+      try {
+        await AsyncStorage.removeItem(AUTH_STORAGE_KEY)
+      } catch {
+        /* ignore */
+      }
+      await AsyncStorage.setItem(GUEST_STORAGE_KEY, JSON.stringify(guest))
+      await markOnboardingComplete()
+      return
+    }
+
+    try {
+      const { data, error } = await supabase.auth.signInAnonymously()
+      if (!error && data.session) {
+        await logSupabaseAuthDebug("signInAnonymously")
+        await bootstrapUserProfile().catch(() => {})
+        return
+      }
+    } catch {
+      /* fall through to local guest */
+    }
+
+    const guest = createGuestUser()
+    setUser(guest)
+    try {
+      await AsyncStorage.setItem(GUEST_STORAGE_KEY, JSON.stringify(guest))
+    } catch {
+      /* ignore */
+    }
+    await markOnboardingComplete()
   }, [])
 
   const signInWithOAuth = useCallback(async (provider: OAuthProviderId) => {
@@ -271,6 +386,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await signInWithOAuthNative(supabase, provider, redirectTo)
     await logSupabaseAuthDebug("signInWithOAuth")
     await bootstrapUserProfile().catch(() => {})
+    await markOnboardingComplete()
   }, [])
 
   const signInWithDevBypass = useCallback(async () => {
@@ -288,7 +404,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         name: "Dev Bypass",
       }
       setUser(newUser)
+      try {
+        await AsyncStorage.removeItem(GUEST_STORAGE_KEY)
+      } catch {
+        /* ignore */
+      }
       await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(newUser))
+      await markOnboardingComplete()
       return
     }
 
@@ -306,6 +428,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         `Dev bypass: create this user in Supabase Auth (email: ${email}) or set EXPO_PUBLIC_DEV_BYPASS_EMAIL / EXPO_PUBLIC_DEV_BYPASS_PASSWORD in mobile/.env. ${error.message}`,
       )
     }
+    try {
+      await AsyncStorage.removeItem(GUEST_STORAGE_KEY)
+    } catch {
+      /* ignore */
+    }
     await logSupabaseAuthDebug("devBypass")
     await bootstrapUserProfile().catch(() => {})
   }, [])
@@ -321,6 +448,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signInWithDevBypass,
       signOut,
       signInWithOAuth,
+      continueAsGuest,
     }),
     [
       user,
@@ -331,6 +459,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signInWithDevBypass,
       signOut,
       signInWithOAuth,
+      continueAsGuest,
     ],
   )
 

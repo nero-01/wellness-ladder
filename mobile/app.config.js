@@ -75,6 +75,7 @@ module.exports = {
     },
     plugins: [
       "expo-router",
+      "expo-asset",
       [
         "expo-av",
         {
@@ -93,5 +94,7 @@ module.exports = {
     experiments: {
       typedRoutes: true,
     },
+    /** Ensure onboarding GIF/poster and other `assets/` files ship in release builds. */
+    assetBundlePatterns: ["assets/**/*"],
   },
 }

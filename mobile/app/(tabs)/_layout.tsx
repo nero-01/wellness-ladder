@@ -1,7 +1,8 @@
 import React from "react"
 import FontAwesome from "@expo/vector-icons/FontAwesome"
 import { Tabs } from "expo-router"
-import { Easing } from "react-native"
+import { Easing, View } from "react-native"
+import { FirstUseTipsOverlay } from "@/components/FirstUseTipsOverlay"
 import { useColorScheme } from "@/components/useColorScheme"
 import {
   WellnessColors,
@@ -24,7 +25,7 @@ export default function TabLayout() {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === "dark"
   const W = useWellnessColors()
-  const screenBg = isDark ? WellnessColors.bg : WellnessColorsLight.bg
+  const tabBarBg = isDark ? "rgba(21, 17, 24, 0.94)" : "rgba(250, 250, 250, 0.94)"
 
   const homeAccent = moodPastelAccent(W.moodPastels, NAV_TAB_PASTEL_KEYS[0])
   const taskAccent = moodPastelAccent(W.moodPastels, NAV_TAB_PASTEL_KEYS[1])
@@ -35,18 +36,19 @@ export default function TabLayout() {
     : "rgba(167, 139, 250, 0.35)"
 
   return (
+    <View style={{ flex: 1 }}>
     <Tabs
       screenOptions={{
         tabBarInactiveTintColor: isDark ? "#71717a" : "#a1a1aa",
         tabBarStyle: {
-          backgroundColor: screenBg,
+          backgroundColor: tabBarBg,
           borderTopWidth: 1,
           borderTopColor: tabBarTopLine,
           paddingTop: 4,
         },
-        sceneStyle: { backgroundColor: screenBg },
+        sceneStyle: { backgroundColor: "transparent" },
         headerStyle: {
-          backgroundColor: screenBg,
+          backgroundColor: tabBarBg,
         },
         headerTintColor: isDark ? WellnessColors.text : WellnessColorsLight.text,
         headerShadowVisible: false,
@@ -91,5 +93,7 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
+    <FirstUseTipsOverlay />
+    </View>
   )
 }

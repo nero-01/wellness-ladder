@@ -8,8 +8,9 @@ import {
   Text,
   View,
 } from "react-native"
-import { Link } from "expo-router"
+import { Link, useRouter } from "expo-router"
 import { SafeAreaView } from "react-native-safe-area-context"
+import { BrandedScreenBackdrop } from "@/components/BrandedScreenBackdrop"
 import { WellnessCardFrame } from "@/components/WellnessCardFrame"
 import {
   wellnessCardInner,
@@ -60,7 +61,7 @@ function taskTitleForId(taskId: number): string {
 
 function createStyles(W: WellnessPalette) {
   return StyleSheet.create({
-    safe: { flex: 1, backgroundColor: W.bg },
+    safe: { flex: 1, backgroundColor: "transparent" },
     scroll: { paddingBottom: 40 },
     headerBlock: {
       paddingHorizontal: inset,
@@ -179,10 +180,31 @@ function createStyles(W: WellnessPalette) {
       marginTop: 8,
       lineHeight: 20,
     },
+    helpLead: {
+      fontSize: 15,
+      color: W.textMuted,
+      lineHeight: 22,
+      marginBottom: 12,
+    },
+    tourBtn: {
+      alignSelf: "flex-start",
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+      borderRadius: radiusMd,
+      backgroundColor: W.surfaceMuted,
+      borderWidth: 1,
+      borderColor: W.primary,
+    },
+    tourBtnText: {
+      fontSize: 15,
+      fontWeight: "700",
+      color: W.primary,
+    },
   })
 }
 
 export default function ProfileScreen() {
+  const router = useRouter()
   const W = useWellnessColors()
   const styles = useMemo(() => createStyles(W), [W])
   const habitsAccent = useMemo(
@@ -207,9 +229,10 @@ export default function ProfileScreen() {
   )
 
   return (
+    <BrandedScreenBackdrop style={{ flex: 1 }}>
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <ScrollView
-        style={{ flex: 1, backgroundColor: W.bg }}
+        style={{ flex: 1, backgroundColor: "transparent" }}
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
@@ -482,6 +505,26 @@ export default function ProfileScreen() {
 
         <WellnessCardFrame
           W={W}
+          outerStyle={styles.cardOuter}
+          innerStyle={styles.cardInnerPad}
+        >
+          <Text style={styles.cardTitle}>How to start</Text>
+          <Text style={styles.helpLead}>
+            Replay the welcome video, value card, and optional sign-in steps whenever you
+            like.
+          </Text>
+          <Pressable
+            style={({ pressed }) => [styles.tourBtn, pressed && { opacity: 0.88 }]}
+            onPress={() => router.push("/(onboarding)/splash?tour=1")}
+            accessibilityRole="button"
+            accessibilityLabel="Open app tour"
+          >
+            <Text style={styles.tourBtnText}>App tour</Text>
+          </Pressable>
+        </WellnessCardFrame>
+
+        <WellnessCardFrame
+          W={W}
           outerStyle={styles.accountCardOuter}
           innerStyle={styles.cardInnerPad}
         >
@@ -494,7 +537,14 @@ export default function ProfileScreen() {
           {user ?
             <>
               <Text style={styles.accountName}>{user.name}</Text>
-              <Text style={styles.accountEmail}>{user.email}</Text>
+              {user.email ?
+                <Text style={styles.accountEmail}>{user.email}</Text>
+              : <Text style={styles.accountEmail}>Exploring without an account</Text>}
+              {user.isGuest ?
+                <Text style={[styles.accountEmail, { marginTop: 6 }]}>
+                  Sign in anytime to sync across devices.
+                </Text>
+              : null}
               <Pressable
                 style={styles.signOut}
                 onPress={() => void signOut()}
@@ -507,5 +557,6 @@ export default function ProfileScreen() {
         </WellnessCardFrame>
       </ScrollView>
     </SafeAreaView>
+    </BrandedScreenBackdrop>
   )
 }

@@ -13,5 +13,9 @@ config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, "node_modules"),
   path.resolve(monorepoRoot, "node_modules"),
 ]
+// Keep GIF support explicit in case resolver assetExts are customized later.
+if (!config.resolver.assetExts.includes("gif")) {
+  config.resolver.assetExts.push("gif")
+}
 
 module.exports = config

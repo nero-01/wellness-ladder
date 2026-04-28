@@ -13,6 +13,7 @@ import {
   View,
 } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
+import { BrandedScreenBackdrop } from "@/components/BrandedScreenBackdrop"
 import { Mascot } from "@/components/Mascot"
 import { TaskCatalogPreview } from "@/components/TaskCatalogPreview"
 import { TaskStepIconWell } from "@/components/TaskStepCard"
@@ -358,9 +359,10 @@ export default function HomeScreen() {
   )
 
   return (
-    <SafeAreaView style={styles.safe} edges={["top"]}>
+    <BrandedScreenBackdrop style={{ flex: 1 }}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: "transparent" }]} edges={["top"]}>
       <ScrollView
-        style={{ flex: 1, backgroundColor: W.bg }}
+        style={{ flex: 1, backgroundColor: "transparent" }}
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
         bounces
@@ -552,5 +554,6 @@ export default function HomeScreen() {
         ) : null}
       </ScrollView>
     </SafeAreaView>
+    </BrandedScreenBackdrop>
   )
 }

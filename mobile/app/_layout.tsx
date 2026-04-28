@@ -19,6 +19,7 @@ import "react-native-reanimated"
 
 import { useColorScheme } from "@/components/useColorScheme"
 import { AuthProvider, useAuth } from "@/contexts/AuthContext"
+import { BrandedBackdropProvider } from "@/contexts/BrandedBackdropContext"
 import { RecurringHabitsProvider } from "@/contexts/RecurringHabitsContext"
 import { initRecurringNotificationHandler } from "@/lib/recurring-habit-notifications"
 import { Mascot } from "@/components/Mascot"
@@ -71,6 +72,7 @@ function useProtectedRoute() {
 
     const path = pathname ?? ""
     const inAuthScreen = path.includes("sign-in") || path.includes("sign-up")
+    const inOnboarding = path.includes("(onboarding)")
     const isRootEntry =
       path === "/" || path === "" || path === "/index" || path.endsWith("/index")
 
@@ -82,9 +84,17 @@ function useProtectedRoute() {
         path.includes("dev-task-session") ||
         path.includes("dev-celebration-preview"))
 
-    if (!user && !inAuthScreen && !isDevTaskLab) {
+    if (!user && !inAuthScreen && !inOnboarding && !isDevTaskLab) {
+      if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.log("[route/protected] redirect -> /(auth)/sign-in", { path })
+      }
       router.replace("/(auth)/sign-in")
     } else if (user && inAuthScreen) {
+      if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.log("[route/protected] redirect -> /(tabs)", { path })
+      }
       router.replace("/(tabs)")
     }
   }, [user, isLoaded, pathname, router])
@@ -126,6 +136,7 @@ function RootLayoutNav() {
           }}
         >
         <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: "modal" }} />
@@ -173,10 +184,19 @@ export default function RootLayout() {
     if (error) throw error
   }, [error])
 
-  /** Hide native splash immediately so the JS layer (below) is visible — avoids stale cached native PNG. */
+  /**
+   * Expo native splash = static image in app.config.js only.
+   * Pattern: keep native splash until fonts are ready → hide once → JS routes (e.g. /(onboarding)/splash) can mount the full-screen GIF.
+   * Do not call `hideAsync` from onboarding screens (single call here after `loaded`).
+   */
   useEffect(() => {
+    if (!loaded) return
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.log("[route/_layout] SplashScreen.hideAsync() called")
+    }
     void SplashScreen.hideAsync()
-  }, [])
+  }, [loaded])
 
   if (!loaded) {
     return (
@@ -198,11 +218,13 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <AuthProvider>
-        <RecurringHabitsProvider>
-          <RootLayoutNav />
-        </RecurringHabitsProvider>
-      </AuthProvider>
+      <BrandedBackdropProvider>
+        <AuthProvider>
+          <RecurringHabitsProvider>
+            <RootLayoutNav />
+          </RecurringHabitsProvider>
+        </AuthProvider>
+      </BrandedBackdropProvider>
     </SafeAreaProvider>
   )
 }

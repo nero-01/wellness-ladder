@@ -67,7 +67,7 @@ import { speakTask, stopTaskSpeech } from "@/utils/elevenlabs"
 
 function createTaskSessionStyles(W: WellnessPalette) {
   return StyleSheet.create({
-    safe: { flex: 1, backgroundColor: W.bg },
+    safe: { flex: 1, backgroundColor: "transparent" },
     scroll: { paddingHorizontal: inset, paddingBottom: 100 },
     pressDim: { opacity: 0.85 },
     topBar: {
@@ -630,7 +630,7 @@ export function TaskSession({
         keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
       >
         <ScrollView
-          style={{ flex: 1, backgroundColor: W.bg }}
+          style={{ flex: 1, backgroundColor: "transparent" }}
           contentContainerStyle={styles.scroll}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"

@@ -4,6 +4,7 @@
  */
 import { useMemo } from "react"
 import { ActivityIndicator, StyleSheet, View } from "react-native"
+import { BrandedScreenBackdrop } from "@/components/BrandedScreenBackdrop"
 import { MilestoneModal } from "@/components/MilestoneModal"
 import { TaskCompletionCelebration } from "@/components/TaskCompletionCelebration"
 import { TaskSession } from "@/components/TaskSession"
@@ -39,39 +40,44 @@ export default function TaskScreen() {
 
   if (!isLoaded) {
     return (
-      <View style={[styles.centered, { backgroundColor: W.bg }]}>
-        <ActivityIndicator size="large" color={loadAccent.navIcon} />
-      </View>
+      <BrandedScreenBackdrop style={styles.fill}>
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={loadAccent.navIcon} />
+        </View>
+      </BrandedScreenBackdrop>
     )
   }
 
   if (hasCompletedToday) {
     return (
-      <>
+      <BrandedScreenBackdrop style={styles.fill}>
         <TaskCompletionCelebration streakData={streakData} />
         <MilestoneModal
           visible={milestoneHit != null}
           milestone={milestoneHit}
           onClose={acknowledgeMilestone}
         />
-      </>
+      </BrandedScreenBackdrop>
     )
   }
 
   return (
-    <TaskSession
-      task={task}
-      displayStreak={displayStreak}
-      streakCountForBadge={streakCountForBadge}
-      moodStreakCount={streakData.moodStreak}
-      maxStreak={streakData.maxStreak}
-      pendingRecovery={pendingRecovery}
-      onDismissRecovery={dismissRecovery}
-      completeTask={completeTask}
-    />
+    <BrandedScreenBackdrop style={styles.fill}>
+      <TaskSession
+        task={task}
+        displayStreak={displayStreak}
+        streakCountForBadge={streakCountForBadge}
+        moodStreakCount={streakData.moodStreak}
+        maxStreak={streakData.maxStreak}
+        pendingRecovery={pendingRecovery}
+        onDismissRecovery={dismissRecovery}
+        completeTask={completeTask}
+      />
+    </BrandedScreenBackdrop>
   )
 }
 
 const styles = StyleSheet.create({
+  fill: { flex: 1 },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
 })
