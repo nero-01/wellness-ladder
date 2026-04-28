@@ -13,6 +13,7 @@ import {
 import { useColorScheme } from "@/components/useColorScheme"
 import { useBrandedBackdrop } from "@/contexts/BrandedBackdropContext"
 import { WellnessColors, WellnessColorsLight } from "@/constants/wellnessTheme"
+import { SPLASH_GIF_MODULE } from "@/lib/splash-gif-source"
 
 type Props = {
   children: ReactNode
@@ -53,14 +54,14 @@ export function BrandedScreenBackdrop({ children, style }: Props) {
 
   const imageScale = breathe.interpolate({
     inputRange: [0, 1],
-    outputRange: [1, 1.035],
+    outputRange: [1, 1.012],
   })
 
   if (!imageUri) {
     return <View style={[styles.fill, { backgroundColor: W.bg }, style]}>{children}</View>
   }
 
-  const scrim = isDark ? "rgba(36, 47, 120, 0.2)" : "rgba(36, 47, 120, 0.16)"
+  const scrim = isDark ? "rgba(20, 26, 58, 0.12)" : "rgba(20, 26, 58, 0.08)"
 
   return (
     <View style={[styles.fill, style]}>
@@ -72,15 +73,18 @@ export function BrandedScreenBackdrop({ children, style }: Props) {
           ]}
         >
           <Image
-            source={{ uri: imageUri }}
+            source={imageUri ? { uri: imageUri } : SPLASH_GIF_MODULE}
             style={StyleSheet.absoluteFill}
             contentFit="cover"
+            contentPosition="center"
+            transition={0}
+            cachePolicy="memory-disk"
             accessibilityIgnoresInvertColors
           />
         </Animated.View>
       </View>
       <BlurView
-        intensity={isDark ? 34 : 30}
+        intensity={isDark ? 12 : 8}
         tint={isDark ? "dark" : "light"}
         style={StyleSheet.absoluteFill}
         pointerEvents="none"

@@ -12,14 +12,16 @@ export const SPLASH_GIF_MODULE = require("@/assets/backgrounds/splash-bg-hd.png"
  * Expo-image can render directly from module id, but URI logging is useful for device debugging.
  */
 export async function resolveSplashGifSource(): Promise<ImageSource | number> {
+  // Prefer module id directly: lets Expo pick the best bundled variant and avoid URI fallback quality surprises.
   try {
     const asset = Asset.fromModule(SPLASH_GIF_MODULE)
-    await asset.downloadAsync()
-    const uri = asset.localUri ?? asset.uri
-    if (uri) return { uri }
-  } catch (e) {
-    // eslint-disable-next-line no-console
-    console.warn("[splash-gif-source] Asset.resolve failed, using module id:", e)
-  }
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.log("[splash-gif-source] bundled asset", {
+        width: asset.width,
+        height: asset.height,
+      })
+    }
+  } catch {}
   return SPLASH_GIF_MODULE
 }
