@@ -17,6 +17,7 @@ import Animated, {
   FadeIn,
   FadeInDown,
   FadeOut,
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -330,6 +331,13 @@ export default function HomeScreen() {
   const [transitionTo, setTransitionTo] = useState<"light" | "dark" | null>(null)
   const themeOverlayOpacity = useSharedValue(0)
 
+  const applyColorScheme = useCallback((next: "light" | "dark") => {
+    Appearance.setColorScheme(next)
+  }, [])
+  const clearThemeTransition = useCallback(() => {
+    setTransitionTo(null)
+  }, [])
+
   useEffect(() => {
     const sub = Appearance.addChangeListener(({ colorScheme: cs }) => {
       setColorScheme(cs ?? "dark")
@@ -344,11 +352,12 @@ export default function HomeScreen() {
     setTransitionTo(next)
     themeOverlayOpacity.value = 0
     themeOverlayOpacity.value = withTiming(1, { duration: 220 }, () => {
-      Appearance.setColorScheme(next)
-      themeOverlayOpacity.value = withTiming(0, { duration: 220 })
+      runOnJS(applyColorScheme)(next)
+      themeOverlayOpacity.value = withTiming(0, { duration: 220 }, () => {
+        runOnJS(clearThemeTransition)()
+      })
     })
-    setTimeout(() => setTransitionTo(null), 460)
-  }, [colorScheme, themeOverlayOpacity, transitionTo])
+  }, [applyColorScheme, clearThemeTransition, colorScheme, themeOverlayOpacity, transitionTo])
 
   const goTask = useCallback(() => {
     wellnessTapMedium()
