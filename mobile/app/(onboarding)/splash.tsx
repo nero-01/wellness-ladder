@@ -6,14 +6,13 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  useWindowDimensions,
   View,
 } from "react-native"
 import { LinearGradient } from "expo-linear-gradient"
 import { useLocalSearchParams, useRouter } from "expo-router"
 import { Image, type ImageSource } from "expo-image"
 import { StatusBar } from "expo-status-bar"
-import { SafeAreaView } from "react-native-safe-area-context"
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { useAuth } from "@/contexts/AuthContext"
 import { useBrandedBackdrop } from "@/contexts/BrandedBackdropContext"
 import { markOnboardingComplete } from "@/lib/onboarding-storage"
@@ -38,7 +37,7 @@ const GIF_PALETTE = {
 
 export default function OnboardingSplashScreen() {
   const router = useRouter()
-  const { width: winW, height: winH } = useWindowDimensions()
+  const insets = useSafeAreaInsets()
   const { tour } = useLocalSearchParams<{ tour?: string }>()
   const tourOnly = tour === "1"
   const { user, continueAsGuest } = useAuth()
@@ -136,17 +135,10 @@ export default function OnboardingSplashScreen() {
 
   const gifLayoutStyle = useMemo(
     () => ({
-      position: "absolute" as const,
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      flex: 1,
-      width: winW,
-      height: winH,
+      ...StyleSheet.absoluteFillObject,
       zIndex: 0,
     }),
-    [winW, winH],
+    [],
   )
 
   const goValue = useCallback(async () => {
@@ -226,7 +218,7 @@ export default function OnboardingSplashScreen() {
         />
       ) : null}
       <View style={[styles.scrim, styles.layerOverlay]} pointerEvents="none" />
-      <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
+      <SafeAreaView style={styles.safe} edges={["top", "left", "right", "bottom"]}>
         <View style={styles.topBar}>
           <Pressable
             onPress={() => void onSkip()}
@@ -251,7 +243,7 @@ export default function OnboardingSplashScreen() {
           <Text style={styles.appName}>{HEADLINE}</Text>
           <Text style={styles.tagline}>{TAGLINE}</Text>
         </View>
-        <View style={styles.bottomBlock}>
+        <View style={[styles.bottomBlock, { paddingBottom: Math.max(insets.bottom + 18, 36) }]}>
           <Pressable
             onPress={onGetStarted}
             disabled={busy}

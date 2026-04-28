@@ -1,7 +1,7 @@
 import { Asset } from "expo-asset"
 
 /** Static still derived from the splash GIF (last-frame style). */
-const SPLASH_POSTER_MODULE = require("@/assets/onboarding/splash-bg.png") as number
+const SPLASH_POSTER_MODULE = require("@/assets/backgrounds/splash-bg-hd.png") as number
 
 export async function captureSplashPoster(): Promise<string | null> {
   try {

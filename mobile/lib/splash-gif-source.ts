@@ -5,7 +5,7 @@ import type { ImageSource } from "expo-image"
  * Bundled splash art (latest purple reference).
  * Keep this pointed at the design source of truth to avoid palette drift.
  */
-export const SPLASH_GIF_MODULE = require("@/assets/onboarding/splash-frame.png") as number
+export const SPLASH_GIF_MODULE = require("@/assets/backgrounds/splash-bg-hd.png") as number
 
 /**
  * Resolve the GIF to a concrete asset URI.
