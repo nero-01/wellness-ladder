@@ -15,6 +15,7 @@ import {
   Text,
   View,
 } from "react-native"
+import Animated, { FadeInDown } from "react-native-reanimated"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { CircularProgress } from "@/components/CircularProgress"
 import { MoodPickerRow } from "@/components/MoodPickerRow"
@@ -69,6 +70,11 @@ function createTaskSessionStyles(W: WellnessPalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: "transparent" },
     scroll: { paddingHorizontal: inset, paddingBottom: 100 },
+    scrollLocked: {
+      flexGrow: 1,
+      justifyContent: "center",
+      paddingBottom: 20,
+    },
     pressDim: { opacity: 0.85 },
     topBar: {
       flexDirection: "row",
@@ -330,6 +336,47 @@ function createTaskSessionStyles(W: WellnessPalette) {
       marginTop: 4,
       marginBottom: 12,
       paddingHorizontal: 0,
+    },
+    inlineResultCard: {
+      marginBottom: gapSection,
+      paddingVertical: 14,
+      paddingHorizontal: padCard,
+      borderRadius: radiusMd,
+      borderWidth: 1,
+      borderColor: W.cardBorder,
+      backgroundColor: W.bgElevated,
+    },
+    inlineResultTitle: {
+      fontSize: 15,
+      fontWeight: "700",
+      color: W.text,
+      marginBottom: 4,
+    },
+    inlineResultMeta: {
+      fontSize: 13,
+      color: W.textMuted,
+      marginBottom: 10,
+    },
+    focusActions: {
+      flexDirection: "row",
+      gap: gapItem,
+      marginBottom: gapSection,
+      alignItems: "center",
+    },
+    cancelBtn: {
+      flex: 1,
+      paddingVertical: 14,
+      borderRadius: radiusMd,
+      borderWidth: 1,
+      borderColor: W.cardBorder,
+      backgroundColor: W.surfaceMuted,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    cancelBtnText: {
+      color: W.text,
+      fontSize: 16,
+      fontWeight: "700",
     },
   })
 }
@@ -619,8 +666,17 @@ export function TaskSession({
         : ui.startTask
 
   const timerCompleted = timer.timerCompleted
+  const hasStarted =
+    timer.mode === "countdown"
+      ? timer.isActive || timer.timeLeft < task.duration
+      : timer.walkPhase !== "idle"
+  const focusLocked = hasStarted
 
   const showVoiceWave = sessionActive && isPlaying
+  const completionSummary =
+    timer.mode === "manual"
+      ? `${Math.max(1, Math.round(timer.elapsed))}s walked`
+      : `${Math.max(0, Math.round(task.duration - timer.timeLeft))}s completed`
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
@@ -631,9 +687,10 @@ export function TaskSession({
       >
         <ScrollView
           style={{ flex: 1, backgroundColor: "transparent" }}
-          contentContainerStyle={styles.scroll}
+          contentContainerStyle={[styles.scroll, focusLocked && styles.scrollLocked]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          scrollEnabled={!focusLocked}
         >
         <View style={styles.topBar}>
           <Pressable
@@ -642,11 +699,16 @@ export function TaskSession({
               goBackOrHome()
             }}
             hitSlop={12}
-            accessibilityLabel="Back to home"
+            accessibilityLabel={focusLocked ? "Cancel task" : "Back to home"}
             style={({ pressed }) => pressed && styles.pressDim}
           >
-            <Ionicons name="chevron-back" size={26} color={W.text} />
+            <Ionicons
+              name={focusLocked ? "close" : "chevron-back"}
+              size={26}
+              color={W.text}
+            />
           </Pressable>
+          {!focusLocked ? (
           <View style={styles.topBarRight}>
             <Pressable
               onPress={() => {
@@ -659,8 +721,12 @@ export function TaskSession({
               <Ionicons name="person-circle-outline" size={28} color={W.text} />
             </Pressable>
           </View>
+          ) : (
+            <View />
+          )}
         </View>
 
+        {!focusLocked ? (
         <View style={styles.langStrip}>
           <View style={styles.langStripLeft}>
             <Image
@@ -692,7 +758,9 @@ export function TaskSession({
             </Pressable>
           </View>
         </View>
+        ) : null}
 
+        {!focusLocked ? (
         <Modal
           visible={langMenuOpen}
           transparent
@@ -740,8 +808,9 @@ export function TaskSession({
             </View>
           </View>
         </Modal>
+        ) : null}
 
-        {previewMode ? (
+        {!focusLocked && previewMode ? (
           <View style={styles.devBanner}>
             <Text style={styles.devBannerText}>
               DEV · Preview — streak not saved
@@ -901,25 +970,43 @@ export function TaskSession({
           </View>
         ) : null}
 
-        <View
-          style={[
-            styles.moodStrip,
-            {
-              borderLeftWidth: 4,
-              borderLeftColor: moodStripAccent.border,
-              backgroundColor: moodStripAccent.idleFill,
-              borderColor: moodStripAccent.idleBorder,
-            },
-          ]}
-        >
-          <MoodPickerRow
-            selectedMood={selectedMood}
-            onMoodSelect={setSelectedMood}
-            requiredForStreak={!previewMode}
-            locale={localeReady && locale === "af" ? "af" : "en"}
-          />
-        </View>
+        {focusLocked && timerCompleted ? (
+          <Animated.View entering={FadeInDown.duration(280)}>
+            <View style={styles.inlineResultCard}>
+              <Text style={styles.inlineResultTitle}>Nice work. Task complete.</Text>
+              <Text style={styles.inlineResultMeta}>{completionSummary}</Text>
+              <MoodPickerRow
+                selectedMood={selectedMood}
+                onMoodSelect={setSelectedMood}
+                requiredForStreak={!previewMode}
+                locale={localeReady && locale === "af" ? "af" : "en"}
+              />
+            </View>
+          </Animated.View>
+        ) : null}
 
+        {!focusLocked ? (
+          <View
+            style={[
+              styles.moodStrip,
+              {
+                borderLeftWidth: 4,
+                borderLeftColor: moodStripAccent.border,
+                backgroundColor: moodStripAccent.idleFill,
+                borderColor: moodStripAccent.idleBorder,
+              },
+            ]}
+          >
+            <MoodPickerRow
+              selectedMood={selectedMood}
+              onMoodSelect={setSelectedMood}
+              requiredForStreak={!previewMode}
+              locale={localeReady && locale === "af" ? "af" : "en"}
+            />
+          </View>
+        ) : null}
+
+        {!focusLocked ? (
         <View style={styles.streakRow}>
           <View style={{ flex: 1, marginRight: 8 }}>
             <Text style={{ fontSize: 12, color: W.textMuted, marginBottom: 6 }}>
@@ -935,11 +1022,13 @@ export function TaskSession({
             size={64}
           />
         </View>
+        ) : null}
 
-        <SupportHabitsSection previewMode={previewMode} />
+        {!focusLocked ? <SupportHabitsSection previewMode={previewMode} /> : null}
 
-        {!previewMode ? <TaskCatalogPreview todayTaskId={task.id} /> : null}
+        {!focusLocked && !previewMode ? <TaskCatalogPreview todayTaskId={task.id} /> : null}
 
+        {!focusLocked ? (
         <View style={styles.actions}>
           <Pressable
             style={({ pressed }) => [
@@ -964,11 +1053,36 @@ export function TaskSession({
             <Ionicons name="play-skip-forward" size={22} color={W.textMuted} />
           </Pressable>
         </View>
+        ) : null}
 
+        {!focusLocked ? (
         <View style={styles.recorderSection}>
           <Text style={styles.recorderLabel}>Optional voice note</Text>
           <VoiceRecorder />
         </View>
+        ) : null}
+
+        {focusLocked ? (
+          <View style={styles.focusActions}>
+            {timerCompleted ? (
+              <Pressable
+                style={({ pressed }) => [styles.doneBtn, pressed && styles.doneBtnPressed]}
+                onPress={handleComplete}
+              >
+                <Ionicons name="checkmark-circle" size={22} color="#fff" />
+                <Text style={styles.doneBtnText}>{ui.done}</Text>
+              </Pressable>
+            ) : null}
+            <Pressable
+              style={({ pressed }) => [styles.cancelBtn, pressed && styles.pressDim]}
+              onPress={goBackOrHome}
+              accessibilityRole="button"
+              accessibilityLabel="Cancel task"
+            >
+              <Text style={styles.cancelBtnText}>Cancel</Text>
+            </Pressable>
+          </View>
+        ) : null}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
