@@ -1,6 +1,5 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome"
 import { Ionicons } from "@expo/vector-icons"
-import { LinearGradient } from "expo-linear-gradient"
 import { Link, useRouter } from "expo-router"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import type { ComponentProps } from "react"
@@ -140,6 +139,7 @@ function createHomeStyles(W: WellnessPalette) {
       paddingHorizontal: inset,
       paddingTop: 0,
       alignItems: "center",
+      paddingBottom: 8,
     },
     headline: {
       color: W.text,
@@ -394,25 +394,6 @@ export default function HomeScreen() {
     router.push("/(tabs)/task")
   }, [router])
 
-  const heroWash = useMemo(
-    () =>
-      [
-        moodPastelAccent(W.moodPastels, "lavender").idleFill,
-        moodPastelAccent(W.moodPastels, "paleSky").idleFill,
-        W.bg,
-      ] as const,
-    [W],
-  )
-
-  const previewAccent = useMemo(
-    () => moodPastelAccent(W.moodPastels, "lavender"),
-    [W.moodPastels],
-  )
-  const dayPillAccent = useMemo(
-    () => moodPastelAccent(W.moodPastels, "mint"),
-    [W.moodPastels],
-  )
-
   return (
     <BrandedScreenBackdrop style={{ flex: 1 }}>
     <Animated.View
@@ -471,28 +452,18 @@ export default function HomeScreen() {
           </View>
         </Animated.View>
 
-        <Animated.View entering={FadeIn.duration(320)}>
-        <LinearGradient
-          colors={[...heroWash]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{ paddingBottom: 8 }}
-        >
-          {/* Hero — soft pastel wash (Figma-style calm hero) */}
-          <View style={styles.hero}>
-            <Text style={styles.headline}>Bite-Size Wellness Ladder</Text>
-            <Text style={styles.subhead}>
-              One tiny self-care step daily. Unlock the next only when done. Build habits effortlessly.
-            </Text>
+        <Animated.View entering={FadeIn.duration(320)} style={styles.hero}>
+          <Text style={styles.headline}>Bite-Size Wellness Ladder</Text>
+          <Text style={styles.subhead}>
+            One tiny self-care step daily. Unlock the next only when done. Build habits effortlessly.
+          </Text>
 
-            <Pressable
-              style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}
-              onPress={goTask}
-            >
-              <Text style={styles.ctaText}>Start Your Ladder</Text>
-            </Pressable>
-          </View>
-        </LinearGradient>
+          <Pressable
+            style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}
+            onPress={goTask}
+          >
+            <Text style={styles.ctaText}>Start Your Ladder</Text>
+          </Pressable>
         </Animated.View>
 
         {streakLoaded ? (
@@ -544,10 +515,7 @@ export default function HomeScreen() {
               <View key={f.title} style={styles.featureCardOuter}>
                 <View
                   style={[
-                    wellnessCardInner(W, radiusMd, {
-                      backgroundColor: a.idleFill,
-                      borderColor: a.idleBorder,
-                    }),
+                    wellnessCardInner(W, radiusMd),
                     styles.featureCardInner,
                   ]}
                 >
@@ -581,7 +549,7 @@ export default function HomeScreen() {
             <View
               style={[
                 styles.previewAccentBar,
-                { backgroundColor: previewAccent.border },
+                { backgroundColor: W.cardBorder },
               ]}
             />
             <View style={styles.previewBody}>
@@ -591,14 +559,14 @@ export default function HomeScreen() {
                     style={[
                       styles.dayPill,
                       {
-                        backgroundColor: dayPillAccent.idleFill,
+                        backgroundColor: W.iconBg,
                         borderWidth: 1,
-                        borderColor: dayPillAccent.idleBorder,
+                        borderColor: W.cardBorder,
                       },
                     ]}
                   >
                     <Text
-                      style={[styles.dayPillText, { color: dayPillAccent.navIcon }]}
+                      style={[styles.dayPillText, { color: W.text }]}
                     >
                       Day {displayStreak}
                     </Text>
