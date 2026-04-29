@@ -17,23 +17,23 @@ import { StatusBar } from "expo-status-bar"
 import { useEffect } from "react"
 import "react-native-reanimated"
 
-import { useColorScheme } from "@/components/useColorScheme"
 import { AuthProvider, useAuth } from "@/contexts/AuthContext"
 import { BrandedBackdropProvider } from "@/contexts/BrandedBackdropContext"
 import { RecurringHabitsProvider } from "@/contexts/RecurringHabitsContext"
+import { AppThemeProvider, useAppTheme } from "@/contexts/ThemeContext"
 import { initRecurringNotificationHandler } from "@/lib/recurring-habit-notifications"
-import { WellnessColors, WellnessColorsLight } from "@/constants/wellnessTheme"
+import { appThemes } from "@/theme/theme"
 
 const WellnessDarkTheme = {
   ...NavigationDarkTheme,
   colors: {
     ...NavigationDarkTheme.colors,
-    primary: WellnessColors.primary,
-    background: WellnessColors.bg,
-    card: WellnessColors.bgElevated,
-    text: WellnessColors.text,
-    border: WellnessColors.cardBorder,
-    notification: WellnessColors.primary,
+    primary: appThemes.dark.colors.primary,
+    background: appThemes.dark.colors.bg,
+    card: appThemes.dark.colors.bgElevated,
+    text: appThemes.dark.colors.text,
+    border: appThemes.dark.colors.cardBorder,
+    notification: appThemes.dark.colors.primary,
   },
 }
 
@@ -41,12 +41,12 @@ const WellnessLightNavTheme = {
   ...NavigationDefaultTheme,
   colors: {
     ...NavigationDefaultTheme.colors,
-    primary: WellnessColorsLight.primary,
-    background: WellnessColorsLight.bg,
-    card: WellnessColorsLight.bgElevated,
-    text: WellnessColorsLight.text,
-    border: WellnessColorsLight.cardBorder,
-    notification: WellnessColorsLight.primary,
+    primary: appThemes.light.colors.primary,
+    background: appThemes.light.colors.bg,
+    card: appThemes.light.colors.bgElevated,
+    text: appThemes.light.colors.text,
+    border: appThemes.light.colors.cardBorder,
+    notification: appThemes.light.colors.primary,
   },
 }
 
@@ -101,27 +101,23 @@ function useProtectedRoute() {
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme()
+  const { colors, isDark } = useAppTheme()
   useProtectedRoute()
 
   useEffect(() => {
     initRecurringNotificationHandler()
   }, [])
 
-  const navTheme =
-    colorScheme === "dark" ? WellnessDarkTheme : WellnessLightNavTheme
-
-  const rootBg =
-    colorScheme === "light" ? WellnessColorsLight.bg : WellnessColors.bg
+  const navTheme = isDark ? WellnessDarkTheme : WellnessLightNavTheme
+  const rootBg = colors.bg
 
   const headerBg = rootBg
-  const headerTint =
-    colorScheme === "light" ? WellnessColorsLight.text : WellnessColors.text
+  const headerTint = colors.text
 
   return (
     <ThemeProvider value={navTheme}>
       <View style={{ flex: 1, backgroundColor: rootBg }}>
-        <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+        <StatusBar style={isDark ? "light" : "dark"} />
         <Stack
           screenOptions={{
             contentStyle: { flex: 1, backgroundColor: rootBg },
@@ -174,8 +170,8 @@ function RootLayoutNav() {
   )
 }
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme()
+function RootLayoutContent() {
+  const { colors } = useAppTheme()
   const [loaded, error] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
     ...FontAwesome.font,
@@ -200,20 +196,18 @@ export default function RootLayout() {
   }, [loaded])
 
   if (!loaded) {
-    const splashBg =
-      colorScheme === "light" ? WellnessColorsLight.bg : WellnessColors.bg
     return (
       <View
         style={{
           flex: 1,
-          backgroundColor: splashBg,
+          backgroundColor: colors.bg,
           justifyContent: "center",
           alignItems: "center",
           gap: 12,
         }}
         accessibilityLabel="Loading app"
       >
-        <ActivityIndicator size="large" color={WellnessColors.primary} />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     )
   }
@@ -228,5 +222,13 @@ export default function RootLayout() {
         </AuthProvider>
       </BrandedBackdropProvider>
     </SafeAreaProvider>
+  )
+}
+
+export default function RootLayout() {
+  return (
+    <AppThemeProvider>
+      <RootLayoutContent />
+    </AppThemeProvider>
   )
 }

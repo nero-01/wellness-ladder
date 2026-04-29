@@ -2,8 +2,7 @@ import { useEffect, useState } from "react"
 import { Redirect } from "expo-router"
 import { ActivityIndicator, StyleSheet, View } from "react-native"
 import { useAuth } from "@/contexts/AuthContext"
-import { useColorScheme } from "@/components/useColorScheme"
-import { WellnessColors, WellnessColorsLight } from "@/constants/wellnessTheme"
+import { useAppTheme } from "@/contexts/ThemeContext"
 import { getOnboardingComplete } from "@/lib/onboarding-storage"
 
 /**
@@ -12,8 +11,8 @@ import { getOnboardingComplete } from "@/lib/onboarding-storage"
  */
 export default function Index() {
   const { user, isLoaded } = useAuth()
-  const colorScheme = useColorScheme()
-  const bg = colorScheme === "light" ? WellnessColorsLight.bg : WellnessColors.bg
+  const { colors } = useAppTheme()
+  const bg = colors.bg
   const [onboardingDone, setOnboardingDone] = useState<boolean | null>(null)
   const hardcodeSplash = process.env.EXPO_PUBLIC_HARDCODE_SPLASH === "true"
   const forceOnboarding = process.env.EXPO_PUBLIC_FORCE_ONBOARDING === "true"
@@ -54,7 +53,7 @@ export default function Index() {
   if (!isLoaded) {
     return (
       <View style={[styles.centered, { backgroundColor: bg }]}>
-        <ActivityIndicator size="large" color={WellnessColors.primary} accessibilityLabel="Loading session" />
+        <ActivityIndicator size="large" color={colors.primary} accessibilityLabel="Loading session" />
       </View>
     )
   }
@@ -62,7 +61,7 @@ export default function Index() {
   if (onboardingDone === null) {
     return (
       <View style={[styles.centered, { backgroundColor: bg }]}>
-        <ActivityIndicator size="large" color={WellnessColors.primary} accessibilityLabel="Loading" />
+        <ActivityIndicator size="large" color={colors.primary} accessibilityLabel="Loading" />
       </View>
     )
   }
