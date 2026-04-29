@@ -10,7 +10,7 @@ import { markOnboardingComplete } from "@/lib/onboarding-storage"
 import { skipOrFinishOnboarding } from "@/lib/onboarding-nav"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
-import { useColorScheme } from "@/components/useColorScheme"
+import { useAppTheme } from "@/contexts/ThemeContext"
 
 const BULLETS = ["Tiny habits, real change", "Designed for busy, full-on lives"]
 function createStyles(W: WellnessPalette) {
@@ -94,7 +94,7 @@ function createStyles(W: WellnessPalette) {
 }
 
 export default function OnboardingValueScreen() {
-  const scheme = useColorScheme()
+  const { isDark } = useAppTheme()
   const W = useWellnessColors()
   const styles = useMemo(() => createStyles(W), [W])
   const router = useRouter()
@@ -134,7 +134,7 @@ export default function OnboardingValueScreen() {
 
   return (
     <BrandedScreenBackdrop style={styles.fill}>
-      <StatusBar style={scheme === "light" ? "dark" : "light"} />
+      <StatusBar style={isDark ? "light" : "dark"} />
       <SafeAreaView style={styles.safe} edges={["top", "left", "right", "bottom"]}>
         <ScrollView
           style={styles.scroll}

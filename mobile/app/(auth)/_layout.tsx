@@ -1,13 +1,11 @@
 import { Stack } from "expo-router"
 import { Platform } from "react-native"
-import { useColorScheme } from "@/components/useColorScheme"
-import { WellnessColors, WellnessColorsLight } from "@/constants/wellnessTheme"
+import { useAppTheme } from "@/contexts/ThemeContext"
 
 export default function AuthLayout() {
-  const colorScheme = useColorScheme()
-  const isDark = colorScheme === "dark"
-  const bg = isDark ? WellnessColors.bg : WellnessColorsLight.bg
-  const tint = isDark ? WellnessColors.text : WellnessColorsLight.text
+  const { colors } = useAppTheme()
+  const bg = colors.bg
+  const tint = colors.text
 
   return (
     <Stack

@@ -3,11 +3,7 @@ import FontAwesome from "@expo/vector-icons/FontAwesome"
 import { Tabs } from "expo-router"
 import { Easing, View } from "react-native"
 import { FirstUseTipsOverlay } from "@/components/FirstUseTipsOverlay"
-import { useColorScheme } from "@/components/useColorScheme"
-import {
-  WellnessColors,
-  WellnessColorsLight,
-} from "@/constants/wellnessTheme"
+import { useAppTheme } from "@/contexts/ThemeContext"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import {
   moodPastelAccent,
@@ -22,8 +18,7 @@ function TabBarIcon(props: {
 }
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme()
-  const isDark = colorScheme === "dark"
+  const { colors, isDark } = useAppTheme()
   const W = useWellnessColors()
   const tabBarBg = isDark ? "rgba(21, 17, 24, 0.94)" : "rgba(250, 250, 250, 0.94)"
 
@@ -50,7 +45,7 @@ export default function TabLayout() {
         headerStyle: {
           backgroundColor: tabBarBg,
         },
-        headerTintColor: isDark ? WellnessColors.text : WellnessColorsLight.text,
+        headerTintColor: colors.text,
         headerShadowVisible: false,
         tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
         /** Very short cross-fade between tabs — still feels animated, not instant */
