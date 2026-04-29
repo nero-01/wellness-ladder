@@ -15,18 +15,19 @@ import { StatusBar } from "expo-status-bar"
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { useAuth } from "@/contexts/AuthContext"
 import { useBrandedBackdrop } from "@/contexts/BrandedBackdropContext"
+import { useAppTheme } from "@/contexts/ThemeContext"
 import { markOnboardingComplete } from "@/lib/onboarding-storage"
 import { prepareBrandedBackdropFromSplash, skipOrFinishOnboarding } from "@/lib/onboarding-nav"
 import { captureSplashPoster } from "@/lib/splash-poster"
 import { resolveSplashGifSource } from "@/lib/splash-gif-source"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
-import { useColorScheme } from "@/components/useColorScheme"
 
 /** Matches Canva landing: https://canva.link/p2xky6a5cds17v9 */
 const HEADLINE = "Bite-sized wellness"
 const TAGLINE = "Simple steps for a better life"
 export default function OnboardingSplashScreen() {
-  const scheme = useColorScheme()
+  const { isDark, backgroundLight, backgroundDark, backdropOverlay } =
+    useAppTheme()
   const W = useWellnessColors()
   const router = useRouter()
   const insets = useSafeAreaInsets()
@@ -193,9 +194,13 @@ export default function OnboardingSplashScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar style={scheme === "light" ? "dark" : "light"} />
+      <StatusBar style={isDark ? "light" : "dark"} />
       <LinearGradient
-        colors={[splashPalette.background, splashPalette.background, splashPalette.background]}
+        colors={[
+          isDark ? backgroundDark : backgroundLight,
+          isDark ? backgroundDark : backgroundLight,
+          isDark ? backgroundDark : backgroundLight,
+        ]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={[StyleSheet.absoluteFill, styles.layerGradient]}
@@ -222,7 +227,10 @@ export default function OnboardingSplashScreen() {
           accessibilityIgnoresInvertColors
         />
       ) : null}
-      <View style={[styles.scrim, styles.layerOverlay]} pointerEvents="none" />
+      <View
+        style={[styles.scrim, styles.layerOverlay, { backgroundColor: backdropOverlay }]}
+        pointerEvents="none"
+      />
       <SafeAreaView style={styles.safe} edges={["top", "left", "right", "bottom"]}>
         <View style={styles.topBar}>
           <Pressable
@@ -296,7 +304,7 @@ const styles = StyleSheet.create({
   layerOverlay: { zIndex: 2 },
   scrim: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(28, 36, 92, 0.1)",
+    backgroundColor: "transparent",
   },
   safe: { flex: 1, zIndex: 3 },
   topBar: {

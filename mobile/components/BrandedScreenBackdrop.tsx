@@ -10,9 +10,8 @@ import {
   type StyleProp,
   type ViewStyle,
 } from "react-native"
-import { useColorScheme } from "@/components/useColorScheme"
 import { useBrandedBackdrop } from "@/contexts/BrandedBackdropContext"
-import { WellnessColors, WellnessColorsLight } from "@/constants/wellnessTheme"
+import { useAppTheme } from "@/contexts/ThemeContext"
 import { SPLASH_GIF_MODULE } from "@/lib/splash-gif-source"
 
 type Props = {
@@ -24,9 +23,8 @@ type Props = {
  * Full-screen blurred still from the splash video + scrim so foreground UI stays readable.
  */
 export function BrandedScreenBackdrop({ children, style }: Props) {
-  const colorScheme = useColorScheme()
-  const isDark = colorScheme === "dark"
-  const W = isDark ? WellnessColors : WellnessColorsLight
+  const { isDark, backgroundLight, backgroundDark, backdropOverlay } =
+    useAppTheme()
   const { imageUri } = useBrandedBackdrop()
   const breathe = useRef(new Animated.Value(0)).current
 
@@ -58,13 +56,27 @@ export function BrandedScreenBackdrop({ children, style }: Props) {
   })
 
   if (!imageUri) {
-    return <View style={[styles.fill, { backgroundColor: W.bg }, style]}>{children}</View>
+    return (
+      <View
+        style={[
+          styles.fill,
+          { backgroundColor: isDark ? backgroundDark : backgroundLight },
+          style,
+        ]}
+      >
+        {children}
+      </View>
+    )
   }
 
-  const scrim = isDark ? "rgba(20, 26, 58, 0.12)" : "rgba(20, 26, 58, 0.08)"
-
   return (
-    <View style={[styles.fill, style]}>
+    <View
+      style={[
+        styles.fill,
+        { backgroundColor: isDark ? backgroundDark : backgroundLight },
+        style,
+      ]}
+    >
       <View style={[StyleSheet.absoluteFill, styles.clip]} pointerEvents="none">
         <Animated.View
           style={[
@@ -90,7 +102,7 @@ export function BrandedScreenBackdrop({ children, style }: Props) {
         pointerEvents="none"
       />
       <View
-        style={[StyleSheet.absoluteFill, { backgroundColor: scrim }]}
+        style={[StyleSheet.absoluteFill, { backgroundColor: backdropOverlay }]}
         pointerEvents="none"
       />
       <View style={styles.foreground}>{children}</View>
