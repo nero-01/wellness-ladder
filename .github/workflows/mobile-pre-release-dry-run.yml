@@ -1,0 +1,39 @@
+name: Mobile Pre-release Dry Run
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "mobile/**"
+      - ".github/workflows/mobile-pre-release-dry-run.yml"
+
+jobs:
+  dry-run:
+    name: Android pre-release checks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run CI dry-run checks
+        run: npm run pre-release:dry-run:ci
+
+      - name: Upload dry-run report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-pre-release-dry-run-report
+          path: mobile/reports/pre-release-dry-run-ci.md
