@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useMemo } from "react"
 import {
   ActivityIndicator,
   Alert,
@@ -16,12 +16,126 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { BrandedScreenBackdrop } from "@/components/BrandedScreenBackdrop"
 import { useAuth } from "@/contexts/AuthContext"
 import { useBrandedBackdrop } from "@/contexts/BrandedBackdropContext"
+import { useAppTheme } from "@/contexts/ThemeContext"
 import { isSupabaseConfigured } from "@/lib/supabase"
 import { markOnboardingComplete } from "@/lib/onboarding-storage"
 import { skipOrFinishOnboarding } from "@/lib/onboarding-nav"
 import type { OAuthProviderId } from "@/contexts/AuthContext"
+import { useWellnessColors } from "@/hooks/useWellnessColors"
+import type { WellnessPalette } from "@/constants/wellnessTheme"
+
+function createStyles(W: WellnessPalette) {
+  return StyleSheet.create({
+    fill: { flex: 1 },
+    safe: { flex: 1 },
+    scroll: { flex: 1 },
+    scrollContent: {
+      flexGrow: 1,
+    },
+    topBar: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      paddingHorizontal: 10,
+      paddingTop: 6,
+    },
+    skipBtn: {
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+    },
+    skipText: {
+      color: W.textMuted,
+      fontSize: 15,
+      fontWeight: "600",
+    },
+    cardWrap: {
+      flexGrow: 1,
+      justifyContent: "center",
+      paddingHorizontal: 22,
+      paddingTop: 12,
+    },
+    card: {
+      borderRadius: 20,
+      paddingVertical: 26,
+      paddingHorizontal: 20,
+      backgroundColor: W.card,
+      borderWidth: 1,
+      borderColor: W.cardBorder,
+    },
+    cardTitle: {
+      color: W.text,
+      fontSize: 22,
+      fontWeight: "800",
+      marginBottom: 10,
+    },
+    body: {
+      color: W.textMuted,
+      fontSize: 15,
+      lineHeight: 22,
+      marginBottom: 18,
+    },
+    oauth: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 10,
+      backgroundColor: "#000",
+      paddingVertical: 14,
+      borderRadius: 12,
+      marginBottom: 10,
+    },
+    oauthGoogle: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 10,
+      backgroundColor: "#fff",
+      paddingVertical: 14,
+      borderRadius: 12,
+      marginBottom: 10,
+    },
+    oauthDisabled: { opacity: 0.65 },
+    oauthText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+    oauthTextDark: { color: "#111", fontSize: 16, fontWeight: "700" },
+    secondary: {
+      marginTop: 4,
+      paddingVertical: 14,
+      alignItems: "center",
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: W.cardBorder,
+      backgroundColor: W.surfaceMuted,
+    },
+    secondaryText: {
+      color: W.text,
+      fontSize: 15,
+      fontWeight: "700",
+    },
+    ghost: {
+      marginTop: 14,
+      paddingVertical: 12,
+      alignItems: "center",
+    },
+    ghostText: {
+      color: W.text,
+      fontSize: 15,
+      fontWeight: "700",
+      textDecorationLine: "underline",
+    },
+    primary: {
+      marginTop: 16,
+      backgroundColor: W.primary,
+      paddingVertical: 14,
+      borderRadius: 12,
+      alignItems: "center",
+    },
+    primaryText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+  })
+}
 
 export default function OnboardingAuthLiteScreen() {
+  const { isDark } = useAppTheme()
+  const W = useWellnessColors()
+  const styles = useMemo(() => createStyles(W), [W])
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const { tour } = useLocalSearchParams<{ tour?: string }>()
@@ -54,7 +168,7 @@ export default function OnboardingAuthLiteScreen() {
       if (!isSupabaseConfigured()) {
         Alert.alert(
           "Sign-in unavailable",
-          "Add Supabase URL and anon key in mobile/.env to use Apple or Google. You can still explore as a guest below.",
+          "Google and Apple sign-in are almost ready. For now, continue with email or explore as a guest.",
         )
         return
       }
@@ -64,8 +178,8 @@ export default function OnboardingAuthLiteScreen() {
         router.replace("/(tabs)")
       } catch (e) {
         Alert.alert(
-          "Sign-in",
-          e instanceof Error ? e.message : "Could not complete sign-in.",
+          "Sign-in did not finish",
+          e instanceof Error ? e.message : "Please try again in a moment.",
         )
       } finally {
         setOauthBusy(null)
@@ -77,7 +191,7 @@ export default function OnboardingAuthLiteScreen() {
   if (tourOnly && user) {
     return (
       <BrandedScreenBackdrop style={styles.fill}>
-        <StatusBar style="light" />
+        <StatusBar style={isDark ? "light" : "dark"} />
         <SafeAreaView style={styles.safe} edges={["top", "left", "right", "bottom"]}>
           <ScrollView
             style={styles.scroll}
@@ -124,7 +238,7 @@ export default function OnboardingAuthLiteScreen() {
 
   return (
     <BrandedScreenBackdrop style={styles.fill}>
-      <StatusBar style="light" />
+      <StatusBar style={isDark ? "light" : "dark"} />
       <SafeAreaView style={styles.safe} edges={["top", "left", "right", "bottom"]}>
         <ScrollView
           style={styles.scroll}
@@ -152,8 +266,8 @@ export default function OnboardingAuthLiteScreen() {
             <View style={styles.card}>
               <Text style={styles.cardTitle}>Sign in (optional)</Text>
               <Text style={styles.body}>
-                Pick a quick option, use email, or explore without an account. You can add a
-                profile later.
+                Pick a quick option now, or keep exploring as a guest. You can connect your
+                account anytime.
               </Text>
             {Platform.OS === "ios" ? (
               <Pressable
@@ -210,108 +324,3 @@ export default function OnboardingAuthLiteScreen() {
     </BrandedScreenBackdrop>
   )
 }
-
-const styles = StyleSheet.create({
-  fill: { flex: 1 },
-  safe: { flex: 1 },
-  scroll: { flex: 1 },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  topBar: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    paddingHorizontal: 10,
-    paddingTop: 6,
-  },
-  skipBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-  },
-  skipText: {
-    color: "rgba(255,255,255,0.92)",
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  cardWrap: {
-    flexGrow: 1,
-    justifyContent: "center",
-    paddingHorizontal: 22,
-    paddingTop: 12,
-  },
-  card: {
-    borderRadius: 20,
-    paddingVertical: 26,
-    paddingHorizontal: 20,
-    backgroundColor: "rgba(21, 17, 24, 0.78)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.12)",
-  },
-  cardTitle: {
-    color: "#fff",
-    fontSize: 22,
-    fontWeight: "800",
-    marginBottom: 10,
-  },
-  body: {
-    color: "rgba(255,255,255,0.86)",
-    fontSize: 15,
-    lineHeight: 22,
-    marginBottom: 18,
-  },
-  oauth: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    backgroundColor: "#000",
-    paddingVertical: 14,
-    borderRadius: 12,
-    marginBottom: 10,
-  },
-  oauthGoogle: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    backgroundColor: "#fff",
-    paddingVertical: 14,
-    borderRadius: 12,
-    marginBottom: 10,
-  },
-  oauthDisabled: { opacity: 0.65 },
-  oauthText: { color: "#fff", fontSize: 16, fontWeight: "700" },
-  oauthTextDark: { color: "#111", fontSize: 16, fontWeight: "700" },
-  secondary: {
-    marginTop: 4,
-    paddingVertical: 14,
-    alignItems: "center",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.35)",
-  },
-  secondaryText: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  ghost: {
-    marginTop: 14,
-    paddingVertical: 12,
-    alignItems: "center",
-  },
-  ghostText: {
-    color: "rgba(255,255,255,0.95)",
-    fontSize: 15,
-    fontWeight: "700",
-    textDecorationLine: "underline",
-  },
-  primary: {
-    marginTop: 16,
-    backgroundColor: "#8b5cf6",
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  primaryText: { color: "#fff", fontSize: 16, fontWeight: "700" },
-})

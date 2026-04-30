@@ -45,7 +45,7 @@ module.exports = {
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "mobile",
-    userInterfaceStyle: "dark",
+    userInterfaceStyle: "automatic",
     newArchEnabled: true,
     /** Same asset as `Mascot` (`mascot-transparent.png`). Rebuild native app after changing. */
     splash: {
@@ -61,6 +61,8 @@ module.exports = {
       },
     },
     android: {
+      package: "com.wellnessladder.app",
+      versionCode: 1,
       adaptiveIcon: {
         foregroundImage: "./assets/images/adaptive-icon.png",
         backgroundColor: "#ffffff",
