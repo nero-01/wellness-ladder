@@ -8,7 +8,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "mascot:transparent": "node scripts/generate-mascot-transparent.mjs",
-    "pre-release:dry-run": "node scripts/pre-release-dry-run.mjs"
+    "pre-release:dry-run": "node scripts/pre-release-dry-run.mjs",
+    "pre-release:dry-run:ci": "node scripts/pre-release-dry-run.mjs --ci"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

@@ -5,8 +5,12 @@ import { mkdirSync, rmSync, writeFileSync } from "node:fs"
 import path from "node:path"
 
 const mobileRoot = process.cwd()
+const isCiMode = process.argv.includes("--ci")
 const reportDir = path.join(mobileRoot, "reports")
-const reportPath = path.join(reportDir, "pre-release-dry-run.md")
+const reportPath = path.join(
+  reportDir,
+  isCiMode ? "pre-release-dry-run-ci.md" : "pre-release-dry-run.md",
+)
 const exportDir = path.join(mobileRoot, "dist-android-export")
 
 const checks = [
@@ -45,11 +49,15 @@ function run(command) {
   }
 }
 
+function stripAnsi(text) {
+  return (text ?? "").replace(/\x1B\[[0-?]*[ -/]*[@-~]/g, "")
+}
+
 function fence(text) {
-  const trimmed = (text ?? "").trim()
+  const trimmed = stripAnsi(text).trim()
   if (!trimmed) return "_No output captured._"
   const lines = trimmed.split("\n")
-  const preview = lines.slice(-80).join("\n")
+  const preview = lines.slice(-(isCiMode ? 40 : 80)).join("\n")
   return `\`\`\`\n${preview}\n\`\`\``
 }
 
@@ -67,7 +75,7 @@ const overall = failed === 0 ? "PASS" : "FAIL"
 const finishedAt = new Date()
 
 const lines = [
-  "# Mobile Pre-release Dry Run",
+  `# Mobile Pre-release Dry Run${isCiMode ? " (CI)" : ""}`,
   "",
   `- **Overall:** ${overall}`,
   `- **Started:** ${startedAt.toISOString()}`,
