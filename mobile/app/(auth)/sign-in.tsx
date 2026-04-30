@@ -12,26 +12,26 @@ import {
 import * as Haptics from "expo-haptics"
 import { Ionicons } from "@expo/vector-icons"
 import { Link, useRouter } from "expo-router"
+import { StatusBar } from "expo-status-bar"
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { BrandedScreenBackdrop } from "@/components/BrandedScreenBackdrop"
 import { Text } from "@/components/Themed"
 import { FloatingLabelInput } from "@/components/auth/FloatingLabelInput"
-import { useColorScheme } from "@/components/useColorScheme"
 import { IS_DEV_BYPASS } from "@/constants/devBypass"
 import { radiusLg } from "@/constants/layoutTokens"
 import {
   wellnessCardInner,
   wellnessCardOuter,
 } from "@/constants/wellnessSurface"
-import { WellnessColors, WellnessColorsLight } from "@/constants/wellnessTheme"
 import { useAuth } from "@/contexts/AuthContext"
+import { useAppTheme } from "@/contexts/ThemeContext"
+import { useWellnessColors } from "@/hooks/useWellnessColors"
 
 export default function SignInScreen() {
   const router = useRouter()
-  const colorScheme = useColorScheme()
-  const isDark = colorScheme === "dark"
-  const W = isDark ? WellnessColors : WellnessColorsLight
+  const { isDark } = useAppTheme()
+  const W = useWellnessColors()
   const textPrimary = W.text
   const textMuted = W.textMuted
   const border = W.cardBorder
@@ -88,6 +88,7 @@ export default function SignInScreen() {
 
   return (
     <BrandedScreenBackdrop style={styles.fill}>
+      <StatusBar style={isDark ? "light" : "dark"} />
       <SafeAreaView style={styles.safe} edges={["top", "left", "right", "bottom"]}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -172,6 +173,7 @@ export default function SignInScreen() {
               <Pressable
                 style={[
                   styles.button,
+                  { backgroundColor: W.primary },
                   (loading || bypassBusy) && styles.buttonDisabled,
                 ]}
                 onPress={() => void onSubmit()}
@@ -189,7 +191,7 @@ export default function SignInScreen() {
                   style={[
                     styles.devBypassBtn,
                     {
-                      borderColor: WellnessColors.primary,
+                      borderColor: W.primary,
                       opacity: bypassBusy || loading ? 0.65 : 1,
                     },
                   ]}
@@ -197,10 +199,10 @@ export default function SignInScreen() {
                   disabled={loading || bypassBusy}
                 >
                   {bypassBusy ? (
-                    <ActivityIndicator color={WellnessColors.primary} />
+                    <ActivityIndicator color={W.primary} />
                   ) : (
                     <Text
-                      style={[styles.devBypassText, { color: WellnessColors.primary }]}
+                      style={[styles.devBypassText, { color: W.primary }]}
                     >
                       🚀 Dev bypass login
                     </Text>
@@ -212,7 +214,7 @@ export default function SignInScreen() {
 
             <Link href="/(auth)/sign-up" asChild>
               <Pressable style={styles.linkWrap}>
-                <Text style={[styles.link, { color: WellnessColors.primary }]}>
+                <Text style={[styles.link, { color: W.primary }]}>
                   Create an account
                 </Text>
               </Pressable>
@@ -248,7 +250,6 @@ const styles = StyleSheet.create({
   hint: { fontSize: 13, lineHeight: 18, marginTop: 4 },
   error: { color: "#c00", marginTop: 8, fontSize: 14 },
   button: {
-    backgroundColor: WellnessColors.primary,
     padding: 16,
     borderRadius: 12,
     alignItems: "center",

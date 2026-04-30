@@ -15,14 +15,15 @@ import * as Haptics from "expo-haptics"
 import { FontAwesome5 } from "@expo/vector-icons"
 import { Ionicons } from "@expo/vector-icons"
 import { Link, useRouter } from "expo-router"
+import { StatusBar } from "expo-status-bar"
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { BrandedScreenBackdrop } from "@/components/BrandedScreenBackdrop"
 import { Text } from "@/components/Themed"
 import { FloatingLabelInput } from "@/components/auth/FloatingLabelInput"
-import { useColorScheme } from "@/components/useColorScheme"
 import type { OAuthProviderId } from "@/contexts/AuthContext"
 import { useAuth } from "@/contexts/AuthContext"
+import { useAppTheme } from "@/contexts/ThemeContext"
 import {
   clearEmailConfirmationCooldown,
   formatCooldownWait,
@@ -40,7 +41,7 @@ import {
   wellnessCardInner,
   wellnessCardOuter,
 } from "@/constants/wellnessSurface"
-import { WellnessColors, WellnessColorsLight } from "@/constants/wellnessTheme"
+import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { isAuthRateLimitError } from "@/utils/auth-errors"
 
 if (__DEV__) {
@@ -70,15 +71,14 @@ function passwordStrongEnough(p: string): boolean {
 
 export default function SignUpScreen() {
   const router = useRouter()
-  const colorScheme = useColorScheme()
-  const isDark = colorScheme === "dark"
+  const { isDark } = useAppTheme()
   const textPrimary = isDark ? "#f9fafb" : "#111827"
   const textMuted = isDark ? "#9ca3af" : "#6b7280"
   const border = isDark ? "#4b5563" : "#d1d5db"
   const inputBg = isDark ? "#252030" : "#ffffff"
-  const labelFloat = isDark ? "#a78bfa" : WellnessColors.primary
+  const W = useWellnessColors()
+  const labelFloat = isDark ? "#a78bfa" : W.primary
   const labelInside = isDark ? "#9ca3af" : "#6b7280"
-  const W = isDark ? WellnessColors : WellnessColorsLight
 
   const { signUp, signInWithOAuth, resendSignupEmail, signInWithDevBypass } =
     useAuth()
@@ -283,6 +283,7 @@ export default function SignUpScreen() {
 
   return (
     <BrandedScreenBackdrop style={styles.fill}>
+      <StatusBar style={isDark ? "light" : "dark"} />
       <SafeAreaView style={styles.safe} edges={["top", "left", "right", "bottom"]}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -357,7 +358,7 @@ export default function SignUpScreen() {
                     onPress={() => void Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Wellness%20app%20signup`)}
                     style={styles.supportLink}
                   >
-                    <Text style={[styles.supportText, { color: WellnessColors.primary }]}>
+                    <Text style={[styles.supportText, { color: W.primary }]}>
                       {SUPPORT_EMAIL}
                     </Text>
                   </Pressable>
@@ -367,7 +368,7 @@ export default function SignUpScreen() {
                   <Pressable
                     style={[
                       styles.buttonOutline,
-                      { borderColor: WellnessColors.primary },
+                      { borderColor: W.primary },
                     ]}
                     onPress={() => {
                       void clearEmailConfirmationCooldown()
@@ -381,7 +382,7 @@ export default function SignUpScreen() {
                       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
                     }}
                   >
-                    <Text style={[styles.buttonOutlineText, { color: WellnessColors.primary }]}>
+                    <Text style={[styles.buttonOutlineText, { color: W.primary }]}>
                       Use a different email
                     </Text>
                   </Pressable>
@@ -488,6 +489,7 @@ export default function SignUpScreen() {
                   <Pressable
                     style={[
                       styles.button,
+                      { backgroundColor: W.primary },
                       (loading || mismatch || oauthBusy || bypassBusy) &&
                         styles.buttonDisabled,
                     ]}
@@ -506,7 +508,7 @@ export default function SignUpScreen() {
                       style={[
                         styles.devBypassBtn,
                         {
-                          borderColor: WellnessColors.primary,
+                          borderColor: W.primary,
                           opacity: bypassBusy || oauthBusy ? 0.65 : 1,
                         },
                       ]}
@@ -514,10 +516,10 @@ export default function SignUpScreen() {
                       disabled={!!oauthBusy || bypassBusy || loading}
                     >
                       {bypassBusy ? (
-                        <ActivityIndicator color={WellnessColors.primary} />
+                        <ActivityIndicator color={W.primary} />
                       ) : (
                         <Text
-                          style={[styles.devBypassText, { color: WellnessColors.primary }]}
+                          style={[styles.devBypassText, { color: W.primary }]}
                         >
                           🚀 Dev bypass login
                         </Text>
@@ -591,7 +593,7 @@ export default function SignUpScreen() {
 
             <Link href="/(auth)/sign-in" asChild>
               <Pressable style={styles.linkWrap}>
-                <Text style={[styles.link, { color: WellnessColors.primary }]}>
+                <Text style={[styles.link, { color: W.primary }]}>
                   Already have an account? Sign in
                 </Text>
               </Pressable>
@@ -639,7 +641,6 @@ const styles = StyleSheet.create({
   mismatch: { color: "#dc2626", fontSize: 13, marginTop: 4, fontWeight: "600" },
   error: { color: "#c00", marginTop: 8, fontSize: 14 },
   button: {
-    backgroundColor: "#6b4d8a",
     padding: 16,
     borderRadius: 12,
     alignItems: "center",
