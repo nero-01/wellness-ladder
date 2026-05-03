@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useMemo } from "react"
 import FontAwesome from "@expo/vector-icons/FontAwesome"
 import { Tabs } from "expo-router"
 import { Easing, View } from "react-native"
@@ -20,26 +20,30 @@ function TabBarIcon(props: {
 export default function TabLayout() {
   const { colors, isDark } = useAppTheme()
   const W = useWellnessColors()
-  const tabBarBg = isDark ? "rgba(21, 17, 24, 0.94)" : "rgba(250, 250, 250, 0.94)"
 
   const homeAccent = moodPastelAccent(W.moodPastels, NAV_TAB_PASTEL_KEYS[0])
   const taskAccent = moodPastelAccent(W.moodPastels, NAV_TAB_PASTEL_KEYS[1])
   const progressAccent = moodPastelAccent(W.moodPastels, NAV_TAB_PASTEL_KEYS[2])
 
-  const tabBarTopLine = isDark
-    ? "rgba(196, 181, 253, 0.28)"
-    : "rgba(167, 139, 250, 0.35)"
+  const { tabBarBg, tabBarTopLine, tabBarInactive } = useMemo(() => {
+    const bg = isDark ? "rgba(21, 24, 39, 0.97)" : "rgba(255, 255, 255, 0.97)"
+    const top = isDark ? "rgba(122, 139, 255, 0.22)" : "rgba(91, 109, 219, 0.18)"
+    const inactive = isDark ? "rgba(245, 247, 255, 0.42)" : "rgba(17, 24, 39, 0.42)"
+    return { tabBarBg: bg, tabBarTopLine: top, tabBarInactive: inactive }
+  }, [isDark])
 
   return (
     <View style={{ flex: 1 }}>
     <Tabs
       screenOptions={{
-        tabBarInactiveTintColor: isDark ? "#71717a" : "#a1a1aa",
+        tabBarInactiveTintColor: tabBarInactive,
+        tabBarHideOnKeyboard: true,
         tabBarStyle: {
           backgroundColor: tabBarBg,
           borderTopWidth: 1,
           borderTopColor: tabBarTopLine,
-          paddingTop: 4,
+          paddingTop: 6,
+          paddingBottom: 2,
         },
         sceneStyle: { backgroundColor: "transparent" },
         headerStyle: {
@@ -47,7 +51,7 @@ export default function TabLayout() {
         },
         headerTintColor: colors.text,
         headerShadowVisible: false,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: "600", letterSpacing: 0.2 },
         /** Very short cross-fade between tabs — still feels animated, not instant */
         animation: "fade",
         transitionSpec: {

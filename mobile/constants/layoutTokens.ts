@@ -1,7 +1,22 @@
 /**
  * Shared layout rhythm — screen insets, radii, and padding.
  * Use these instead of ad-hoc numbers so borders and whitespace stay consistent.
+ *
+ * Spacing scale: 4pt steps for a calm, premium grid (8 / 12 / 16 / 20 / 24).
  */
+
+/** 4pt — micro gaps, tight icon padding */
+export const spaceXs = 4
+/** 8pt — label-to-control, small stacks */
+export const spaceSm = 8
+/** 12pt — related controls */
+export const spaceMd = 12
+/** 16pt — default vertical rhythm inside cards */
+export const spaceLg = 16
+/** 20pt — screen horizontal inset (alias of `inset`) */
+export const spaceXl = 20
+/** 24pt — section breaks, hero spacing */
+export const space2xl = 24
 
 /** Horizontal inset from device edges (scroll content, headers, cards) */
 export const inset = 20

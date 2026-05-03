@@ -82,7 +82,7 @@ function createStyles(W: WellnessPalette) {
     },
     accountCardOuter: {
       marginHorizontal: inset,
-      marginTop: 8,
+      marginTop: gapSection / 2,
     },
     cardTitle: {
       fontSize: 13,

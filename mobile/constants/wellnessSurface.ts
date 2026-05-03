@@ -9,12 +9,12 @@ import type { WellnessPalette } from "./wellnessTheme"
 export const wellnessCardShadow: ViewStyle = {
   ...Platform.select({
     ios: {
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.05,
-      shadowRadius: 12,
+      shadowColor: "#0B0D1A",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.08,
+      shadowRadius: 18,
     },
-    android: { elevation: 2 },
+    android: { elevation: 3 },
     default: {},
   }),
 }

@@ -21,6 +21,8 @@ export type WellnessPalette = {
   iconBg: string
   logoBgFrom: string
   logoBgTo: string
+  /** Inline errors, destructive hints — tuned for contrast on bg */
+  danger: string
   /** Progress ring / timer track (muted) */
   ringTrack: string
   surfaceMuted: string
@@ -42,6 +44,7 @@ export const WellnessColors: WellnessPalette = {
   iconBg: "rgba(122, 139, 255, 0.18)",
   logoBgFrom: "#5B6DDB",
   logoBgTo: "#5365D3",
+  danger: "#FDA4AF",
   ringTrack: "rgba(245, 247, 255, 0.2)",
   surfaceMuted: "rgba(122, 139, 255, 0.12)",
   timerTrack: "rgba(122, 139, 255, 0.2)",
@@ -61,6 +64,7 @@ export const WellnessColorsLight: WellnessPalette = {
   iconBg: "rgba(91, 109, 219, 0.12)",
   logoBgFrom: "#5B6DDB",
   logoBgTo: "#5365D3",
+  danger: "#B91C1C",
   ringTrack: "rgba(36, 47, 120, 0.16)",
   surfaceMuted: "rgba(91, 109, 219, 0.08)",
   timerTrack: "rgba(36, 47, 120, 0.12)",

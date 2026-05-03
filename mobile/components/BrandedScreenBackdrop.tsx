@@ -96,7 +96,7 @@ export function BrandedScreenBackdrop({ children, style }: Props) {
         </Animated.View>
       </View>
       <BlurView
-        intensity={isDark ? 12 : 8}
+        intensity={isDark ? 16 : 11}
         tint={isDark ? "dark" : "light"}
         style={StyleSheet.absoluteFill}
         pointerEvents="none"

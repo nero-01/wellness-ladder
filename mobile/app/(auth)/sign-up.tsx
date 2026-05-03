@@ -36,7 +36,17 @@ import {
 } from "@/lib/email-signup-cooldown"
 import { isPlausibleMailbox, sanitizeAuthEmailForSupabase } from "@/lib/auth-email"
 import { IS_DEV_BYPASS } from "@/constants/devBypass"
-import { radiusLg } from "@/constants/layoutTokens"
+import {
+  gapItem,
+  gapSection,
+  inset,
+  padCard,
+  radiusLg,
+  radiusSm,
+  spaceLg,
+  spaceSm,
+  spaceXl,
+} from "@/constants/layoutTokens"
 import {
   wellnessCardInner,
   wellnessCardOuter,
@@ -312,14 +322,14 @@ export default function SignUpScreen() {
               <RNView
                 style={[
                   wellnessCardInner(W, radiusLg, {
-                    backgroundColor: isDark ? "#1a1520" : "#ffffff",
-                    borderColor: isDark ? "#374151" : W.cardBorder,
+                    backgroundColor: W.bgElevated,
+                    borderColor: W.cardBorder,
                   }),
-                  { padding: 20 },
+                  { padding: padCard },
                 ]}
               >
               {awaitingEmail ? (
-                <RNView style={{ gap: 14 }}>
+                <RNView style={{ gap: gapSection }}>
                   <Text style={[styles.awaitTitle, { color: textPrimary }]}>
                     Check your email
                   </Text>
@@ -390,7 +400,9 @@ export default function SignUpScreen() {
                       Use a different email
                     </Text>
                   </Pressable>
-                  {error ? <Text style={styles.error}>{error}</Text> : null}
+                  {error ? (
+                    <Text style={[styles.error, { color: W.danger }]}>{error}</Text>
+                  ) : null}
                 </RNView>
               ) : (
                 <>
@@ -485,10 +497,14 @@ export default function SignUpScreen() {
                   />
 
                   {mismatch ? (
-                    <Text style={styles.mismatch}>Passwords don&apos;t match</Text>
+                    <Text style={[styles.mismatch, { color: W.danger }]}>
+                      Passwords don&apos;t match
+                    </Text>
                   ) : null}
 
-                  {error ? <Text style={styles.error}>{error}</Text> : null}
+                  {error ? (
+                    <Text style={[styles.error, { color: W.danger }]}>{error}</Text>
+                  ) : null}
 
                   <Pressable
                     style={[
@@ -501,7 +517,7 @@ export default function SignUpScreen() {
                     disabled={loading || !!oauthBusy || mismatch || bypassBusy}
                   >
                     {loading ? (
-                      <ActivityIndicator color="#fff" />
+                      <ActivityIndicator color="#F5F7FF" />
                     ) : (
                       <Text style={styles.buttonText}>Sign up</Text>
                     )}
@@ -532,9 +548,9 @@ export default function SignUpScreen() {
                   ) : null}
 
                   <RNView style={styles.dividerRow}>
-                    <RNView style={[styles.dividerLine, { backgroundColor: isDark ? "#4b5563" : "#e5e7eb" }]} />
+                    <RNView style={[styles.dividerLine, { backgroundColor: W.cardBorder }]} />
                     <Text style={[styles.dividerText, { color: textMuted }]}>Or continue with</Text>
-                    <RNView style={[styles.dividerLine, { backgroundColor: isDark ? "#4b5563" : "#e5e7eb" }]} />
+                    <RNView style={[styles.dividerLine, { backgroundColor: W.cardBorder }]} />
                   </RNView>
 
                   <RNView style={styles.socialGrid}>
@@ -544,10 +560,10 @@ export default function SignUpScreen() {
                         style={({ pressed }) => [
                           styles.socialBtn,
                           {
-                            backgroundColor: isDark ? "#252030" : "#fafafa",
-                            borderColor: isDark ? "#4b5563" : "#e5e7eb",
+                            backgroundColor: W.card,
+                            borderColor: W.cardBorder,
                           },
-                          pressed && { opacity: 0.85 },
+                          pressed && { opacity: 0.88 },
                           oauthBusy && oauthBusy !== s.id && { opacity: 0.5 },
                         ]}
                     onPress={() => void onOAuth(s.id)}
@@ -570,10 +586,10 @@ export default function SignUpScreen() {
                         style={({ pressed }) => [
                           styles.socialBtn,
                           {
-                            backgroundColor: isDark ? "#252030" : "#fafafa",
-                            borderColor: isDark ? "#4b5563" : "#e5e7eb",
+                            backgroundColor: W.card,
+                            borderColor: W.cardBorder,
                           },
-                          pressed && { opacity: 0.85 },
+                          pressed && { opacity: 0.88 },
                           oauthBusy && oauthBusy !== "apple" && { opacity: 0.5 },
                         ]}
                         onPress={() => void onOAuth("apple")}
@@ -615,57 +631,59 @@ const styles = StyleSheet.create({
   kav: { flex: 1 },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: inset,
     paddingBottom: 100,
-    paddingTop: 8,
+    paddingTop: spaceSm,
   },
   hero: {
     fontSize: 26,
     fontWeight: "700",
     textAlign: "center",
-    marginBottom: 8,
+    letterSpacing: -0.4,
+    marginBottom: spaceSm,
   },
   sub: {
-    fontSize: 13,
+    fontSize: 14,
+    lineHeight: 20,
     textAlign: "center",
-    marginBottom: 20,
+    marginBottom: spaceXl,
   },
   awaitTitle: { fontSize: 20, fontWeight: "700" },
   awaitBody: { fontSize: 14, lineHeight: 20 },
   spamBanner: {
     borderWidth: 1,
-    borderRadius: 10,
-    padding: 12,
+    borderRadius: radiusSm,
+    padding: padCard,
   },
   spamText: { fontSize: 14, fontWeight: "600", lineHeight: 20 },
   info: { fontSize: 13, lineHeight: 18 },
   supportLink: { alignSelf: "center", paddingVertical: 4 },
   supportText: { fontSize: 15, fontWeight: "700" },
   supportHint: { fontSize: 12, textAlign: "center" },
-  mismatch: { color: "#dc2626", fontSize: 13, marginTop: 4, fontWeight: "600" },
-  error: { color: "#c00", marginTop: 8, fontSize: 14 },
+  mismatch: { fontSize: 13, marginTop: spaceSm, fontWeight: "600" },
+  error: { marginTop: spaceSm, fontSize: 14, fontWeight: "500" },
   button: {
-    padding: 16,
-    borderRadius: 12,
+    padding: padCard,
+    borderRadius: radiusSm,
     alignItems: "center",
-    marginTop: 8,
+    marginTop: spaceSm,
   },
   buttonOutline: {
     backgroundColor: "transparent",
-    padding: 16,
-    borderRadius: 12,
+    padding: padCard,
+    borderRadius: radiusSm,
     alignItems: "center",
     borderWidth: 2,
-    marginTop: 4,
+    marginTop: spaceSm,
   },
   buttonOutlineText: { fontWeight: "700", fontSize: 16 },
   buttonDisabled: { opacity: 0.65 },
-  buttonText: { color: "#fff", fontWeight: "700", fontSize: 16 },
+  buttonText: { color: "#F5F7FF", fontWeight: "700", fontSize: 16 },
   devBypassBtn: {
-    marginTop: 16,
+    marginTop: spaceLg,
     paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 12,
+    paddingHorizontal: padCard,
+    borderRadius: radiusSm,
     borderWidth: 2,
     alignItems: "center",
     backgroundColor: "transparent",
@@ -674,12 +692,17 @@ const styles = StyleSheet.create({
   dividerRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    marginVertical: 20,
+    gap: spaceSm,
+    marginVertical: spaceXl,
   },
-  dividerLine: { flex: 1, height: 1, backgroundColor: "#e5e7eb" },
+  dividerLine: { flex: 1, height: 1 },
   dividerText: { fontSize: 12 },
-  socialGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10, justifyContent: "center" },
+  socialGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: gapItem,
+    justifyContent: "center",
+  },
   socialBtn: {
     minWidth: "45%",
     flexGrow: 1,
@@ -687,15 +710,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
+    gap: spaceSm,
     paddingVertical: 14,
-    paddingHorizontal: 12,
-    borderRadius: 12,
+    paddingHorizontal: gapItem,
+    borderRadius: radiusSm,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
-    backgroundColor: "#fafafa",
+    borderColor: "transparent",
+    backgroundColor: "transparent",
   },
   socialLabel: { fontSize: 15, fontWeight: "600" },
-  linkWrap: { marginTop: 24, paddingVertical: 8 },
+  linkWrap: { marginTop: spaceXl + spaceSm, paddingVertical: spaceSm },
   link: { textAlign: "center", fontSize: 15 },
 })

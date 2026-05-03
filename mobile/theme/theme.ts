@@ -22,7 +22,8 @@ export const appThemes: Record<AppThemeName, AppTheme> = {
     colors: WellnessColorsLight,
     backgroundLight: WellnessColorsLight.bg,
     backgroundDark: WellnessColors.bg,
-    backdropOverlay: "rgba(0,0,0,0.05)",
+    /** Soft lavender wash so branded backdrop stays on-palette in light mode */
+    backdropOverlay: "rgba(91, 109, 219, 0.07)",
   },
   dark: {
     name: "dark",
@@ -30,6 +31,7 @@ export const appThemes: Record<AppThemeName, AppTheme> = {
     colors: WellnessColors,
     backgroundLight: WellnessColorsLight.bg,
     backgroundDark: WellnessColors.bg,
-    backdropOverlay: "rgba(0,0,0,0.2)",
+    /** Deepen slightly without muddying the hero gradient */
+    backdropOverlay: "rgba(8, 10, 20, 0.42)",
   },
 }

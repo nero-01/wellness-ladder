@@ -11,6 +11,15 @@ import { skipOrFinishOnboarding } from "@/lib/onboarding-nav"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
 import { useAppTheme } from "@/contexts/ThemeContext"
+import { wellnessCardShadow } from "@/constants/wellnessSurface"
+import {
+  gapSection,
+  inset,
+  padSection,
+  radiusLg,
+  radiusMd,
+  spaceSm,
+} from "@/constants/layoutTokens"
 
 const BULLETS = ["Tiny habits, real change", "Designed for busy, full-on lives"]
 function createStyles(W: WellnessPalette) {
@@ -24,8 +33,8 @@ function createStyles(W: WellnessPalette) {
     topBar: {
       flexDirection: "row",
       justifyContent: "flex-end",
-      paddingHorizontal: 10,
-      paddingTop: 6,
+      paddingHorizontal: inset,
+      paddingTop: spaceSm,
     },
     skipBtn: {
       paddingVertical: 10,
@@ -39,28 +48,30 @@ function createStyles(W: WellnessPalette) {
     cardWrap: {
       flexGrow: 1,
       justifyContent: "center",
-      paddingHorizontal: 22,
-      paddingTop: 12,
+      paddingHorizontal: inset,
+      paddingTop: gapSection,
     },
     card: {
-      borderRadius: 20,
-      paddingVertical: 28,
-      paddingHorizontal: 22,
+      ...wellnessCardShadow,
+      borderRadius: radiusLg,
+      paddingVertical: padSection + spaceSm,
+      paddingHorizontal: padSection,
       backgroundColor: W.card,
       borderWidth: 1,
       borderColor: W.cardBorder,
     },
     cardTitle: {
       color: W.text,
-      fontSize: 20,
+      fontSize: 22,
       fontWeight: "800",
-      marginBottom: 18,
+      letterSpacing: -0.3,
+      marginBottom: padSection,
     },
     bulletRow: {
       flexDirection: "row",
       alignItems: "flex-start",
-      marginBottom: 12,
-      gap: 10,
+      marginBottom: gapSection,
+      gap: spaceSm,
     },
     bulletDot: {
       color: W.textMuted,
@@ -75,11 +86,11 @@ function createStyles(W: WellnessPalette) {
       fontWeight: "600",
     },
     next: {
-      marginTop: 22,
+      marginTop: padSection + spaceSm,
       alignSelf: "stretch",
       backgroundColor: W.primary,
       paddingVertical: 14,
-      borderRadius: 12,
+      borderRadius: radiusMd,
       alignItems: "center",
     },
     nextPressed: {

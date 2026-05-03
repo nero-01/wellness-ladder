@@ -19,7 +19,15 @@ import { BrandedScreenBackdrop } from "@/components/BrandedScreenBackdrop"
 import { Text } from "@/components/Themed"
 import { FloatingLabelInput } from "@/components/auth/FloatingLabelInput"
 import { IS_DEV_BYPASS } from "@/constants/devBypass"
-import { radiusLg, radiusSm } from "@/constants/layoutTokens"
+import {
+  inset,
+  padCard,
+  radiusLg,
+  radiusSm,
+  spaceLg,
+  spaceSm,
+  spaceXl,
+} from "@/constants/layoutTokens"
 import { isSupabaseConfigured } from "@/lib/supabase"
 import {
   wellnessCardInner,
@@ -114,10 +122,10 @@ export default function SignInScreen() {
               <RNView
                 style={[
                   wellnessCardInner(W, radiusLg, {
-                    backgroundColor: isDark ? "#1a1520" : "#ffffff",
-                    borderColor: isDark ? "#374151" : W.cardBorder,
+                    backgroundColor: W.bgElevated,
+                    borderColor: W.cardBorder,
                   }),
-                  { padding: 20 },
+                  { padding: padCard },
                 ]}
               >
               <FloatingLabelInput
@@ -177,7 +185,9 @@ export default function SignInScreen() {
                 </Text>
               ) : null}
 
-              {error ? <Text style={styles.error}>{error}</Text> : null}
+              {error ? (
+                <Text style={[styles.error, { color: W.danger }]}>{error}</Text>
+              ) : null}
 
               <Pressable
                 style={[
@@ -189,7 +199,7 @@ export default function SignInScreen() {
                 disabled={loading || bypassBusy}
               >
                 {loading ? (
-                  <ActivityIndicator color="#fff" />
+                  <ActivityIndicator color="#F5F7FF" />
                 ) : (
                   <Text style={styles.buttonText}>Sign in</Text>
                 )}
@@ -241,33 +251,35 @@ const styles = StyleSheet.create({
   kav: { flex: 1 },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: inset,
     paddingBottom: 100,
-    paddingTop: 8,
+    paddingTop: spaceSm,
   },
   hero: {
     fontSize: 26,
     fontWeight: "700",
     textAlign: "center",
-    marginBottom: 8,
+    letterSpacing: -0.4,
+    marginBottom: spaceSm,
   },
   sub: {
-    fontSize: 13,
+    fontSize: 14,
+    lineHeight: 20,
     textAlign: "center",
-    marginBottom: 20,
+    marginBottom: spaceXl,
   },
-  hint: { fontSize: 13, lineHeight: 18, marginTop: 4 },
-  error: { color: "#c00", marginTop: 8, fontSize: 14 },
+  hint: { fontSize: 13, lineHeight: 18, marginTop: spaceSm },
+  error: { marginTop: spaceSm, fontSize: 14, fontWeight: "500" },
   button: {
-    padding: 16,
+    padding: padCard,
     borderRadius: radiusSm,
     alignItems: "center",
-    marginTop: 16,
+    marginTop: spaceLg,
   },
   buttonDisabled: { opacity: 0.65 },
-  buttonText: { color: "#fff", fontWeight: "700", fontSize: 16 },
+  buttonText: { color: "#F5F7FF", fontWeight: "700", fontSize: 16 },
   devBypassBtn: {
-    marginTop: 16,
+    marginTop: spaceLg,
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: radiusSm,
@@ -276,6 +288,6 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   devBypassText: { fontWeight: "700", fontSize: 15 },
-  linkWrap: { marginTop: 24, paddingVertical: 8 },
+  linkWrap: { marginTop: spaceXl + spaceSm, paddingVertical: spaceSm },
   link: { textAlign: "center", fontSize: 15, fontWeight: "600" },
 })
