@@ -17,11 +17,6 @@ export default function Index() {
   const hardcodeSplash = process.env.EXPO_PUBLIC_HARDCODE_SPLASH === "true"
   const forceOnboarding = process.env.EXPO_PUBLIC_FORCE_ONBOARDING === "true"
 
-  useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log("App starting")
-  }, [])
-
   /** After auth hydrates (and may write onboarding for returning sessions), read the flag. */
   useEffect(() => {
     if (!isLoaded) return

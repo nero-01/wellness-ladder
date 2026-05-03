@@ -19,7 +19,8 @@ import { BrandedScreenBackdrop } from "@/components/BrandedScreenBackdrop"
 import { Text } from "@/components/Themed"
 import { FloatingLabelInput } from "@/components/auth/FloatingLabelInput"
 import { IS_DEV_BYPASS } from "@/constants/devBypass"
-import { radiusLg } from "@/constants/layoutTokens"
+import { radiusLg, radiusSm } from "@/constants/layoutTokens"
+import { isSupabaseConfigured } from "@/lib/supabase"
 import {
   wellnessCardInner,
   wellnessCardOuter,
@@ -69,8 +70,10 @@ export default function SignInScreen() {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     try {
       await signInWithDevBypass()
-      // eslint-disable-next-line no-console
-      console.log("[Dev bypass] active — navigating to task")
+      if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.log("[Dev bypass] active — navigating to task")
+      }
       router.replace("/(tabs)/task")
       if (Platform.OS === "android") {
         ToastAndroid.show("Dev bypass active", ToastAndroid.SHORT)
@@ -104,7 +107,7 @@ export default function SignInScreen() {
           >
             <Text style={[styles.hero, { color: textPrimary }]}>Sign in</Text>
             <Text style={[styles.sub, { color: textMuted }]}>
-              Fields stay above the keyboard on iOS and Android.
+              Welcome back. Continue your daily wellness ladder.
             </Text>
 
             <RNView style={[wellnessCardOuter(radiusLg), { alignSelf: "stretch" }]}>
@@ -163,10 +166,16 @@ export default function SignInScreen() {
                 }
               />
 
-              <Text style={[styles.hint, { color: textMuted }]}>
-                Use a Supabase JWT anon key (eyJ…) and a real user, or set
-                EXPO_PUBLIC_USE_MOCK_AUTH=true for local mock login (see mobile/.env.example).
-              </Text>
+              {__DEV__ ? (
+                <Text style={[styles.hint, { color: textMuted }]}>
+                  Dev: use a Supabase anon JWT and a real user, or set EXPO_PUBLIC_USE_MOCK_AUTH=true
+                  (see mobile/.env.example).
+                </Text>
+              ) : isSupabaseConfigured() ? (
+                <Text style={[styles.hint, { color: textMuted }]}>
+                  Use the email and password you registered with.
+                </Text>
+              ) : null}
 
               {error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -251,7 +260,7 @@ const styles = StyleSheet.create({
   error: { color: "#c00", marginTop: 8, fontSize: 14 },
   button: {
     padding: 16,
-    borderRadius: 12,
+    borderRadius: radiusSm,
     alignItems: "center",
     marginTop: 16,
   },
@@ -261,7 +270,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingVertical: 14,
     paddingHorizontal: 16,
-    borderRadius: 12,
+    borderRadius: radiusSm,
     borderWidth: 2,
     alignItems: "center",
     backgroundColor: "transparent",

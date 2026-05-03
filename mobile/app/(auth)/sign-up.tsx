@@ -72,13 +72,13 @@ function passwordStrongEnough(p: string): boolean {
 export default function SignUpScreen() {
   const router = useRouter()
   const { isDark } = useAppTheme()
-  const textPrimary = isDark ? "#f9fafb" : "#111827"
-  const textMuted = isDark ? "#9ca3af" : "#6b7280"
-  const border = isDark ? "#4b5563" : "#d1d5db"
-  const inputBg = isDark ? "#252030" : "#ffffff"
   const W = useWellnessColors()
-  const labelFloat = isDark ? "#a78bfa" : W.primary
-  const labelInside = isDark ? "#9ca3af" : "#6b7280"
+  const textPrimary = W.text
+  const textMuted = W.textMuted
+  const border = W.cardBorder
+  const inputBg = isDark ? "#252030" : "#ffffff"
+  const labelFloat = W.primary
+  const labelInside = W.textMuted
 
   const { signUp, signInWithOAuth, resendSignupEmail, signInWithDevBypass } =
     useAuth()
@@ -166,8 +166,10 @@ export default function SignUpScreen() {
         setInfoBanner(
           "Check your spam or promotions folder. Still stuck? Email us — we're happy to help.",
         )
-        // eslint-disable-next-line no-console
-        console.log("Email sent")
+        if (__DEV__) {
+          // eslint-disable-next-line no-console
+          console.log("[SignUp] confirmation email flow started")
+        }
         void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
         if (__DEV__) {
           // eslint-disable-next-line no-console
@@ -226,8 +228,10 @@ export default function SignUpScreen() {
       setInfoBanner(
         "Another confirmation email was sent. Check spam — or write to support if it still does not arrive.",
       )
-      // eslint-disable-next-line no-console
-      console.log("Email sent")
+      if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.log("[SignUp] resend confirmation requested")
+      }
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     } catch (e) {
       const raw = e instanceof Error ? e.message : "Could not resend email"
@@ -245,8 +249,10 @@ export default function SignUpScreen() {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     try {
       await signInWithDevBypass()
-      // eslint-disable-next-line no-console
-      console.log("[Dev bypass] active — navigating to task")
+      if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.log("[Dev bypass] active — navigating to task")
+      }
       router.replace("/(tabs)/task")
       if (Platform.OS === "android") {
         ToastAndroid.show("Dev bypass active", ToastAndroid.SHORT)
@@ -297,11 +303,9 @@ export default function SignUpScreen() {
             extraScrollHeight={Platform.OS === "ios" ? 24 : 48}
             contentContainerStyle={styles.scrollContent}
           >
-            <Text style={[styles.hero, { color: textPrimary }]}>
-              Sign up for free ladder
-            </Text>
+            <Text style={[styles.hero, { color: textPrimary }]}>Create your account</Text>
             <Text style={[styles.sub, { color: textMuted }]}>
-              Supabase email auth — keyboard stays clear of fields (iOS & Android).
+              One small daily step toward a calmer routine. Sync your progress across devices.
             </Text>
 
             <RNView style={[wellnessCardOuter(radiusLg), { alignSelf: "stretch" }]}>

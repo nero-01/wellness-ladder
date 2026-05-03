@@ -172,7 +172,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       })
       .catch((err: unknown) => {
-        console.warn("[wellness] getSession failed:", err)
+        if (__DEV__) {
+          // eslint-disable-next-line no-console
+          console.warn("[wellness] getSession failed:", err)
+        }
       })
       .finally(() => {
         setIsLoaded(true)
@@ -203,7 +206,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
       subscription = data.subscription
     } catch (err) {
-      console.warn("[wellness] onAuthStateChange failed:", err)
+      if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.warn("[wellness] onAuthStateChange failed:", err)
+      }
     }
 
     return () => subscription?.unsubscribe()

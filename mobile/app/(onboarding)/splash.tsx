@@ -72,15 +72,17 @@ export default function OnboardingSplashScreen() {
   useEffect(() => {
     if (mountedLogged.current) return
     mountedLogged.current = true
-    // eslint-disable-next-line no-console
-    console.log("[onboarding/splash] splash screen mounted")
-    // eslint-disable-next-line no-console
-    console.log("[theme/palette] GIF aligned colors", {
-      background: splashPalette.background,
-      primary: splashPalette.cta,
-      text: splashPalette.text,
-      textSecondary: splashPalette.textSecondary,
-    })
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.log("[onboarding/splash] splash screen mounted")
+      // eslint-disable-next-line no-console
+      console.log("[theme/palette] GIF aligned colors", {
+        background: splashPalette.background,
+        primary: splashPalette.cta,
+        text: splashPalette.text,
+        textSecondary: splashPalette.textSecondary,
+      })
+    }
 
     Animated.parallel([
       Animated.timing(riseY, {
@@ -101,8 +103,10 @@ export default function OnboardingSplashScreen() {
   useEffect(() => {
     if (gifSource == null || sourceReadyLogged.current) return
     sourceReadyLogged.current = true
-    // eslint-disable-next-line no-console
-    console.log("[onboarding/splash] GIF source:", gifSource)
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.log("[onboarding/splash] GIF source:", gifSource)
+    }
   }, [gifSource])
 
   useEffect(() => {
@@ -121,8 +125,10 @@ export default function OnboardingSplashScreen() {
 
   const onGifError = useCallback(
     async () => {
-      // eslint-disable-next-line no-console
-      console.warn("[onboarding/splash] GIF failed to render, using static poster")
+      if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.warn("[onboarding/splash] GIF failed to render, using static poster")
+      }
       const uri = await captureSplashPoster()
       if (uri) {
         setStaticPreviewUri(uri)
@@ -187,8 +193,10 @@ export default function OnboardingSplashScreen() {
   }, [router])
 
   const onGetStarted = useCallback(() => {
-    // eslint-disable-next-line no-console
-    console.log("[onboarding/splash] Get Started pressed")
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.log("[onboarding/splash] Get Started pressed")
+    }
     void goValue()
   }, [goValue])
 
