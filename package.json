@@ -11,7 +11,8 @@
     "db:migrate": "node scripts/prisma-migrate.js",
     "db:push": "prisma db push",
     "mobile:start": "npm run start --prefix mobile",
-    "mobile:start:clear": "npm run start --prefix mobile -- -c"
+    "mobile:start:clear": "npm run start --prefix mobile -- -c",
+    "wellness:icon": "node scripts/build-wellness-store-icon.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
