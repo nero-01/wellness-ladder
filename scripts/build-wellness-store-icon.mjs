@@ -3,9 +3,10 @@
  * (lavender squircle, white script "w", small leaf) by:
  * 1. Trimming near-white canvas (matches JPEG edges)
  * 2. Padding to a square
- * 3. Applying an iOS-style rounded-rect mask (~22.37% corner radius) so
- *    only the squircle remains on a transparent background
- * 4. Lanczos resize to target sizes
+ * 3. Applying a rounded-rect mask whose corner radius is tuned to the
+ *    reference squircle (see CORNER_RADIUS_FR) so JPEG canvas white does
+ *    not remain as opaque “wedges” outside the purple shape.
+ * 4. Uniform Lanczos resize to 1024 (shape centered; corners fully transparent).
  *
  * Reference: docs/design/reference/wellness-icon-reference.jpg
  * Run from repo root: node scripts/build-wellness-store-icon.mjs
@@ -21,8 +22,13 @@ const root = path.join(__dirname, "..")
 const REFERENCE = path.join(root, "docs/design/reference/wellness-icon-reference.jpg")
 const OUT_DIR = path.join(root, "docs/design/wellness-icon-exports")
 const TRIM_THRESHOLD = 48
-/** iOS squircle common approximation: corner radius / side */
-const CORNER_RADIUS_FR = 0.2237
+/**
+ * Corner radius / side for the vector mask. ~0.2237 matches a generic iOS
+ * template but this reference’s artwork is slightly tighter; a looser mask
+ * leaves off-white JPEG padding visible in the diagonal corners. Tuned so
+ * those pixels go transparent while the lavender field and “w” stay intact.
+ */
+const CORNER_RADIUS_FR = 0.29
 
 const STORE_SIZES = [1024, 512, 256, 128]
 
