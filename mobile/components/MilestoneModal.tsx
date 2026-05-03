@@ -9,6 +9,15 @@ import {
 import { useEffect, useState } from "react"
 import LottieView from "lottie-react-native"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
+import {
+  gapItem,
+  gapSection,
+  inset,
+  padSection,
+  radiusLg,
+  radiusMd,
+  spaceSm,
+} from "@/constants/layoutTokens"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import { wellnessTapMedium } from "@/lib/wellnessFeedback"
 import { emojiFamilySvgUrl } from "@/lib/mood-picker-data"
@@ -106,22 +115,22 @@ function createStyles(W: WellnessPalette) {
       flex: 1,
       backgroundColor: "rgba(0,0,0,0.55)",
       justifyContent: "center",
-      padding: 24,
+      padding: inset,
     },
     mascotRow: {
       alignItems: "center",
-      marginBottom: 8,
-      marginTop: -8,
+      marginBottom: spaceSm,
+      marginTop: -spaceSm,
     },
     sheet: {
-      borderRadius: 20,
-      padding: 22,
+      borderRadius: radiusLg,
+      padding: padSection,
       backgroundColor: W.bgElevated,
       borderWidth: 1,
       borderColor: W.cardBorder,
       alignItems: "center",
     },
-    lottie: { width: 200, height: 160, marginBottom: 8 },
+    lottie: { width: 200, height: 160, marginBottom: spaceSm },
     kicker: {
       fontSize: 11,
       fontWeight: "800",
@@ -134,7 +143,8 @@ function createStyles(W: WellnessPalette) {
       fontSize: 22,
       fontWeight: "800",
       color: W.text,
-      marginBottom: 12,
+      letterSpacing: -0.3,
+      marginBottom: gapItem,
       textAlign: "center",
     },
     badgeImg: { width: 88, height: 88, marginBottom: 12 },
@@ -144,14 +154,14 @@ function createStyles(W: WellnessPalette) {
       color: W.textMuted,
       textAlign: "center",
       lineHeight: 22,
-      marginBottom: 18,
+      marginBottom: gapSection,
     },
     btn: {
       backgroundColor: W.primary,
       paddingVertical: 14,
       paddingHorizontal: 28,
-      borderRadius: 14,
+      borderRadius: radiusMd,
     },
-    btnText: { color: "#fff", fontWeight: "800", fontSize: 16 },
+    btnText: { color: "#F5F7FF", fontWeight: "800", fontSize: 16 },
   })
 }
