@@ -21,6 +21,7 @@ import { prepareBrandedBackdropFromSplash, skipOrFinishOnboarding } from "@/lib/
 import { captureSplashPoster } from "@/lib/splash-poster"
 import { resolveSplashGifSource } from "@/lib/splash-gif-source"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
+import { gapSection, inset, radiusMd } from "@/constants/layoutTokens"
 
 /** Matches Canva landing: https://canva.link/p2xky6a5cds17v9 */
 const HEADLINE = "Bite-sized wellness"
@@ -318,8 +319,8 @@ const styles = StyleSheet.create({
   topBar: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    paddingHorizontal: 10,
-    paddingTop: 6,
+    paddingHorizontal: inset,
+    paddingTop: 8,
   },
   skipBtn: {
     paddingVertical: 10,
@@ -333,39 +334,39 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 24,
+    paddingHorizontal: inset,
   },
   appName: {
     fontSize: 28,
     fontWeight: "800",
     textAlign: "center",
-    letterSpacing: 0.3,
+    letterSpacing: -0.2,
   },
   tagline: {
-    marginTop: 12,
+    marginTop: gapSection,
     fontSize: 16,
     lineHeight: 24,
     textAlign: "center",
     fontWeight: "500",
   },
   bottomBlock: {
-    paddingHorizontal: 24,
+    paddingHorizontal: inset,
     paddingBottom: 28,
     alignItems: "center",
   },
   primary: {
     paddingVertical: 16,
-    paddingHorizontal: 44,
-    borderRadius: 14,
+    paddingHorizontal: 40,
+    borderRadius: radiusMd,
     minWidth: 220,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    shadowColor: "rgba(40, 50, 130, 0.36)",
-    shadowOpacity: 0.7,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 5,
+    shadowColor: "#0B0D1A",
+    shadowOpacity: 0.12,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 4,
   },
   primaryPressed: {
     opacity: 0.92,
@@ -379,8 +380,8 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 18,
-    paddingHorizontal: 12,
+    marginTop: gapSection + 2,
+    paddingHorizontal: gapSection,
   },
   loginLead: {
     fontSize: 15,

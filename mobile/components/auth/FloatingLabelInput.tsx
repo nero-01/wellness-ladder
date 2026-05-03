@@ -15,6 +15,8 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated"
+import { gapItem, radiusSm } from "@/constants/layoutTokens"
+import { useWellnessColors } from "@/hooks/useWellnessColors"
 
 export type FloatingLabelInputProps = Omit<
   TextInputProps,
@@ -49,7 +51,7 @@ export function FloatingLabelInput({
   labelColorInside,
   placeholderTextColor,
   error,
-  errorBorderColor = "#dc2626",
+  errorBorderColor,
   rightSlot,
   editable = true,
   onFocus,
@@ -57,6 +59,8 @@ export function FloatingLabelInput({
   multiline = false,
   ...rest
 }: FloatingLabelInputProps) {
+  const W = useWellnessColors()
+  const resolvedErrorBorder = errorBorderColor ?? W.danger
   const value = typeof rest.value === "string" ? rest.value : ""
   const [focused, setFocused] = useState(false)
   const active = useMemo(
@@ -96,7 +100,7 @@ export function FloatingLabelInput({
         style={[
           styles.inputRow,
           {
-            borderColor: error ? errorBorderColor : borderColor,
+            borderColor: error ? resolvedErrorBorder : borderColor,
             backgroundColor,
             minHeight: 50,
           },
@@ -127,15 +131,15 @@ export function FloatingLabelInput({
 
 const styles = StyleSheet.create({
   wrap: {
-    marginBottom: 12,
+    marginBottom: gapItem,
     paddingTop: 4,
   },
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
+    borderRadius: radiusSm,
+    paddingHorizontal: gapItem,
     paddingTop: 20,
     paddingBottom: 10,
   },

@@ -23,6 +23,16 @@ import { skipOrFinishOnboarding } from "@/lib/onboarding-nav"
 import type { OAuthProviderId } from "@/contexts/AuthContext"
 import { useWellnessColors } from "@/hooks/useWellnessColors"
 import type { WellnessPalette } from "@/constants/wellnessTheme"
+import { wellnessCardShadow } from "@/constants/wellnessSurface"
+import {
+  gapItem,
+  gapSection,
+  inset,
+  padSection,
+  radiusLg,
+  radiusMd,
+  spaceSm,
+} from "@/constants/layoutTokens"
 
 function createStyles(W: WellnessPalette) {
   return StyleSheet.create({
@@ -35,8 +45,8 @@ function createStyles(W: WellnessPalette) {
     topBar: {
       flexDirection: "row",
       justifyContent: "flex-end",
-      paddingHorizontal: 10,
-      paddingTop: 6,
+      paddingHorizontal: inset,
+      paddingTop: spaceSm,
     },
     skipBtn: {
       paddingVertical: 10,
@@ -50,13 +60,14 @@ function createStyles(W: WellnessPalette) {
     cardWrap: {
       flexGrow: 1,
       justifyContent: "center",
-      paddingHorizontal: 22,
-      paddingTop: 12,
+      paddingHorizontal: inset,
+      paddingTop: gapSection,
     },
     card: {
-      borderRadius: 20,
-      paddingVertical: 26,
-      paddingHorizontal: 20,
+      ...wellnessCardShadow,
+      borderRadius: radiusLg,
+      paddingVertical: padSection + spaceSm,
+      paddingHorizontal: padSection,
       backgroundColor: W.card,
       borderWidth: 1,
       borderColor: W.cardBorder,
@@ -65,42 +76,43 @@ function createStyles(W: WellnessPalette) {
       color: W.text,
       fontSize: 22,
       fontWeight: "800",
-      marginBottom: 10,
+      letterSpacing: -0.3,
+      marginBottom: spaceSm,
     },
     body: {
       color: W.textMuted,
       fontSize: 15,
       lineHeight: 22,
-      marginBottom: 18,
+      marginBottom: padSection,
     },
     oauth: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      gap: 10,
-      backgroundColor: "#000",
+      gap: gapItem,
+      backgroundColor: "#000000",
       paddingVertical: 14,
-      borderRadius: 12,
-      marginBottom: 10,
+      borderRadius: radiusMd,
+      marginBottom: spaceSm,
     },
     oauthGoogle: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      gap: 10,
-      backgroundColor: "#fff",
+      gap: gapItem,
+      backgroundColor: "#FFFFFF",
       paddingVertical: 14,
-      borderRadius: 12,
-      marginBottom: 10,
+      borderRadius: radiusMd,
+      marginBottom: spaceSm,
     },
     oauthDisabled: { opacity: 0.65 },
-    oauthText: { color: "#fff", fontSize: 16, fontWeight: "700" },
-    oauthTextDark: { color: "#111", fontSize: 16, fontWeight: "700" },
+    oauthText: { color: "#F5F7FF", fontSize: 16, fontWeight: "700" },
+    oauthTextDark: { color: "#111827", fontSize: 16, fontWeight: "700" },
     secondary: {
-      marginTop: 4,
+      marginTop: spaceSm,
       paddingVertical: 14,
       alignItems: "center",
-      borderRadius: 12,
+      borderRadius: radiusMd,
       borderWidth: 1,
       borderColor: W.cardBorder,
       backgroundColor: W.surfaceMuted,
@@ -111,7 +123,7 @@ function createStyles(W: WellnessPalette) {
       fontWeight: "700",
     },
     ghost: {
-      marginTop: 14,
+      marginTop: gapSection,
       paddingVertical: 12,
       alignItems: "center",
     },
@@ -122,13 +134,13 @@ function createStyles(W: WellnessPalette) {
       textDecorationLine: "underline",
     },
     primary: {
-      marginTop: 16,
+      marginTop: gapSection,
       backgroundColor: W.primary,
       paddingVertical: 14,
-      borderRadius: 12,
+      borderRadius: radiusMd,
       alignItems: "center",
     },
-    primaryText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+    primaryText: { color: "#F5F7FF", fontSize: 16, fontWeight: "700" },
   })
 }
 
@@ -276,10 +288,10 @@ export default function OnboardingAuthLiteScreen() {
                 disabled={oauthBusy != null || busy}
               >
                 {oauthBusy === "apple" ? (
-                  <ActivityIndicator color="#fff" />
+                  <ActivityIndicator color="#F5F7FF" />
                 ) : (
                   <>
-                    <Ionicons name="logo-apple" size={22} color="#fff" />
+                    <Ionicons name="logo-apple" size={22} color="#F5F7FF" />
                     <Text style={styles.oauthText}>Sign in with Apple</Text>
                   </>
                 )}
@@ -291,10 +303,10 @@ export default function OnboardingAuthLiteScreen() {
               disabled={oauthBusy != null || busy}
             >
               {oauthBusy === "google" ? (
-                <ActivityIndicator color="#111" />
+                <ActivityIndicator color="#111827" />
               ) : (
                 <>
-                  <Ionicons name="logo-google" size={22} color="#111" />
+                  <Ionicons name="logo-google" size={22} color="#111827" />
                   <Text style={styles.oauthTextDark}>Sign in with Google</Text>
                 </>
               )}
